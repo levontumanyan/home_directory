@@ -1,5 +1,5 @@
 # Get the directory of this script (~/.zshrc)
-ZSH_DIR=${(%):-%N:h}
+ZSH_DIR=${0:a:h}
 
 # do some setup stuff
 [ -f "$ZSH_DIR/setup.sh" ] && sh "$ZSH_DIR/setup.sh"
