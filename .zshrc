@@ -14,10 +14,11 @@ select-word-style bash
 source "$ZSH_DIR/completions.zsh"
 source "$ZSH_DIR/env.zsh"
 source "$ZSH_DIR/aliases.zsh"
-source "$ZSH_DIR/functions.zsh"
+
+# source "$ZSH_DIR/functions.zsh"
 
 # Load plugins or theme
-source "$ZSH_DIR/plugins/myplugin.zsh"
-source "$ZSH_DIR/themes/mytheme.zsh"
+# source "$ZSH_DIR/plugins/myplugin.zsh"
+# source "$ZSH_DIR/themes/mytheme.zsh"
 
 # fortune | cowsay
