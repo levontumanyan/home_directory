@@ -1,8 +1,8 @@
 # Get the directory of this script (~/.zshrc)
-ZSH_DIR=${0:A:h}
+ZSH_DIR=${(%):-%N:h}
 
 # do some setup stuff
-[ -f ~/setup.sh ] && sh ~/setup.sh
+[ -f "$ZSH_DIR/setup.sh" ] && sh "$ZSH_DIR/setup.sh"
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
