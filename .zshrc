@@ -1,6 +1,9 @@
 # Get the directory of this script (~/.zshrc)
 ZSH_DIR=${0:a:h}
 
+# source env
+source "$ZSH_DIR/env.zsh"
+
 # do some setup stuff
 [ -f "$ZSH_DIR/setup.sh" ] && sh "$ZSH_DIR/setup.sh"
 
@@ -12,7 +15,6 @@ autoload -U select-word-style
 select-word-style bash
 
 source "$ZSH_DIR/completions.zsh"
-source "$ZSH_DIR/env.zsh"
 source "$ZSH_DIR/aliases.zsh"
 
 # source "$ZSH_DIR/functions.zsh"
