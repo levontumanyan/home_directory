@@ -22,6 +22,11 @@ for file in $DOTFILES; do
   ln -sfn "$DOTFILES_DIR/$file" "$HOME/$file"
 done
 
+# move bash related files out to the backup dir
+for file in .bash*; do
+  mv "$HOME/$file" "$BACKUP_DIR/"
+done
+
 echo "Dotfiles installed!"
 
 source $HOME/.zshrc
