@@ -23,9 +23,11 @@ for file in $DOTFILES; do
   ln -sfn "$DOTFILES_DIR/$file" "$HOME/$file"
 done
 
-# move bash related files out to the backup dir
+# move bash related files and .profile out to the backup dir if they exist 
 for file in .bash* .profile; do
-  mv "$HOME/$file" "$BACKUP_DIR/"
+  if [ -f "$HOME/$file" ]; then
+    mv "$HOME/$file" "$BACKUP_DIR/"
+  fi
 done
 
 echo "Dotfiles installed!"
