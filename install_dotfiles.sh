@@ -4,7 +4,7 @@ set -e
 DOTFILES_DIR="$HOME/home_directory"
 
 # download the repo
-rm -rf $DOTFILES_DIR/.git
+# rm -rf $DOTFILES_DIR/.git
 
 BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d%H%M%S)"
 
@@ -29,3 +29,5 @@ for file in "${FILES[@]}"; do
 done
 
 echo "Dotfiles installed!"
+
+source $HOME/.zshrc
