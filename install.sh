@@ -23,7 +23,7 @@ for file in $DOTFILES; do
 done
 
 # move bash related files out to the backup dir
-for file in .bash*; do
+for file in .bash* .profile; do
   mv "$HOME/$file" "$BACKUP_DIR/"
 done
 
