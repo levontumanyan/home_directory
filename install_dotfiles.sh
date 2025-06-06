@@ -9,19 +9,12 @@ DOTFILES_DIR="$HOME/home_directory"
 BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d%H%M%S)"
 
 # List your dotfiles here
-FILES=(
-  ".zshrc"
-  "env.zsh"
-  "setup.sh"
-  "completions.zsh"
-  "aliases.zsh"
-  # Add more as needed
-)
+FILES=".zshrc env.zsh setup.sh completions.zsh aliases.zsh"
 
 echo "Backing up existing dotfiles to $BACKUP_DIR"
 mkdir -p "$BACKUP_DIR"
 
-for file in "${FILES[@]}"; do
+for file in $FILES; do
   if [ -f "$HOME/$file" ]; then
     mv "$HOME/$file" "$BACKUP_DIR/"
   fi
