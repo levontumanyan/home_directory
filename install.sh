@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 set -e
+set -x
 
 DOTFILES_DIR="$HOME/home_directory"
 
