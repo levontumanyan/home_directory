@@ -1,11 +1,8 @@
-# Get the directory of this script (~/.zshrc)
-ZSH_DIR=${0:a:h}
-
 # source env
-source "$ZSH_DIR/env.zsh"
+source "$HOME/env.zsh"
 
 # do some setup stuff
-[ -f "$ZSH_DIR/setup.sh" ] && sh "$ZSH_DIR/setup.sh"
+[ -f "$HOME/setup.sh" ] && sh "$HOME/setup.sh"
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
@@ -14,8 +11,8 @@ source <(fzf --zsh)
 autoload -U select-word-style
 select-word-style bash
 
-source "$ZSH_DIR/completions.zsh"
-source "$ZSH_DIR/aliases.zsh"
+source "$HOME/completions.zsh"
+source "$HOME/aliases.zsh"
 
 # source "$ZSH_DIR/functions.zsh"
 
