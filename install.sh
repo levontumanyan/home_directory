@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 set -e
+
 DOTFILES_DIR="$HOME/home_directory"
 
 # download the repo
@@ -9,7 +10,7 @@ DOTFILES_DIR="$HOME/home_directory"
 BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d%H%M%S)"
 
 # List your dotfiles here
-FILES=".zshrc env.zsh setup.sh completions.zsh aliases.zsh"
+DOTFILES=".zshrc env.zsh setup.sh completions.zsh aliases.zsh"
 
 echo "Backing up existing dotfiles to $BACKUP_DIR"
 mkdir -p "$BACKUP_DIR"
