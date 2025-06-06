@@ -1,10 +1,9 @@
 #!/usr/bin/env sh
 
 set -e
-DOTFILES_DIR="home_directory"
+DOTFILES_DIR="$HOME/home_directory"
 
 # download the repo
-git clone --depth 1 https://github.com/levontumanyan/$DOTFILES_DIR
 rm -rf $DOTFILES_DIR/.git
 
 BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d%H%M%S)"
