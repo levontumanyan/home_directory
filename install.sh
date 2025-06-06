@@ -15,7 +15,7 @@ DOTFILES=".zshrc env.zsh setup.sh completions.zsh aliases.zsh"
 echo "Backing up existing dotfiles to $BACKUP_DIR"
 mkdir -p "$BACKUP_DIR"
 
-for file in $FILES; do
+for file in $DOTFILES; do
   if [ -f "$HOME/$file" ]; then
     mv "$HOME/$file" "$BACKUP_DIR/"
   fi
