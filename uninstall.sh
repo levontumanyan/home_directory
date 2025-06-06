@@ -7,6 +7,9 @@ set -e
 #  rm -r $DOTFILES_DIR
 #fi
 
+# locate the backup dir
+BACKUP_DIR=$(ls -dt "$HOME"/dotfiles_backup_* 2>/dev/null | head -n 1)
+
 echo "Removing dotfile symlinks from \$HOME..."
 for file in $FILES; do
 	if [ -L "$HOME/$file" ] && [ "$(readlink "$HOME/$file")" = "$DOTFILES_DIR/$file" ]; then
