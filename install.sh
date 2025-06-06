@@ -8,7 +8,7 @@ DOTFILES_DIR="$HOME/home_directory"
 # download the repo
 # rm -rf $DOTFILES_DIR/.git
 
-BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d%H%M%S)"
+BACKUP_DIR="$HOME/dotfiles_backup_$(date +%d_%m_%Y_%H:%M:%S)"
 
 # List your dotfiles here
 DOTFILES=".zshrc env.zsh setup.sh completions.zsh aliases.zsh"
