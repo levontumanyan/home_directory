@@ -21,7 +21,7 @@ command -v kubectl >/dev/null 2>&1 || {
 # install kubernetes function
 install_kubectl() {
 	# determine whether we are on arm or x86_64
-	arch = $(uname -m)
+	arch=$(uname -m)
 	if [[ "$arch" == "x86_64" ]]; then
 		curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 	elif [[ "$arch" == "arm64" || "$arch" == "aarch64" ]]; then
