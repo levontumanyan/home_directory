@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env zsh
 
 # setup usually once
 
@@ -8,3 +8,8 @@ command -v fzf >/dev/null 2>&1 || {
 	git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
 	"$HOME/.fzf/install" --all
 }
+
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
+
+source "$HOME/.zshrc"

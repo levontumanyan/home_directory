@@ -32,4 +32,4 @@ done
 
 echo "Dotfiles installed!"
 
-source $HOME/.zshrc
+sh "$DOTFILES/setup.sh"
