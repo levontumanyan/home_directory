@@ -33,7 +33,7 @@ done
 echo "Dotfiles installed!"
 
 if command -v zsh >/dev/null 2>&1; then
-  exec zsh --no-rcs
+  exec zsh
 else
   echo "Zsh is not installed. Skipping Zsh-specific setup."
 fi
