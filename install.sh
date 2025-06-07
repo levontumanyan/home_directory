@@ -33,7 +33,9 @@ done
 echo "Dotfiles installed!"
 
 if command -v zsh >/dev/null 2>&1; then
-  zsh "$DOTFILES_DIR/setup.sh"
+  exec zsh "$0" "$@"
 else
   echo "Zsh is not installed. Skipping Zsh-specific setup."
 fi
+
+source "$HOME/.zshrc"

@@ -11,5 +11,3 @@ command -v fzf >/dev/null 2>&1 || {
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
-
-source "$HOME/.zshrc"
