@@ -2,7 +2,7 @@
 source "$HOME/env.zsh"
 
 # do some setup stuff
-[ -f "$HOME/setup.sh" ] && sh "$HOME/setup.sh"
+[ -f "$HOME/$DOTFILES_DIR/setup.sh" ] && sh "$HOME/$DOTFILES_DIR/setup.sh"
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
