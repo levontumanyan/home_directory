@@ -15,7 +15,7 @@ install_kubectl() {
 	
 	echo "Downloading kubectl from: $url"
 	curl -LO "$url"
-	
+
 	# add checksum check
 	chmod +x kubectl
 	mkdir -p ~/bin
@@ -24,11 +24,18 @@ install_kubectl() {
 	source <(kubectl completion zsh)
 }
 
-# setup fuzzy finder
+# download and install fuzzy finder
 command -v fzf >/dev/null 2>&1 || {
 	echo "fzf not found, installing..."
 	git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
-	"$HOME/.fzf/install" --all
+	"$HOME/.fzf/install" --all --no-update-rc
+
+	# remove unnecessary stuff and move things to $HOME/bin
+	mv "$HOME/.fzf/bin/fzf" "$HOME/bin/fzf/"
+	mv "$HOME/.fzf/shell/key-bindings.zsh" "$HOME/bin/fzf/"
+	mv "$HOME/.fzf/shell/completion.zsh" "$HOME/bin/fzf/"
+
+	rm -rf "$HOME/.fzf"
 }
 
 # install kubectl if wanted
