@@ -6,13 +6,16 @@ install_kubectl() {
 	# determine whether we are on arm or x86_64
 	arch=$(uname -m)
 	if [[ "$arch" == "x86_64" ]]; then
-		curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+		url="https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 	elif [[ "$arch" == "arm64" || "$arch" == "aarch64" ]]; then
-		curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl"
+		url="https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl"
 	else
 		echo "Unsupported architecture: $arch, can't install kubectl..."
 	fi
-
+	
+	echo "Downloading kubectl from: $url"
+	curl -LO "$url"
+	
 	# add checksum check
 	chmod +x kubectl
 	mkdir -p ~/bin
