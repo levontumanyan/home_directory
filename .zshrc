@@ -6,7 +6,8 @@ source "$HOME/env.zsh"
 
 # how words are deleted with option
 autoload -U select-word-style
-select-word-style zsh
+select-word-style bash
+# WORDCHARS='*?_-[~=&;!#$%^(){}<>'
 
 source "$HOME/completions.zsh"
 source "$HOME/aliases.zsh"
