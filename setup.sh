@@ -36,6 +36,7 @@ command -v fzf >/dev/null 2>&1 || {
 	# mv "$HOME/.fzf/shell/completion.zsh" "$HOME/bin/fzf/"
 
 	rm -rf "$HOME/.fzf"
+	rm -f "$HOME/.fzf.bash" "$HOME/.fzf.zsh"
 }
 
 # install kubectl if wanted
