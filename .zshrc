@@ -2,7 +2,7 @@
 source "$HOME/env.zsh"
 
 # do some setup stuff
-[ -f "$DOTFILES_DIR/setup.sh" ] && sh "$DOTFILES_DIR/setup.sh"
+[ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
 
 # how words are deleted with option
 autoload -U select-word-style
