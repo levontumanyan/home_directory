@@ -6,7 +6,7 @@ source "$HOME/env.zsh"
 
 # how words are deleted with option
 autoload -U select-word-style
-select-word-style bash
+select-word-style zsh
 
 source "$HOME/completions.zsh"
 source "$HOME/aliases.zsh"
