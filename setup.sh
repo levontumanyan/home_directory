@@ -1,22 +1,5 @@
 #!/usr/bin/env zsh
-
 # setup usually once
-
-# setup fuzzy finder
-command -v fzf >/dev/null 2>&1 || {
-	echo "fzf not found, installing..."
-	git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
-	"$HOME/.fzf/install" --all
-}
-
-# install kubectl if wanted
-command -v kubectl >/dev/null 2>&1 || {
-	echo "Kubectl is not installed, would you like to install it: y/N]: "
-	read -r kubectl_reply
-	if [[ "$kubectl_reply" == [yY] ]]; then
-		install_kubectl
-	fi
-}
 
 # install kubernetes function
 install_kubectl() {
@@ -36,4 +19,20 @@ install_kubectl() {
 	mv ./kubectl ~/bin/kubectl
 
 	source <(kubectl completion zsh)
+}
+
+# setup fuzzy finder
+command -v fzf >/dev/null 2>&1 || {
+	echo "fzf not found, installing..."
+	git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
+	"$HOME/.fzf/install" --all
+}
+
+# install kubectl if wanted
+command -v kubectl >/dev/null 2>&1 || {
+	echo "Kubectl is not installed, would you like to install it: y/N]: "
+	read -r kubectl_reply
+	if [[ "$kubectl_reply" == [yY] ]]; then
+		install_kubectl
+	fi
 }
