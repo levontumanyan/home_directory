@@ -2,16 +2,11 @@
 
 set -euox pipefail
 
-DOTFILES_DIR="$HOME/home_directory"
-
 # download the repo
 # rm -rf $DOTFILES_DIR/.git
 
-# dated backup dir
-BACKUP_DIR="$HOME/dotfiles_backup/$(date +%d_%m_%Y_%H:%M:%S)"
-
-# List your dotfiles here
-DOTFILES=".zshrc env.zsh completions.zsh aliases.zsh"
+# source dated backup dir, dotfiles
+source ./setup_envs.sh
 
 # create general backup dir
 [ ! -d "$HOME/dotfiles_backup/" ] && mkdir -pv "$HOME/dotfiles_backup/"

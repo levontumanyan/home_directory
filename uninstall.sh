@@ -3,8 +3,7 @@
 set -euox
 
 # locate the backup dir
-BACKUP_DATE_DIR=$(ls -dt "$HOME"/dotfiles_backup_* 2>/dev/null | head -n 1)
-DOTFILES=".zshrc env.zsh completions.zsh aliases.zsh"
+source ./setup_envs.sh
 
 echo "Removing dotfile symlinks from \$HOME..."
 for file in $DOTFILES; do
