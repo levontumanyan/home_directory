@@ -6,7 +6,7 @@ set -euox pipefail
 # rm -rf $DOTFILES_DIR/.git
 
 # source dated backup dir, dotfiles
-source ./setup_envs.sh
+source "$(dirname "$0")/setup_envs.sh"
 
 # create general backup dir
 [ ! -d "$HOME/dotfiles_backup/" ] && mkdir -pv "$HOME/dotfiles_backup/"
