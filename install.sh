@@ -9,7 +9,8 @@ set -euox pipefail
 source "$(dirname "$0")/setup_envs.sh"
 
 # create general backup dir
-[ ! -d "$HOME/dotfiles_backup/" ] && mkdir -pv "$HOME/dotfiles_backup/"
+[ ! -d "$BACKUP_GENERAL_DIR" ] && mkdir -pv "$BACKUP_GENERAL_DIR"
+
 # create dated backup dir
 mkdir -pv "$BACKUP_DIR"
 
