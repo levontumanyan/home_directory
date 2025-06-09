@@ -1,7 +1,6 @@
 #!/usr/bin/env sh
 
-set -e
-set -x
+set -euox pipefail
 
 DOTFILES_DIR="$HOME/home_directory"
 
@@ -37,9 +36,7 @@ done
 echo "Dotfiles installed!"
 
 if command -v zsh >/dev/null 2>&1; then
-  exec zsh
+  exec zsh -euox pipefail
 else
   echo "Zsh is not installed. Skipping Zsh-specific setup."
 fi
-
-source "$HOME/.zshrc"

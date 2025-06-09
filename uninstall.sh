@@ -1,14 +1,9 @@
-	#!/usr/bin/env sh
+#!/usr/bin/env sh
 
-set -e
-
-# Check if $DOTFILES_DIR is set and not empty
-#if [ -n "$DOTFILES_DIR" ]; then
-#  rm -r $DOTFILES_DIR
-#fi
+set -euox
 
 # locate the backup dir
-BACKUP_DIR=$(ls -dt "$HOME"/dotfiles_backup_* 2>/dev/null | head -n 1)
+BACKUP_DATE_DIR=$(ls -dt "$HOME"/dotfiles_backup_* 2>/dev/null | head -n 1)
 
 echo "Removing dotfile symlinks from \$HOME..."
 for file in $FILES; do
@@ -18,11 +13,11 @@ for file in $FILES; do
 	fi
 done
 
-if [ -n "$BACKUP_DIR" ]; then
-	echo "Restoring backups from $BACKUP_DIR..."
+if [ -n "$BACKUP_DATE_DIR" ]; then
+	echo "Restoring backups from $BACKUP_DATE_DIR..."
 	for file in $FILES; do
-		if [ -f "$BACKUP_DIR/$file" ]; then
-			mv "$BACKUP_DIR/$file" "$HOME/$file"
+		if [ -f "$BACKUP_DATE_DIR/$file" ]; then
+			mv "$BACKUP_DATE_DIR/$file" "$HOME/$file"
 			echo "Restored $HOME/$file"
 		fi
 	done

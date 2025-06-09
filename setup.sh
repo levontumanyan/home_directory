@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 # setup usually once
+set -euox pipefail
 
 # install kubernetes function
 install_kubectl() {
