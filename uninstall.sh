@@ -13,11 +13,11 @@ for file in $DOTFILES; do
 	fi
 done
 
-if [ -n "$LAST_BACKUP_DATE_DIR" ]; then
-	echo "Restoring backups from $LAST_BACKUP_DATE_DIR..."
+if [ -n "$LAST_BACKUP" ]; then
+	echo "Restoring backups from $LAST_BACKUP..."
 	for file in $DOTFILES; do
-		if [ -f "$LAST_BACKUP_DATE_DIR/$file" ]; then
-			mv "$LAST_BACKUP_DATE_DIR/$file" "$HOME/$file"
+		if [ -f "$LAST_BACKUP/$file" ]; then
+			mv "$LAST_BACKUP/$file" "$HOME/$file"
 			echo "Restored $HOME/$file"
 		fi
 	done
