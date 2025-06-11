@@ -23,10 +23,8 @@ if [ -n "$LAST_BACKUP" ]; then
 		fi
 	done
 
-	for file in "$DOTFILES_DIR"/.zsh* "$DOTFILES_DIR"/.zprofile "$DOTFILES_DIR"/.bash* "$DOTFILES_DIR"/.profile; do
-		if [ -f "$HOME/$file" ]; then
-			mv "$HOME/$file" "$BACKUP_DIR/"
-		fi
+	for file in "$LAST_BACKUP"/.zsh* "$LAST_BACKUP"/.zprofile "$LAST_BACKUP"/.bash* "$LAST_BACKUP"/.profile; do
+		[ -e "$file" ] && mv "$file" "$HOME/"
 	done
 else
 	echo "No backup directory found. Nothing to restore."
