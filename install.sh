@@ -24,10 +24,8 @@ for file in $DOTFILES; do
 done
 
 # also backup some other files that could be there
-for file in "$DOTFILES_DIR"/.zsh* "$DOTFILES_DIR"/.zprofile "$DOTFILES_DIR"/.bash* "$DOTFILES_DIR"/.profile"; do
-  if [ -f "$HOME/$file" ]; then
+for file in "$HOME"/.zsh* "$HOME"/.zprofile "$HOME"/.bash* "$HOME"/.profile; do
     mv "$HOME/$file" "$BACKUP_DIR/"
-  fi
 done
 
 echo "Dotfiles installed!"
