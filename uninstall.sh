@@ -3,7 +3,7 @@
 set -euox
 
 # locate the backup dir
-source "$(dirname "$0")/setup_envs.sh"
+. "$(dirname "$0")/setup_envs.sh"
 
 echo "Removing dotfile symlinks from \$HOME..."
 for file in $DOTFILES; do

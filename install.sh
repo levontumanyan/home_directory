@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 
-set -euox pipefail
+set -euox
 
 # download the repo
 # rm -rf $DOTFILES_DIR/.git
 
 # source dated backup dir, dotfiles
-source "$(dirname "$0")/setup_envs.sh"
+. "$(dirname "$0")/setup_envs.sh"
 
 # create general backup dir
 [ ! -d "$BACKUP_GENERAL_DIR" ] && mkdir -pv "$BACKUP_GENERAL_DIR"
@@ -32,7 +32,7 @@ done
 echo "Dotfiles installed!"
 
 if command -v zsh >/dev/null 2>&1; then
-  exec zsh -euox pipefail
+  exec zsh -eux -o pipefail
 else
   echo "Zsh is not installed. Skipping Zsh-specific setup."
 fi
