@@ -5,6 +5,9 @@ set -euox
 # run uninstall just in case to cleanup the environment
 "$(dirname "$0")/uninstall.sh"
 
+# just in case
+rm -rf "$HOME/.oh-my-zsh/"
+
 # download the repo
 # rm -rf $DOTFILES_DIR/.git
 
