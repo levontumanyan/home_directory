@@ -25,7 +25,7 @@ done
 
 # also backup some other files that could be there
 for file in "$HOME"/.zsh* "$HOME"/.zprofile "$HOME"/.bash* "$HOME"/.profile; do
-    mv "$HOME/$file" "$BACKUP_DIR/"
+  [ -e "$file" ] && mv -v "$file" "$BACKUP_DIR/"
 done
 
 echo "Dotfiles installed!"
