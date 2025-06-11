@@ -1,8 +1,7 @@
 # source env
 source "$HOME/env.zsh"
 
-# do some setup stuff
-[ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
+[ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
 
 # how words are deleted with option
 autoload -U select-word-style

@@ -1,6 +1,10 @@
 #!/usr/bin/env zsh
 # setup usually once
-set -euox pipefail
+set -euo xtrace
+setopt pipefail
+
+# create user bin
+mkdir -p ~/bin
 
 # install kubernetes function
 install_kubectl() {
@@ -19,7 +23,6 @@ install_kubectl() {
 
 	# add checksum check
 	chmod +x kubectl
-	mkdir -p ~/bin
 	mv ./kubectl ~/bin/kubectl
 
 	source <(kubectl completion zsh)
@@ -29,7 +32,7 @@ install_kubectl() {
 command -v fzf >/dev/null 2>&1 || {
 	echo "fzf not found, installing..."
 	git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
-	"$HOME/.fzf/install" --all --no-update-rc
+	"$HOME/.fzf/install" --all --no-update-rc --no-fish
 
 	# remove unnecessary stuff and move things to $HOME/bin
 	mv "$HOME/.fzf/bin/fzf" "$HOME/bin/"

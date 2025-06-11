@@ -31,8 +31,12 @@ done
 
 echo "Dotfiles installed!"
 
+echo "dotfiles dir is: $DOTFILES_DIR"
+# do some setup stuff
+[ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
+
 if command -v zsh >/dev/null 2>&1; then
-  exec zsh -eux -o pipefail
+  exec zsh
 else
   echo "Zsh is not installed. Skipping Zsh-specific setup."
 fi
