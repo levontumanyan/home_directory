@@ -20,18 +20,11 @@ for file in $DOTFILES; do
     mv -v "$HOME/$file" "$BACKUP_DIR/"
   fi
 
-  # also move some other files that could be there
-  for file in .zsh* .zprofile .bash* .profile; do
-    if [ -f "$HOME/$file" ]; then
-      mv "$HOME/$file" "$BACKUP_DIR/"
-    fi
-  done
-
   ln -sfnv "$DOTFILES_DIR/$file" "$HOME/$file"
 done
 
-# move bash related files and .profile out to the backup dir if they exist 
-for file in .zsh* .zprofile .bash* .profile; do
+# also backup some other files that could be there
+for file in "$DOTFILES_DIR"/.zsh* "$DOTFILES_DIR"/.zprofile "$DOTFILES_DIR"/.bash* "$DOTFILES_DIR"/.profile"; do
   if [ -f "$HOME/$file" ]; then
     mv "$HOME/$file" "$BACKUP_DIR/"
   fi
