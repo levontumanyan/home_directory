@@ -13,17 +13,17 @@ for file in $DOTFILES; do
 	fi
 done
 
-if [ -n "$LAST_BACKUP" ]; then
-	echo "Restoring backups from $LAST_BACKUP..."
+if [ -n "$BACKUP_DIR" ]; then
+	echo "Restoring backups from $BACKUP_DIR..."
 	# move bash related files and .profile out to the backup dir if they exist
 	for file in $DOTFILES; do
-		if [ -f "$LAST_BACKUP/$file" ]; then
-			mv "$LAST_BACKUP/$file" "$HOME/$file"
+		if [ -f "$BACKUP_DIR/$file" ]; then
+			mv "$BACKUP_DIR/$file" "$HOME/$file"
 			echo "Restored $HOME/$file"
 		fi
 	done
 
-	for file in "$LAST_BACKUP"/.zsh* "$LAST_BACKUP"/.zprofile "$LAST_BACKUP"/.bash* "$LAST_BACKUP"/.profile; do
+	for file in "$BACKUP_DIR"/.zsh* "$BACKUP_DIR"/.zprofile "$BACKUP_DIR"/.bash* "$BACKUP_DIR"/.profile; do
 		[ -e "$file" ] && mv "$file" "$HOME/"
 	done
 else
