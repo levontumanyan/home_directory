@@ -4,6 +4,7 @@ git clone --depth 1 https://github.com/levontumanyan/home_directory
 
 Todo:
 
+- [ ] ownership of the files in this repo (root?)
 - [ ] script install zsh, then switches to a zsh shell with all the proper options `set -euox`
 - [ ] add history settings
 - [ ] why does .zshrc gets overriden after install. update. then git pull sometimes has a merge issue
