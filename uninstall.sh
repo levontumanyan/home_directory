@@ -15,17 +15,8 @@ done
 
 if [ -n "$BACKUP_DIR" ]; then
 	echo "Restoring backups from $BACKUP_DIR..."
-	# move bash related files and .profile out to the backup dir if they exist
-	for file in $DOTFILES; do
-		if [ -f "$BACKUP_DIR/$file" ]; then
-			mv "$BACKUP_DIR/$file" "$HOME/$file"
-			echo "Restored $HOME/$file"
-		fi
-	done
-
-	for file in "$BACKUP_DIR"/.zsh* "$BACKUP_DIR"/.zprofile "$BACKUP_DIR"/.bash* "$BACKUP_DIR"/.profile; do
-		[ -e "$file" ] && mv "$file" "$HOME/"
-	done
+	# move files from backup to homedir
+	find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -exec mv {} "$HOME"/ \;
 else
 	echo "No backup directory found. Nothing to restore."
 fi

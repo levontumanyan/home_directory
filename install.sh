@@ -2,12 +2,6 @@
 
 set -euox
 
-# run uninstall just in case to cleanup the environment
-#"$(dirname "$0")/uninstall.sh"
-
-# just in case
-rm -rf "$HOME/.oh-my-zsh/"
-
 # cleanup the repo
 # rm -rf $DOTFILES_DIR/.git
 
@@ -26,6 +20,11 @@ echo "dotfiles are: $DOTFILES"
 for file in "$HOME"/.zsh* "$HOME"/.zprofile "$HOME"/.bash* "$HOME"/.profile; do
   [ -e "$file" ] && mv -v "$file" "$BACKUP_DIR/"
 done
+
+# backup ohmyzsh
+if [ -d "$HOME/.oh-my-zsh" ] && [ ! -d "$BACKUP_DIR/.oh-my-zsh" ]; then
+  mv -v "$HOME/.oh-my-zsh" "$BACKUP_DIR/"
+fi
 
 echo "Backing up existing dotfiles to $BACKUP_DIR"
 for file in $DOTFILES; do
