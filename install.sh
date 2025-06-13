@@ -11,9 +11,6 @@ set -euox
 # create general backup dir
 [ ! -d "$BACKUP_DIR" ] && mkdir -pv "$BACKUP_DIR"
 
-# create dated backup dir
-mkdir -pv "$BACKUP_DIR"
-
 echo "dotfiles are: $DOTFILES"
 
 # backup some files that could be there
@@ -32,16 +29,17 @@ for file in $DOTFILES; do
     mv -v "$HOME/$file" "$BACKUP_DIR/"
   fi
 
+  # create links between my dotfiles and home in the new system
   ln -sfnv "$DOTFILES_DIR/$file" "$HOME/$file"
 done
 
-# echo "Dotfiles installed!"
+echo "Dotfiles installed!"
 
-# # do some setup stuff
-# [ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
+# do some setup stuff
+[ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
 
-# if command -v zsh >/dev/null 2>&1; then
-#   exec zsh
-# else
-#   echo "Zsh is not installed. Skipping Zsh-specific setup."
-# fi
+if command -v zsh >/dev/null 2>&1; then
+  exec zsh
+else
+  echo "Zsh is not installed. Skipping Zsh-specific setup."
+fi

@@ -22,10 +22,8 @@ install_kubectl() {
 	curl -LO "$url"
 
 	# add checksum check
-	chmod +x kubectl
+	chmod 744 kubectl
 	mv ./kubectl ~/bin/kubectl
-
-	source <(kubectl completion zsh)
 }
 
 # download and install fuzzy finder
