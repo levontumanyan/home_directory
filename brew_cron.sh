@@ -7,7 +7,7 @@ BREW_CASKS="./brew_casks.txt"
 
 # Update the list
 brew list --formula > "$BREW_FORMULAS"
-brew list --cask >> "$BREW_CASKS"
+brew list --cask > "$BREW_CASKS"
 
 # Commit and push if there are changes
 git add $BREW_FORMULAS $BREW_CASKS
