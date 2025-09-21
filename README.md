@@ -1,5 +1,6 @@
 ```bash
 git clone --depth 1 https://github.com/levontumanyan/home_directory
+./install.sh
 ```
 
 Todo:
@@ -12,3 +13,9 @@ Todo:
 - [ ] kubectl completions not working
 - [ ] move fzf binary inside `$HOME/bin`
 - [ ] cleanup the fzf directory that we download
+
+# backup homedir
+
+```bash
+sudo rsync -a --progress --exclude=".local/" --exclude=".vscode-remote/" "$HOME/" "./backup/"
+```

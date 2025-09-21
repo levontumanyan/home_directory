@@ -7,7 +7,7 @@ ARROW_PART="%{$fg_bold[red]%}➜"
 DIR_PART="%{$fg_bold[yellow]%}%~"
 END_PART="%{$reset_color%}"
 
-NEWLINE=$'\n'
+NEWLINE=$'\n$'
 
 # Combine for final prompt
 PROMPT="${USER_PART}@${HOST_PART} ${ARROW_PART} ${DIR_PART} ${NEWLINE} ${END_PART}"

@@ -12,7 +12,7 @@ source "$HOME/completions.zsh"
 source "$HOME/aliases.zsh"
 
 # source the prompt
-[ -f "$HOME/.ps1.zsh" ] && source "$HOME/.ps1.zsh"
+[ -f "$HOME/ps1.zsh" ] && source "$HOME/ps1.zsh"
 
 # source "$ZSH_DIR/functions.zsh"
 
