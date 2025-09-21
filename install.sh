@@ -11,8 +11,6 @@ set -euox
 # create general backup dir
 [ ! -d "$BACKUP_DIR" ] && mkdir -pv "$BACKUP_DIR"
 
-echo "dotfiles are: $DOTFILES"
-
 # backup some files that could be there
 for file in "$HOME"/.zsh* "$HOME"/.zprofile "$HOME"/.bash* "$HOME"/.profile; do
   [ -e "$file" ] && mv -v "$file" "$BACKUP_DIR/"
@@ -24,13 +22,16 @@ if [ -d "$HOME/.oh-my-zsh" ] && [ ! -d "$BACKUP_DIR/.oh-my-zsh" ]; then
 fi
 
 echo "Backing up existing dotfiles to $BACKUP_DIR"
-for file in $DOTFILES; do
+for file in $BACKUP_FILES; do
   if [ -e "$HOME/$file" ]; then
     mv -v "$HOME/$file" "$BACKUP_DIR/"
   fi
+done
 
-  # create links between my dotfiles and home in the new system
-  ln -sfnv "$DOTFILES_DIR/$file" "$HOME/$file"
+# find all the dotfiles in the corresponding directory and symlink
+find $DOTFILES_DIR/dotfiles -type f | while read -r dot_file; do
+  echo "linking dotfile: $dot_file"
+  ln -sfnv "$dot_file" "$HOME/$(basename "$dot_file")"
 done
 
 echo "Dotfiles installed!"
