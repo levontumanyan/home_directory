@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+# add brew into path otherwise cron fails
+export PATH="/opt/homebrew/bin:$PATH"
 set -e
 
 BREW_FORMULAS="./brew_formulas.txt"
