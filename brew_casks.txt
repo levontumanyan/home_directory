@@ -2,6 +2,3 @@ brave-browser
 microsoft-auto-update
 microsoft-outlook
 miniconda
-orbstack
-yt-music
-zoom

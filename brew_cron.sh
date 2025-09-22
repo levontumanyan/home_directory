@@ -1,8 +1,11 @@
 #!/usr/bin/env zsh
 
-# add brew into path otherwise cron fails
+# add brew, git into path otherwise cron fails
 export PATH="/opt/homebrew/bin:$PATH"
 set -e
+
+# cd into the directory where the script lives
+cd "$(dirname "$0")"
 
 BREW_FORMULAS="./brew_formulas.txt"
 BREW_CASKS="./brew_casks.txt"
@@ -16,6 +19,7 @@ git add $BREW_FORMULAS $BREW_CASKS
 if ! git diff --cached --quiet; then
     git commit -m "Update brew list $(date +'%Y-%m-%d')"
     git push origin main
+    echo "Pushed updates at $(date)" >> /tmp/brew_cron.log
+else
+    echo "No changes to commit at $(date)" >> /tmp/brew_cron.log
 fi
-
-echo "Ran at $(date)" >> /tmp/brew_cron.log

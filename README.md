@@ -19,3 +19,6 @@ Todo:
 ```bash
 sudo rsync -a --progress --exclude=".local/" --exclude=".vscode-remote/" "$HOME/" "./backup/"
 ```
+
+# cron command for brew casks and formulas to be backed up
+* * * * * /Users/levontumanyan/home_directory/brew_cron.sh >> /tmp/brew_cron.log 2>&1
