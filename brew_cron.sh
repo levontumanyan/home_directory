@@ -15,3 +15,5 @@ if ! git diff --cached --quiet; then
     git commit -m "Update brew list $(date +'%Y-%m-%d')"
     git push origin main
 fi
+
+echo "Ran at $(date)" >> /tmp/brew_cron.log
