@@ -25,10 +25,10 @@ else
 fi
 
 # uninstall fzf
-if [ -d "$HOME/.fzf" ]; then
-	$HOME/.fzf/uninstall
-	rm -rf "$HOME/.fzf"
-	echo "Removed $HOME/.fzf directory."
+if [ -f "$HOME/bin/.fzf" ]; then
+	$HOME/bin/.fzf/uninstall
+	rm "$HOME/.fzf"
+	echo "Removed $HOME/.fzf."
 fi
 
 echo "Uninstall complete."
