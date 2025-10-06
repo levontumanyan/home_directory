@@ -20,8 +20,6 @@ source "$HOME/aliases.zsh"
 # source "$ZSH_DIR/plugins/myplugin.zsh"
 # source "$ZSH_DIR/themes/mytheme.zsh"
 
-# fortune | cowsay
-
 HISTFILE=~/.zsh_history
 HISTSIZE=50000
 SAVEHIST=50000
