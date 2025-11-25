@@ -8,6 +8,9 @@ autoload -U select-word-style
 select-word-style bash
 # WORDCHARS='*?_-[~=&;!#$%^(){}<>'
 
+# double tab cycle through options
+zstyle ':completion:*' menu select
+
 source "$HOME/completions.zsh"
 source "$HOME/aliases.zsh"
 
