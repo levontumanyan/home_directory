@@ -36,6 +36,9 @@ done
 
 echo "Dotfiles installed!"
 
+# check for macos and install macos specific things(brew)
+[ -f "$DOTFILES_DIR/macos_setup.sh" ] && zsh "$DOTFILES_DIR/macos_setup.sh"
+
 # do some setup stuff
 [ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
 

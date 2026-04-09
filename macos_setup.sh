@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env zsh
 
 # are we on a macos? exit if not
 if [ "$(uname)" != "Darwin" ]; then
