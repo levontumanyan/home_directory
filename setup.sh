@@ -25,7 +25,10 @@ mkdir -p ~/bin
 install_kubectl() {
 	# determine whether we are on arm or x86_64
 	arch=$(uname -m)
-	if [[ "$arch" == "x86_64" ]]; then
+	# assuming no more intel macs :D
+	if [[ "$(uname)" == "Darwin" ]]; then
+		url="https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl"
+	elif [[ "$arch" == "x86_64" ]]; then
 		url="https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 	elif [[ "$arch" == "arm64" || "$arch" == "aarch64" ]]; then
 		url="https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl"
