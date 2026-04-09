@@ -3,6 +3,21 @@
 set -euo xtrace
 setopt pipefail
 
+# Configure git user if not already set
+if [ -z "$(git config --global user.name)" ] || [ -z "$(git config --global user.email)" ]; then
+	echo "Git user.name and user.email not configured."
+	echo "Please enter your git user name:"
+	read -r git_name
+	echo "Please enter your git email:"
+	read -r git_email
+
+	git config --global user.name "$git_name"
+	git config --global user.email "$git_email"
+	echo "Git config set to: $git_name <$git_email>"
+else
+	echo "Git already configured as: $(git config --global user.name) <$(git config --global user.email)>"
+fi
+
 # create user bin
 mkdir -p ~/bin
 
