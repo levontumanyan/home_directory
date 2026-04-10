@@ -7,6 +7,7 @@ Manually make sure that iterm looks at this dir for its settings: `/Users/levont
 
 Todo:
 
+- [ ] separate brew lists for work/personal
 - [ ] restoring from backups is broken
 - [ ] remove the bin dir
 - [ ] kubectl binary is only linux(arm/x86-64) compatible. add mac/darwin support.
