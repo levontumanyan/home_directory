@@ -23,6 +23,13 @@ source "$HOME/aliases.zsh"
 # source "$ZSH_DIR/plugins/myplugin.zsh"
 # source "$ZSH_DIR/themes/mytheme.zsh"
 
+setopt SHARE_HISTORY        # share history across all sessions in real time
+setopt INC_APPEND_HISTORY   # write to history file immediately, not on shell exit
+setopt HIST_IGNORE_DUPS     # don't record duplicate consecutive entries
+setopt HIST_IGNORE_ALL_DUPS # remove older duplicate entries from history
+setopt HIST_FIND_NO_DUPS    # don't show dupes when searching
+setopt HIST_REDUCE_BLANKS   # strip superfluous blanks
+
 HISTFILE=~/.zsh_history
-HISTSIZE=50000
-SAVEHIST=50000
+HISTSIZE=1000000
+SAVEHIST=1000000

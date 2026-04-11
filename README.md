@@ -33,3 +33,11 @@ sudo rsync -a --progress --exclude=".local/" --exclude=".vscode-remote/" "$HOME/
 Macos install stuff requires sudo!
 
 `Homebrew not found, installing...` - after this line you will need your sudo password to install brew!
+
+# git config setup for commit signing
+
+```bash
+git config --global user.signingkey <YOUR_SIGNING_SUBKEY_ID>
+git config --global commit.gpgsign true
+git config --global tag.gpgsign true
+```
