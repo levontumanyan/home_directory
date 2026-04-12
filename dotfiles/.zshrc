@@ -33,3 +33,5 @@ setopt HIST_REDUCE_BLANKS   # strip superfluous blanks
 HISTFILE=~/.zsh_history
 HISTSIZE=1000000
 SAVEHIST=1000000
+
+eval "$(zoxide init zsh)"
