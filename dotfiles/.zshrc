@@ -35,3 +35,6 @@ HISTSIZE=1000000
 SAVEHIST=1000000
 
 eval "$(zoxide init zsh)"
+
+export EDITOR="code --wait"
+export VISUAL="code --wait"

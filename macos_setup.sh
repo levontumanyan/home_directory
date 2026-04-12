@@ -13,3 +13,5 @@ if ! command -v brew >/dev/null 2>&1; then
 else
 	echo "Homebrew already installed"
 fi
+
+brew install zoxide
