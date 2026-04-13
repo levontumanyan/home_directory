@@ -4,6 +4,9 @@ compinit -i
 # Use menu selection for completions
 zstyle ':completion:*' menu select
 
+# zsh's tab completion with partial matching
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
 # source kubectl completions
 command -v kubectl >/dev/null 2>&1 && {
 	source <(kubectl completion zsh)
