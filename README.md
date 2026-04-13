@@ -7,6 +7,8 @@ Manually make sure that iterm looks at this dir for its settings: `/Users/levont
 
 Todo:
 
+- [ ] fzf everything - what does that even mean. not just history?
+- [ ] proper backups and restores
 - [ ] separate brew lists for work/personal
 - [ ] restoring from backups is broken
 - [ ] remove the bin dir
