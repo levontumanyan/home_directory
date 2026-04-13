@@ -7,6 +7,7 @@ Manually make sure that iterm looks at this dir for its settings: `/Users/levont
 
 Todo:
 
+- [ ] fix the zoxide bug. (right now we only install it in macos, but source it in general. on a linux machine this errors out).
 - [ ] fzf everything - what does that even mean. not just history?
 - [ ] proper backups and restores
 - [ ] separate brew lists for work/personal
