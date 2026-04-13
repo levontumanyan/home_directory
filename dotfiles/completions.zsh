@@ -13,3 +13,8 @@ command -v kubectl >/dev/null 2>&1 && {
 command -v fzf >/dev/null 2>&1 && {
 	source <(fzf --zsh)
 }
+
+# source gh completions
+command -v gh >/dev/null 2>&1 && {
+	source <(gh completion -s zsh)
+}

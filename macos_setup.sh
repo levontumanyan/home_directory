@@ -14,4 +14,4 @@ else
 	echo "Homebrew already installed"
 fi
 
-brew install zoxide
+brew install zoxide gh
