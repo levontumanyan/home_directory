@@ -5,6 +5,15 @@ git clone --depth 1 https://github.com/levontumanyan/home_directory
 
 Manually make sure that iterm looks at this dir for its settings: `/Users/levontumanyan/home_directory/dotfiles/iterm`
 
+# proposed fixes
+
+Proposed fixes
+
+1. env.zsh: Add brew shellenv with arch detection
+2. setup_envs.sh: Remove the broken BACKUP_FILES (already covered by the explicit loop in install.sh)
+3. install.sh: Save the backup path to ~/.dotfiles_last_backup after backing up
+4. uninstall.sh: Read ~/.dotfiles_last_backup to find the correct backup dir to restore from
+
 Todo:
 
 - [ ] better separation of work packages to install vs personal machine stuff. and common maybe?

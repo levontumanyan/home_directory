@@ -38,5 +38,3 @@ command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 
 export EDITOR="code --wait"
 export VISUAL="code --wait"
-export PATH="/opt/homebrew/bin:$PATH"
-export PATH="/opt/homebrew/sbin:$PATH"
