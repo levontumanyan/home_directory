@@ -16,12 +16,12 @@ find "$HOME" -maxdepth 1 -type l | while read -r link; do
   esac
 done
 
-if [ -n "$BACKUP_DIR" ]; then
-	echo "Restoring backups from $BACKUP_DIR..."
-	# move files from backup to homedir
-	find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -exec mv {} "$HOME"/ \;
+LATEST_BACKUP=$(ls -td "$HOME/dotfiles_backup"/backup_* 2>/dev/null | head -1)
+if [ -d "$LATEST_BACKUP" ]; then
+  echo "Restoring from $LATEST_BACKUP..."
+  find "$LATEST_BACKUP" -mindepth 1 -maxdepth 1 -exec mv {} "$HOME"/ \;
 else
-	echo "No backup directory found. Nothing to restore."
+  echo "No backup found. Nothing to restore."
 fi
 
 # uninstall fzf
