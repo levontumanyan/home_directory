@@ -9,27 +9,22 @@ Manually make sure that iterm looks at this dir for its settings: `/Users/levont
 
 Proposed fixes
 
-1. env.zsh: Add brew shellenv with arch detection
 2. setup_envs.sh: Remove the broken BACKUP_FILES (already covered by the explicit loop in install.sh)
 3. install.sh: Save the backup path to ~/.dotfiles_last_backup after backing up
 4. uninstall.sh: Read ~/.dotfiles_last_backup to find the correct backup dir to restore from
 
 Todo:
 
+- [ ] idempotency is kinda broken
 - [ ] better separation of work packages to install vs personal machine stuff. and common maybe?
 - [ ] fzf everything - what does that even mean. not just history?
 - [ ] proper backups and restores
-- [ ] separate brew lists for work/personal
 - [ ] restoring from backups is broken
 - [ ] remove the bin dir
 - [ ] kubectl binary is only linux(arm/x86-64) compatible. add mac/darwin support.
 - [ ] ownership of the files in this repo (root?)
 - [ ] add history settings
-- [ ] why does .zshrc gets overriden after install. update. then git pull sometimes has a merge issue
 - [ ] put buckups in one dir...clean up backup files after 3 iterations
-- [ ] kubectl completions not working
-- [ ] ssh key setup for cron to be able to run the cron script daily
-- [ ] uninstall not removing the .zshrc link
 
 # backup homedir
 
