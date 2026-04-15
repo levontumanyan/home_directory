@@ -15,6 +15,8 @@ Proposed fixes
 
 Todo:
 
+- [ ] create `.claude/settings.json`
+  - `gh issue view*` safe to run
 - [ ] idempotency is kinda broken
 - [ ] better separation of work packages to install vs personal machine stuff. and common maybe?
 - [ ] fzf everything - what does that even mean. not just history?
