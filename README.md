@@ -17,6 +17,23 @@ Todo:
 
 - [ ] create `.claude/settings.json`
   - `gh issue view*` safe to run
+- [ ] add an install brew script for linux as well.
+```bash
+==> Next steps:
+- Run these commands in your terminal to add Homebrew to your PATH:
+    echo >> /home/ubuntu/.zshrc
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"' >> /home/ubuntu/.zshrc
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+- Install Homebrew's dependencies if you have sudo access:
+    sudo apt-get install build-essential
+  For more information, see:
+    https://docs.brew.sh/Homebrew-on-Linux
+- We recommend that you install GCC:
+    brew install gcc
+- Run brew help to get started
+- Further documentation:
+    https://docs.brew.sh
+```
 - [ ] idempotency is kinda broken
 - [ ] better separation of work packages to install vs personal machine stuff. and common maybe?
 - [ ] fzf everything - what does that even mean. not just history?
