@@ -2,14 +2,27 @@
 
 # are we on linux? exit if not
 if [ "$(uname)" != "Linux" ]; then
-  echo "Not Linux. Exiting."
-  return 0 2>/dev/null || exit 0
+	echo "Not Linux. Exiting."
+	return 0 2>/dev/null || exit 0
 fi
 
 # install zoxide
 if ! command -v zoxide >/dev/null 2>&1; then
-  echo "Installing zoxide..."
-  curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+	echo "Installing zoxide..."
+	curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 else
-  echo "zoxide already installed"
+	echo "zoxide already installed"
+fi
+
+# 2. Install Homebrew (if not found)
+if ! command -v brew >/dev/null 2>&1; then
+	echo "Installing Homebrew..."
+	# Non-interactive install for Linux
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+	# Load it immediately for the current session
+	test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+	test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+else
+	echo "Homebrew already installed."
 fi
