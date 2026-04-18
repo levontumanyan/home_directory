@@ -44,6 +44,13 @@ install_kubectl() {
 	mv ./kubectl ~/bin/kubectl
 }
 
+# install uv function
+install_uv() {
+	echo "Installing uv (modern python management)..."
+	# The installer automatically detects OS and Arch
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+}
+
 # download and install fuzzy finder
 command -v fzf >/dev/null 2>&1 || {
 	echo "fzf not found, installing..."
@@ -66,4 +73,13 @@ command -v kubectl >/dev/null 2>&1 || {
 	if [[ "$kubectl_reply" == [yY] ]]; then
 		install_kubectl
 	fi
+}
+
+# install uv if wanted
+command -v uv >/dev/null 2>&1 || {
+  echo "uv is not installed, would you like to install it: [y/N]: "
+  read -r uv_reply
+  if [[ "$uv_reply" == [yY] ]]; then
+    install_uv
+  fi
 }

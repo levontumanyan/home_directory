@@ -21,3 +21,8 @@ command -v fzf >/dev/null 2>&1 && {
 command -v gh >/dev/null 2>&1 && {
 	source <(gh completion -s zsh)
 }
+
+# source uv completions
+command -v uv >/dev/null 2>&1 && {
+  eval "$(uv generate-shell-completion zsh)"
+}
