@@ -44,6 +44,7 @@ Todo:
 - [ ] ownership of the files in this repo (root?)
 - [ ] add history settings
 - [ ] put buckups in one dir...clean up backup files after 3 iterations
+- [ ] automate brew stuff, like upgrade, update, cleanups.
 
 # backup homedir
 
