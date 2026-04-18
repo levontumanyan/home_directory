@@ -38,3 +38,8 @@ command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 
 export EDITOR="code --wait"
 export VISUAL="code --wait"
+
+# for inline suggestions to complete a command
+if [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+	source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
