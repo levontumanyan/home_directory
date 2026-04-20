@@ -4,6 +4,9 @@ alias kcd="kubectl config set-context --current --namespace"
 alias python="python3"
 alias pip="pip3"
 
+# history alias
+alias h='fc -l -t "%F %T" 1'
+
 # on machines that have only doas
 sudo() {
 	if command -v doas >/dev/null 2>&1; then
