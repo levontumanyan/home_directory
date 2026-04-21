@@ -1,5 +1,5 @@
 # Must come BEFORE compinit
-FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+FPATH="${HOME}/.zsh/completions:$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 
 autoload -Uz compinit
 compinit -i
