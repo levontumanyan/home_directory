@@ -59,6 +59,7 @@ command -v fzf >/dev/null 2>&1 || {
 
 	# remove unnecessary stuff and move things to $HOME/bin
 	mv "$HOME/.fzf/bin/fzf" "$HOME/bin/"
+	mv "$HOME/.fzf/bin/fzf-tmux" "$HOME/bin/"
 	# mv "$HOME/.fzf/shell/key-bindings.zsh" "$HOME/bin/fzf/"
 	# mv "$HOME/.fzf/shell/completion.zsh" "$HOME/bin/fzf/"
 
