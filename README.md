@@ -15,6 +15,7 @@ Proposed fixes
 
 Todo:
 
+- [ ] bring the alt tab settings/tmux/sesh.toml
 - [ ] create `.claude/settings.json`
   - `gh issue view*` safe to run
 - [ ] add an install brew script for linux as well.
