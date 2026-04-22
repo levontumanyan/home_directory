@@ -7,6 +7,9 @@ alias pip="pip3"
 # history alias
 alias h='fc -l -t "%F %T" 1'
 
+# sesh alias
+alias s='sesh connect $(sesh list | fzf)'
+
 # on machines that have only doas
 sudo() {
 	if command -v doas >/dev/null 2>&1; then

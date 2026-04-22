@@ -50,3 +50,7 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 # for podman
 export DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+
+if [ -z "$TMUX" ]; then
+  sesh connect $(pwd)
+fi
