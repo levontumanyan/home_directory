@@ -50,6 +50,10 @@ Proactively run `brew bundle dump` and commit the result at the start of session
 - `work.zsh` — work-specific config: kubectl aliases, `DOCKER_HOST` (podman), AWS config bootstrap; symlinked only on work machines
 - `iterm/com.googlecode.iterm2.plist` — iTerm2 settings (iTerm must be pointed at `dotfiles/iterm/` manually)
 
+## Prompting users
+
+`install.sh` uses `exec > >(tee -a "$LOG_FILE") 2>&1` — output goes to both the terminal and the log file. stdin is never redirected, so `read` works normally in any sub-script. No `/dev/tty` tricks are needed; write prompts and reads as normal.
+
 ## Guarding rules
 
 All commands that may not be present on every machine must be guarded:

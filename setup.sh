@@ -69,7 +69,7 @@ command -v fzf >/dev/null 2>&1 || {
 
 # install kubectl if wanted
 command -v kubectl >/dev/null 2>&1 || {
-	echo "Kubectl is not installed, would you like to install it: y/N]: "
+	echo "Kubectl is not installed, would you like to install it: [y/N]: "
 	read -r kubectl_reply
 	if [[ "$kubectl_reply" == [yY] ]]; then
 		install_kubectl
