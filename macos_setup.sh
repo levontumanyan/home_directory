@@ -15,7 +15,7 @@ else
 fi
 
 if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
-  brew bundle --file="$DOTFILES_DIR/brewfile_work"
+  brew bundle --verbose --file="$DOTFILES_DIR/brewfile_work"
 else
-  brew bundle --file="$DOTFILES_DIR/brewfile_personal"
+  brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
 fi

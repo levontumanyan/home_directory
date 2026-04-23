@@ -27,7 +27,7 @@ test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
 test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
-  brew bundle --file="$DOTFILES_DIR/brewfile_work"
+  brew bundle --verbose --file="$DOTFILES_DIR/brewfile_work"
 else
-  brew bundle --file="$DOTFILES_DIR/brewfile_personal"
+  brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
 fi

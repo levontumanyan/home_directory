@@ -12,6 +12,8 @@ alias h='fc -l -t "%F %T" 1'
 # sesh alias
 alias s='sesh connect $(sesh list | fzf)'
 
+alias c='claude'
+
 # on machines that have only doas
 sudo() {
 	if command -v doas >/dev/null 2>&1; then

@@ -5,6 +5,71 @@ git clone --depth 1 https://github.com/levontumanyan/home_directory
 
 Manually make sure that iterm looks at this dir for its settings: `/Users/levontumanyan/home_directory/dotfiles/iterm`
 
+# stow reorg
+
+Migrate symlink management from the custom `find` + `ln` loop in `install.sh` to GNU Stow. This fixes the broken uninstall, handles nested directories (iterm) cleanly, and makes the work/personal split explicit as separate packages.
+
+## Steps
+
+### 1. Install stow
+
+Add `stow` to both Brewfiles so it is available on all machines.
+
+```sh
+# brewfile_work and brewfile_personal
+brew "stow"
+```
+
+### 2. Restructure `dotfiles/` into stow packages
+
+Stow requires each package to be a subdirectory whose contents mirror the layout under `$HOME`. Rename and reorganize:
+
+```
+dotfiles/
+  base/           # installed on all machines
+    .aliases.zsh
+    .completions.zsh
+    .env.zsh
+    .ps1.zsh
+    .zshrc
+    .config/
+      iterm/      # was dotfiles/iterm/
+  work/           # installed on work machines only
+    work.zsh
+```
+
+Note: files that are currently sourced from `$HOME` without a leading dot (`aliases.zsh`, etc.) need to be verified — either they stay without dots or `.zshrc` references are updated to match.
+
+### 3. Update `install.sh`
+
+Replace the `find` + `ln` loop and the `work.zsh` special-case with stow calls:
+
+```sh
+stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" base
+[ "$MACHINE_TYPE" = "work" ] && stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" work
+```
+
+Remove the backup loop that guards against stow overwriting real files — stow will refuse to overwrite non-symlink files and error out, which is safer than silently moving things.
+
+### 4. Update `uninstall.sh`
+
+Replace the broken manual symlink removal with:
+
+```sh
+stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" -D base
+[ "$MACHINE_TYPE" = "work" ] && stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" -D work
+```
+
+### 5. Verify iterm path
+
+After restructure, update the iterm manual step in this README. iTerm2 will need to point at the new path inside `dotfiles/base/.config/iterm/` (or wherever it lands after restructure).
+
+### 6. Test on a clean machine / VM
+
+Run `install.sh`, confirm symlinks land correctly, then run `uninstall.sh` and confirm all symlinks are removed without touching real files.
+
+---
+
 # proposed fixes
 
 Proposed fixes
