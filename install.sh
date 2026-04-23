@@ -29,7 +29,9 @@ if [ "$VERBOSE" = "1" ]; then
 else
   exec >> "$LOG_FILE" 2>&1
 fi
+
 set -x
+
 echo "=== install started: $(date) ==="
 
 # create general backup dir
