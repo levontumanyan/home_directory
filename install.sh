@@ -29,9 +29,7 @@ if [ "$VERBOSE" = "1" ]; then
 else
   exec >> "$LOG_FILE" 2>&1
 fi
-
 set -x
-
 echo "=== install started: $(date) ==="
 
 # create general backup dir
@@ -64,6 +62,27 @@ if [ "$MACHINE_TYPE" = "work" ]; then
 fi
 
 echo "Dotfiles installed!"
+
+# on Linux, ensure linuxbrew is in PATH before using brew
+if [ "$(uname)" = "Linux" ]; then
+  test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+  test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
+# install Homebrew if missing
+if ! command -v brew >/dev/null 2>&1; then
+  echo "Homebrew not found, installing..."
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+  echo "Homebrew already installed"
+fi
+
+# install packages
+if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
+  brew bundle --verbose --file="$DOTFILES_DIR/brewfile_work"
+else
+  brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
+fi
 
 # check for macos and install macos specific things(brew)
 [ -f "$DOTFILES_DIR/macos_setup.sh" ] && zsh "$DOTFILES_DIR/macos_setup.sh"
