@@ -20,12 +20,11 @@ if ! command -v brew >/dev/null 2>&1; then
 	# Non-interactive install for Linux
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-	# Load it immediately for the current session
-	test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
-	test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-else
-	echo "Homebrew already installed."
 fi
+
+# ensure brew is in PATH (needed whether just installed or already present)
+test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
   brew bundle --file="$DOTFILES_DIR/brewfile_work"
