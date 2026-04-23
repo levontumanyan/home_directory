@@ -3,6 +3,24 @@ git clone --depth 1 https://github.com/levontumanyan/home_directory
 ./install.sh
 ```
 
+# Keeping Brewfiles updated
+
+After installing new packages on a machine, snapshot the current state back into the repo so other machines stay in sync.
+
+**Work machine:**
+```sh
+brew bundle dump --force --file=brewfile_work
+```
+
+**Personal machine:**
+```sh
+brew bundle dump --force --file=brewfile_personal
+```
+
+Then commit and push. The dump overwrites the file with everything currently installed via Homebrew — formulas, casks, taps, and VS Code extensions.
+
+> Note: `brew bundle dump` outputs everything flat. Casks and macOS-only formulas will be included without any Linux guards — that's expected, the Brewfiles are macOS-first.
+
 Manually make sure that iterm looks at this dir for its settings: `/Users/levontumanyan/home_directory/dotfiles/iterm`
 
 # stow reorg

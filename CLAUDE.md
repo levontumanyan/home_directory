@@ -25,10 +25,20 @@ A cross-platform (macOS + Linux) dotfiles and home directory configuration repo.
 - **Work only**: `dotfiles/work.zsh` is symlinked to `~/work.zsh`; `.zshrc` sources it automatically if present
 - **Brewfiles**: `brewfile_work` is installed on work machines, `brewfile_personal` on personal ones
 
-To update `brewfile_work` from currently installed packages:
+To update Brewfiles from currently installed packages, run on the appropriate machine:
 ```sh
+# on a work machine
 brew bundle dump --force --file=brewfile_work
+
+# on a personal machine
+brew bundle dump --force --file=brewfile_personal
 ```
+
+The dump overwrites the file with everything currently installed — formulas, casks, taps, and VS Code extensions. Commit and push after dumping.
+
+## Periodic Brewfile maintenance (instruction for Claude)
+
+Proactively run `brew bundle dump` and commit the result at the start of sessions where the user is working on this repo, or whenever the user mentions installing or removing a brew package. Check whether `brewfile_work` or `brewfile_personal` is stale by running `brew bundle check --file=brewfile_work` — if it reports anything not in the file, suggest a dump and commit.
 
 ## Dotfiles (in `dotfiles/`, symlinked to `$HOME`)
 

@@ -80,11 +80,18 @@ else
 fi
 
 # install packages
-if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
-	brew bundle --verbose --file="$DOTFILES_DIR/brewfile_work"
-else
-	brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
-fi
+printf "Install brew packages? [Y/n]: " >/dev/tty
+read -r brew_reply </dev/tty
+case "$brew_reply" in
+  n|N) echo "Skipping brew bundle" ;;
+  *)
+    if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
+      brew bundle --verbose --file="$DOTFILES_DIR/brewfile_work"
+    else
+      brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
+    fi
+    ;;
+esac
 
 # do some setup stuff
 [ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
