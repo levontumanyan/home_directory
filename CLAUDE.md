@@ -52,7 +52,14 @@ Proactively run `brew bundle dump` and commit the result at the start of session
 
 ## Prompting users
 
-`install.sh` uses `exec > >(tee -a "$LOG_FILE") 2>&1` — output goes to both the terminal and the log file. stdin is never redirected, so `read` works normally in any sub-script. No `/dev/tty` tricks are needed; write prompts and reads as normal.
+`install.sh` redirects stdout/stderr to a log file. Any script that needs user input must use the `prompt` helper defined in `setup_envs.sh`, which always writes to the terminal regardless of log redirection:
+
+```sh
+prompt "Please enter a value:" varname
+# equivalent to: printf "..." >/dev/tty && read -r varname </dev/tty
+```
+
+Never use plain `echo` + `read` for interactive prompts in scripts called from `install.sh`.
 
 ## Guarding rules
 

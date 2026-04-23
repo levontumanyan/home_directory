@@ -2,6 +2,11 @@
 
 set -eu
 
+VERBOSE=0
+while getopts "v" opt 2>/dev/null; do
+	case "$opt" in v) VERBOSE=1 ;; esac
+done
+
 printf "Is this a work or personal machine? [work/personal]: "
 read -r MACHINE_TYPE
 case "$MACHINE_TYPE" in
@@ -16,10 +21,14 @@ export MACHINE_TYPE
 # source dated backup dir, dotfiles
 . "$(dirname "$0")/setup_envs.sh"
 
-# tee all output to a timestamped log — terminal stays live, everything is also saved
+# set up logging — always write to log; show on terminal only with -v
 mkdir -p "$LOG_DIR"
-echo "Log: $LOG_FILE"
-exec > >(tee -a "$LOG_FILE") 2>&1
+printf "Log: %s\n" "$LOG_FILE" >/dev/tty
+if [ "$VERBOSE" = "1" ]; then
+	exec > >(tee -a "$LOG_FILE") 2>&1
+else
+	exec >> "$LOG_FILE" 2>&1
+fi
 
 set -x
 

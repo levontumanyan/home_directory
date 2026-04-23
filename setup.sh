@@ -6,10 +6,8 @@ setopt pipefail
 # Configure git user if not already set
 if [ -z "$(git config --global user.name)" ] || [ -z "$(git config --global user.email)" ]; then
 	echo "Git user.name and user.email not configured."
-	echo "Please enter your git user name:"
-	read -r git_name
-	echo "Please enter your git email:"
-	read -r git_email
+	prompt "Please enter your git user name:" git_name
+	prompt "Please enter your git email:" git_email
 
 	git config --global user.name "$git_name"
 	git config --global user.email "$git_email"
@@ -69,8 +67,7 @@ command -v fzf >/dev/null 2>&1 || {
 
 # install kubectl if wanted
 command -v kubectl >/dev/null 2>&1 || {
-	echo "Kubectl is not installed, would you like to install it: [y/N]: "
-	read -r kubectl_reply
+	prompt "Kubectl is not installed, would you like to install it: [y/N]:" kubectl_reply
 	if [[ "$kubectl_reply" == [yY] ]]; then
 		install_kubectl
 	fi
@@ -78,8 +75,7 @@ command -v kubectl >/dev/null 2>&1 || {
 
 # install uv if wanted
 command -v uv >/dev/null 2>&1 || {
-  echo "uv is not installed, would you like to install it: [y/N]: "
-  read -r uv_reply
+  prompt "uv is not installed, would you like to install it: [y/N]:" uv_reply
   if [[ "$uv_reply" == [yY] ]]; then
     install_uv
   fi
