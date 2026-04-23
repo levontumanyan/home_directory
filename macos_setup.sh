@@ -14,4 +14,8 @@ else
 	echo "Homebrew already installed"
 fi
 
-brew install zoxide gh
+if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
+  brew bundle --file="$DOTFILES_DIR/brewfile_work"
+else
+  brew bundle --file="$DOTFILES_DIR/brewfile_personal"
+fi

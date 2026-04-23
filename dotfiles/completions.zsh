@@ -1,5 +1,7 @@
 # Must come BEFORE compinit
-FPATH="${HOME}/.zsh/completions:$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+if command -v brew >/dev/null 2>&1; then
+  FPATH="${HOME}/.zsh/completions:$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+fi
 
 autoload -Uz compinit
 compinit -i

@@ -40,17 +40,15 @@ export EDITOR="code --wait"
 export VISUAL="code --wait"
 
 # for inline suggestions to complete a command
-if [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+if command -v brew >/dev/null 2>&1 && [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
 	source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 fi
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
-. "$HOME/.local/bin/env"
+[ -f "$HOME/work.zsh" ] && source "$HOME/work.zsh"
 
-# for podman
-export DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
-
-if [ -z "$TMUX" ]; then
-  sesh connect $(pwd)
+if [ -z "$TMUX" ] && command -v sesh >/dev/null 2>&1; then
+	sesh connect $(pwd)
 fi

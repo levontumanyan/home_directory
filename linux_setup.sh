@@ -26,3 +26,9 @@ if ! command -v brew >/dev/null 2>&1; then
 else
 	echo "Homebrew already installed."
 fi
+
+if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
+  brew bundle --file="$DOTFILES_DIR/brewfile_work"
+else
+  brew bundle --file="$DOTFILES_DIR/brewfile_personal"
+fi

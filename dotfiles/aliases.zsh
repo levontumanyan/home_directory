@@ -1,4 +1,6 @@
 alias k="kubectl"
+alias kgp="kubectl get pods"
+alias kgpw="kubectl get pods -w"
 alias kcd="kubectl config set-context --current --namespace"
 
 alias python="python3"

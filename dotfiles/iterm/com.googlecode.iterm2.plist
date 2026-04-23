@@ -16,6 +16,8 @@
 	<integer>2</integer>
 	<key>AIVectorStore</key>
 	<integer>0</integer>
+	<key>AdjustWindowForFontSizeChange</key>
+	<false/>
 	<key>AiMaxTokens</key>
 	<integer>400000</integer>
 	<key>AiModel</key>
@@ -32,6 +34,10 @@
 	<false/>
 	<key>AlwaysOpenWindowAtStartup</key>
 	<false/>
+	<key>BadgeRightMargin</key>
+	<integer>0</integer>
+	<key>BadgeTopMargin</key>
+	<integer>0</integer>
 	<key>ClickToSelectCommand</key>
 	<false/>
 	<key>Default Bookmark Guid</key>
@@ -50,6 +56,8 @@
 	<true/>
 	<key>EnableDivisionView</key>
 	<false/>
+	<key>ExtendBackgroundColorIntoMargins</key>
+	<true/>
 	<key>FocusFollowsMouse</key>
 	<false/>
 	<key>GlobalKeyMap</key>
@@ -1386,7 +1394,7 @@
 			<key>Vertical Spacing</key>
 			<real>1</real>
 			<key>Visual Bell</key>
-			<true/>
+			<false/>
 			<key>Window Type</key>
 			<integer>0</integer>
 			<key>Working Directory</key>
@@ -2615,6 +2623,8 @@
 	<false/>
 	<key>WindowNumber</key>
 	<false/>
+	<key>WindowPlacement</key>
+	<integer>3</integer>
 	<key>findMode_iTerm</key>
 	<integer>0</integer>
 </dict>

@@ -2,6 +2,14 @@
 
 set -euox
 
+printf "Is this a work or personal machine? [work/personal]: "
+read -r MACHINE_TYPE
+case "$MACHINE_TYPE" in
+  work|personal) ;;
+  *) echo "Invalid choice. Please enter 'work' or 'personal'."; exit 1 ;;
+esac
+export MACHINE_TYPE
+
 # cleanup the repo
 # rm -rf $DOTFILES_DIR/.git
 
@@ -26,10 +34,16 @@ find "$DOTFILES_DIR/dotfiles" -type f | while read -r dot_file; do
 done
 
 # find all the dotfiles in the corresponding directory and symlink
-find "$DOTFILES_DIR/dotfiles" -type f | while read -r dot_file; do
+# work.zsh is excluded here and handled separately below
+find "$DOTFILES_DIR/dotfiles" -type f ! -name "work.zsh" | while read -r dot_file; do
   echo "linking dotfile: $dot_file"
   ln -sfnv "$dot_file" "$HOME/$(basename "$dot_file")"
 done
+
+# symlink work.zsh only on work machines
+if [ "$MACHINE_TYPE" = "work" ]; then
+  ln -sfnv "$DOTFILES_DIR/dotfiles/work.zsh" "$HOME/work.zsh"
+fi
 
 echo "Dotfiles installed!"
 
