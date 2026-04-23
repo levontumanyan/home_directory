@@ -86,9 +86,6 @@ else
 	brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
 fi
 
-# check for linux and install linux specific things
-[ -f "$DOTFILES_DIR/linux_setup.sh" ] && sh "$DOTFILES_DIR/linux_setup.sh"
-
 # do some setup stuff
 [ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
 
