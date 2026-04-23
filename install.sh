@@ -1,6 +1,6 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -euox
+set -eu
 
 VERBOSE=0
 while getopts "v" opt 2>/dev/null; do
@@ -29,6 +29,9 @@ if [ "$VERBOSE" = "1" ]; then
 else
   exec >> "$LOG_FILE" 2>&1
 fi
+
+set -x
+
 echo "=== install started: $(date) ==="
 
 # create general backup dir
