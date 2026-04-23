@@ -3,6 +3,8 @@
 set -euo xtrace
 setopt pipefail
 
+source "$(dirname "$0")/setup_envs.sh"
+
 # Configure git user if not already set
 if [ -z "$(git config --global user.name)" ] || [ -z "$(git config --global user.email)" ]; then
 	echo "Git user.name and user.email not configured."
