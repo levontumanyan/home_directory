@@ -86,9 +86,6 @@ else
 	brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
 fi
 
-# check for macos and install macos specific things(brew)
-[ -f "$DOTFILES_DIR/macos_setup.sh" ] && zsh "$DOTFILES_DIR/macos_setup.sh"
-
 # check for linux and install linux specific things
 [ -f "$DOTFILES_DIR/linux_setup.sh" ] && sh "$DOTFILES_DIR/linux_setup.sh"
 

@@ -12,7 +12,6 @@ A cross-platform (macOS + Linux) dotfiles and home directory configuration repo.
 |---|---|
 | `install.sh` | Entry point — prompts work/personal, backs up existing dotfiles, symlinks `dotfiles/` to `$HOME` (excluding `work.zsh`), symlinks `work.zsh` only on work machines, then runs platform setup scripts |
 | `setup_envs.sh` | Sourced by all scripts — defines and exports `DOTFILES_DIR`, `BACKUP_DIR`, `MACHINE_TYPE` |
-| `macos_setup.sh` | macOS-only: installs Homebrew, runs `brew bundle` with the appropriate Brewfile |
 | `linux_setup.sh` | Linux-only: installs zoxide, installs Homebrew (linuxbrew), loads brew into PATH, runs `brew bundle` with the appropriate Brewfile |
 | `setup.sh` | One-time setup: configures git user, installs fzf to `~/bin`, optionally installs kubectl |
 | `uninstall.sh` | Removes symlinks pointing to this repo, restores from backup |

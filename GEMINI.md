@@ -11,7 +11,6 @@ A personal dotfiles and macOS/Linux environment configuration repository. It man
 ### Research & Strategy
 - **Reproduce Issues:** Before fixing bugs (e.g., broken `uninstall.sh` or `restore`), reproduce them with a minimal script or manual test.
 - **Dependency Awareness:** Always check `setup_envs.sh` for global variables (`DOTFILES_DIR`, `BACKUP_DIR`).
-- **OS Specifics:** Distinguish between `macos_setup.sh` and `linux_setup.sh`.
 
 ### Execution
 - **Surgical Edits:** When modifying dotfiles (e.g., `.zshrc`, `aliases.zsh`), avoid rewriting the entire file. Use the `replace` tool for targeted changes.
@@ -28,7 +27,6 @@ A personal dotfiles and macOS/Linux environment configuration repository. It man
 |---|---|
 | `install.sh` | Entry point: backs up existing dotfiles, symlinks files from `dotfiles/` to `$HOME`, runs OS-specific setup. |
 | `dotfiles/` | Source of truth for dotfiles (symlinked to `$HOME`). |
-| `macos_setup.sh` | macOS-specific logic: Homebrew installation (requires sudo), zoxide setup. |
 | `linux_setup.sh` | Linux-specific setup logic. |
 | `setup.sh` | Post-installation tasks: git config, fzf installation, kubectl setup. |
 | `uninstall.sh` | Cleanup: removes symlinks, attempts to restore from backup. |
