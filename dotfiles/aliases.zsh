@@ -6,15 +6,28 @@ alias kgpw='kubectl get pods -w'
 alias kgc='kubectl config get-contexts'
 alias kl='kubectl logs'
 alias klf='kubectl logs -f'
+#alias kld='kubectl logs deployments/'
+#alias kldf='kubectl logs -f deployments/'
 alias kd='kubectl describe'
 alias kdp='kubectl describe pod'
 alias kgd='kubectl get deployments'
 alias kdd='kubectl describe deployment'
 
+kld() { kubectl logs deployments/$1; }
+kldf() { kubectl logs -f deployments/$1; }
+
+_kld_deployments() {
+  local -a deployments
+  deployments=($(kubectl get deployments -o jsonpath='{.items[*].metadata.name}' 2>/dev/null))
+  compadd -a deployments
+}
+
+compdef _kld_deployments kld
+compdef _kld_deployments kldf
+
 # exec - defaults to sh, pass bash if needed
 kex()  { kubectl exec -it "$1" -- "${2:-sh}"; }
 
-# 2. The Completion Logic
 _kex_pods() {
   # This only runs when you actually hit TAB
   local -a pods
@@ -22,7 +35,6 @@ _kex_pods() {
   compadd -a pods
 }
 
-# 3. The Link
 compdef _kex_pods kex
 
 alias python="python3"
