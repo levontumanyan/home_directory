@@ -1,7 +1,29 @@
-alias k="kubectl"
-alias kgp="kubectl get pods"
-alias kgpw="kubectl get pods -w"
-alias kcd="kubectl config set-context --current --namespace"
+# Aliases (Best for Tab Completion)
+alias k='kubectl'
+alias kcd='kubectl config set-context --current --namespace'
+alias kgp='kubectl get pods'
+alias kgpw='kubectl get pods -w'
+alias kgc='kubectl config get-contexts'
+alias kl='kubectl logs'
+alias klf='kubectl logs -f'
+alias kd='kubectl describe'
+alias kdp='kubectl describe pod'
+alias kgd='kubectl get deployments'
+alias kdd='kubectl describe deployment'
+
+# exec - defaults to sh, pass bash if needed
+kex()  { kubectl exec -it "$1" -- "${2:-sh}"; }
+
+# 2. The Completion Logic
+_kex_pods() {
+  # This only runs when you actually hit TAB
+  local -a pods
+  pods=($(kubectl get pods -o jsonpath='{.items[*].metadata.name}' 2>/dev/null))
+  compadd -a pods
+}
+
+# 3. The Link
+compdef _kex_pods kex
 
 alias python="python3"
 alias pip="pip3"

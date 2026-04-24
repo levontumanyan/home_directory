@@ -98,6 +98,9 @@ Proposed fixes
 
 Todo:
 
+- use stow for the symlink management.
+- move k8s functions to it's own thing. Follow Stick convention for this!
+- `sesh.toml` `tmux.conf` should be added to dotfiles.
 - [ ] bring the alt tab settings/tmux/sesh.toml
 - [ ] create `.claude/settings.json`
   - `gh issue view*` safe to run
