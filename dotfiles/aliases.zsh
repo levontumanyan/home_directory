@@ -28,8 +28,12 @@ compdef _kex_pods kex
 alias python="python3"
 alias pip="pip3"
 
-# history alias
-alias h='fc -l -t "%F %T" 1'
+# over engineered history function
+h() {
+  fc -l -t "%F %T" -50 | awk '{
+    printf "\033[36m%s %s\033[0m \033[1m%s\033[0m\n", $2, $3, substr($0, index($0,$4))
+  }'
+}
 
 # sesh alias
 alias s='sesh connect $(sesh list | fzf)'
