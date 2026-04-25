@@ -96,6 +96,8 @@ Proposed fixes
 
 Todo:
 
+- [ ] zooming issues in iterm
+- [ ] make sure there is an option to run the script completely uninteractively for testing/debugging
 - [ ] better ps1(include git branching, and kubecontext)
 - move k8s functions to it's own thing. Follow Stick convention for this!
 - [ ] bring the alt tab settings/tmux/sesh.toml

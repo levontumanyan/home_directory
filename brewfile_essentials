@@ -11,3 +11,5 @@ brew "tree"
 brew "uv"
 brew "zoxide"
 brew "zsh-autosuggestions"
+
+cask "font-jetbrains-mono-nerd-font"
