@@ -11,5 +11,3 @@ _aws_config_bootstrap() {
 }
 _aws_config_bootstrap
 unset -f _aws_config_bootstrap
-
-DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
