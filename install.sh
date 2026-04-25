@@ -57,11 +57,15 @@ if [ "$(uname)" = "Linux" ] && ! command -v brew >/dev/null 2>&1; then
 	test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
-# install packages (stow is included in both Brewfiles)
-printf "Install brew packages? [Y/n]: " >/dev/tty
+# always install essential packages
+echo "Installing essential packages..."
+brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
+
+# install profile-specific packages
+printf "Install profile brew packages? [Y/n]: " >/dev/tty
 read -r brew_reply </dev/tty
 case "$brew_reply" in
-  n|N) echo "Skipping brew bundle" ;;
+  n|N) echo "Skipping profile brew bundle" ;;
   *)
     if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
       brew bundle --verbose --file="$DOTFILES_DIR/brewfile_work"
@@ -70,9 +74,6 @@ case "$brew_reply" in
     fi
     ;;
 esac
-
-# ensure stow is available (brew bundle above installs it; this catches skipped installs)
-brew install stow
 
 # back up any real files that would conflict with stow, preserving directory structure
 backup_conflicts() {

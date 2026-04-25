@@ -14,7 +14,7 @@ podman run --rm -it \
   -w /workspaces/home_directory \
   --user vscode \
   localhost/vsc-home_directory-c7ce67ba2cdfe6685c27895981ace7f05c4c12f2d1b273be9ca98862dc2f0087:latest \
-  bash
+  zsh
 ```
 
 `--rm` destroys the container on exit so each run starts from a clean slate. Once inside:
@@ -96,36 +96,16 @@ Proposed fixes
 
 Todo:
 
-- [ ] use stow for the symlink management.
+- [ ] better ps1(include git branching, and kubecontext)
 - move k8s functions to it's own thing. Follow Stick convention for this!
 - `sesh.toml` `tmux.conf` should be added to dotfiles.
 - [ ] bring the alt tab settings/tmux/sesh.toml
 - [ ] create `.claude/settings.json`
   - `gh issue view*` safe to run
-- [ ] add an install brew script for linux as well.
-```bash
-==> Next steps:
-- Run these commands in your terminal to add Homebrew to your PATH:
-    echo >> /home/ubuntu/.zshrc
-    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"' >> /home/ubuntu/.zshrc
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
-- Install Homebrew's dependencies if you have sudo access:
-    sudo apt-get install build-essential
-  For more information, see:
-    https://docs.brew.sh/Homebrew-on-Linux
-- We recommend that you install GCC:
-    brew install gcc
-- Run brew help to get started
-- Further documentation:
-    https://docs.brew.sh
-```
 - [ ] idempotency is kinda broken
 - [ ] better separation of work packages to install vs personal machine stuff. and common maybe?
 - [ ] fzf everything - what does that even mean. not just history?
-- [ ] proper backups and restores
 - [ ] restoring from backups is broken
-- [ ] remove the bin dir
-- [ ] kubectl binary is only linux(arm/x86-64) compatible. add mac/darwin support.
 - [ ] ownership of the files in this repo (root?)
 - [ ] add history settings
 - [ ] put buckups in one dir...clean up backup files after 3 iterations

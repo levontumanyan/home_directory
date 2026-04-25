@@ -1,8 +1,6 @@
 # source env
 source "$HOME/.env.zsh"
 
-[ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
-
 # how words are deleted with option
 autoload -U select-word-style
 select-word-style bash
