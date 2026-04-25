@@ -4,25 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A cross-platform (macOS + Linux) dotfiles and home directory configuration repo. It symlinks dotfiles from `dotfiles/` into `$HOME`, installs Homebrew packages via Brewfiles, and supports separate work and personal machine profiles.
+A cross-platform (macOS + Linux) dotfiles and home directory configuration repo. It uses GNU Stow to symlink dotfiles from `dotfiles/` into `$HOME`, installs Homebrew packages via Brewfiles, and supports separate work and personal machine profiles.
 
 ## Key scripts
 
 | Script | Purpose |
 |---|---|
-| `install.sh` | Entry point — prompts work/personal, backs up existing dotfiles, symlinks `dotfiles/` to `$HOME` (excluding `work.zsh`), symlinks `work.zsh` only on work machines, then runs platform setup scripts |
-| `setup_envs.sh` | Sourced by all scripts — defines and exports `DOTFILES_DIR`, `BACKUP_DIR`, `MACHINE_TYPE` |
-| `linux_setup.sh` | Linux-only: installs zoxide, installs Homebrew (linuxbrew), loads brew into PATH, runs `brew bundle` with the appropriate Brewfile |
-| `setup.sh` | One-time setup: configures git user, installs fzf to `~/bin`, optionally installs kubectl |
-| `uninstall.sh` | Removes symlinks pointing to this repo, restores from backup |
-| `brew_cron.sh` | Commits and pushes brew list snapshots (`brew_formulas.txt`, `brew_casks.txt`) on a schedule |
+| `install.sh` | Entry point — prompts work/personal, backs up conflicting files, stows `dotfiles/base` (all machines) and `dotfiles/work` (work only), installs Homebrew packages |
+| `setup_envs.sh` | Sourced by all scripts — defines and exports `DOTFILES_DIR`, `BACKUP_DIR`, `MACHINE_TYPE`, `LOG_DIR`, `LOG_FILE`; defines the `prompt` helper |
+| `setup.sh` | One-time setup: configures git user name and email if not set |
+| `uninstall.sh` | Unstows dotfiles, restores most-recent backup, removes fzf from `~/bin` |
 
 ## Work vs personal profiles
 
 `install.sh` prompts at the start: `work` or `personal`.
 
-- **Both**: all dotfiles in `dotfiles/` are symlinked except `work.zsh`
-- **Work only**: `dotfiles/work.zsh` is symlinked to `~/work.zsh`; `.zshrc` sources it automatically if present
+- **Both**: `dotfiles/base` is stowed for all machines
+- **Work only**: `dotfiles/work` is also stowed; `.zshrc` sources `work.zsh` automatically if present
 - **Brewfiles**: `brewfile_work` is installed on work machines, `brewfile_personal` on personal ones
 
 To update Brewfiles from currently installed packages, run on the appropriate machine:
@@ -61,6 +59,10 @@ prompt "Please enter a value:" varname
 
 Never use plain `echo` + `read` for interactive prompts in scripts called from `install.sh`.
 
+## Code style
+
+Use tabs for indentation in all files — shell scripts, Makefiles, config files, etc. The only exception is YAML, which requires spaces by spec. Never use spaces for indentation elsewhere.
+
 ## Guarding rules
 
 All commands that may not be present on every machine must be guarded:
@@ -68,12 +70,14 @@ All commands that may not be present on every machine must be guarded:
 - Optional tools (kubectl, fzf, sesh, zoxide, etc.): use `command -v <tool> >/dev/null 2>&1 &&`
 - Optional files (`.fzf.zsh`, `.local/bin/env`, `work.zsh`): use `[ -f <path> ] &&`
 
+## Committing
+
+Before staging and committing, always run `make lint` first. Only proceed with the commit if lint passes cleanly.
+
 ## Known issues
 
 - `uninstall.sh` does not remove the `.zshrc` symlink
 - Restoring from backups is broken
-- `.zshrc` can get a merge conflict after `install.sh` + `git pull` cycles
-- `brew_cron.sh` requires SSH key setup to push
 
 ## Git commit signing
 

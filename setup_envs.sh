@@ -1,7 +1,8 @@
+# shellcheck shell=bash
 # prompt <message> <varname> — always prints to terminal even when stdout is redirected to log
 prompt() {
-  printf "%s " "$1" >/dev/tty
-  read -r "$2" </dev/tty
+	printf "%s " "$1" >/dev/tty
+	read -r "$2" </dev/tty
 }
 
 DOTFILES_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"

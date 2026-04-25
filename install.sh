@@ -4,14 +4,17 @@ set -eu
 
 VERBOSE=0
 while getopts "v" opt 2>/dev/null; do
-	case "$opt" in v) VERBOSE=1 ;; esac
+	case "$opt" in v) VERBOSE=1 ;; *) ;; esac
 done
 
 printf "Is this a work or personal machine? [work/personal]: "
 read -r MACHINE_TYPE
 case "$MACHINE_TYPE" in
-	work|personal) ;;
-	*) echo "Invalid choice. Please enter 'work' or 'personal'."; exit 1 ;;
+work | personal) ;;
+*)
+	echo "Invalid choice. Please enter 'work' or 'personal'."
+	exit 1
+	;;
 esac
 export MACHINE_TYPE
 
@@ -19,6 +22,7 @@ export MACHINE_TYPE
 # rm -rf $DOTFILES_DIR/.git
 
 # source dated backup dir, dotfiles
+# shellcheck source=setup_envs.sh
 . "$(dirname "$0")/setup_envs.sh"
 
 # set up logging — always write to log; show on terminal only with -v
@@ -27,7 +31,7 @@ printf "Log: %s\n" "$LOG_FILE" >/dev/tty
 if [ "$VERBOSE" = "1" ]; then
 	exec > >(tee -a "$LOG_FILE") 2>&1
 else
-	exec >> "$LOG_FILE" 2>&1
+	exec >>"$LOG_FILE" 2>&1
 fi
 
 set -x
@@ -65,21 +69,21 @@ brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
 printf "Install profile brew packages? [Y/n]: " >/dev/tty
 read -r brew_reply </dev/tty
 case "$brew_reply" in
-  n|N) echo "Skipping profile brew bundle" ;;
-  *)
-    if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
-      brew bundle --verbose --file="$DOTFILES_DIR/brewfile_work"
-    else
-      brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
-    fi
-    ;;
+n | N) echo "Skipping profile brew bundle" ;;
+*)
+	if [ "${MACHINE_TYPE:-personal}" = "work" ]; then
+		brew bundle --verbose --file="$DOTFILES_DIR/brewfile_work"
+	else
+		brew bundle --verbose --file="$DOTFILES_DIR/brewfile_personal"
+	fi
+	;;
 esac
 
 # back up any real files that would conflict with stow, preserving directory structure
 backup_conflicts() {
 	pkg="$1"
 	find "$DOTFILES_DIR/dotfiles/$pkg" -type f | while read -r f; do
-		rel="${f#$DOTFILES_DIR/dotfiles/$pkg/}"
+		rel="${f#"$DOTFILES_DIR"/dotfiles/"$pkg"/}"
 		target="$HOME/$rel"
 		if [ -e "$target" ] && [ ! -L "$target" ]; then
 			mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
