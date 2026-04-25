@@ -37,34 +37,6 @@ echo "=== install started: $(date) ==="
 # create general backup dir
 [ ! -d "$BACKUP_DIR" ] && mkdir -pv "$BACKUP_DIR"
 
-# backup ohmyzsh
-if [ -d "$HOME/.oh-my-zsh" ] && [ ! -d "$BACKUP_DIR/.oh-my-zsh" ]; then
-	mv -v "$HOME/.oh-my-zsh" "$BACKUP_DIR/"
-fi
-
-# backup any existing files that will be overwritten by symlinks
-echo "Backing up existing dotfiles to $BACKUP_DIR"
-find "$DOTFILES_DIR/dotfiles" -type f | while read -r dot_file; do
-	target="$HOME/$(basename "$dot_file")"
-	if [ -e "$target" ] && [ ! -L "$target" ]; then
-		mv -v "$target" "$BACKUP_DIR/"
-	fi
-done
-
-# find all the dotfiles in the corresponding directory and symlink
-# work.zsh is excluded here and handled separately below
-find "$DOTFILES_DIR/dotfiles" -type f ! -name "work.zsh" | while read -r dot_file; do
-	echo "linking dotfile: $dot_file"
-	ln -sfnv "$dot_file" "$HOME/$(basename "$dot_file")"
-done
-
-# symlink work.zsh only on work machines
-if [ "$MACHINE_TYPE" = "work" ]; then
-	ln -sfnv "$DOTFILES_DIR/dotfiles/work.zsh" "$HOME/work.zsh"
-fi
-
-echo "Dotfiles installed!"
-
 # on Linux, ensure linuxbrew is in PATH before using brew
 if [ "$(uname)" = "Linux" ]; then
 	test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
@@ -79,7 +51,13 @@ else
 	echo "Homebrew already installed"
 fi
 
-# install packages
+# ensure brew is in PATH after a fresh Linux install (the pre-install eval above was a no-op)
+if [ "$(uname)" = "Linux" ] && ! command -v brew >/dev/null 2>&1; then
+	test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+	test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
+# install packages (stow is included in both Brewfiles)
 printf "Install brew packages? [Y/n]: " >/dev/tty
 read -r brew_reply </dev/tty
 case "$brew_reply" in
@@ -92,6 +70,34 @@ case "$brew_reply" in
     fi
     ;;
 esac
+
+# ensure stow is available (brew bundle above installs it; this catches skipped installs)
+brew install stow
+
+# back up any real files that would conflict with stow, preserving directory structure
+backup_conflicts() {
+	pkg="$1"
+	find "$DOTFILES_DIR/dotfiles/$pkg" -type f | while read -r f; do
+		rel="${f#$DOTFILES_DIR/dotfiles/$pkg/}"
+		target="$HOME/$rel"
+		if [ -e "$target" ] && [ ! -L "$target" ]; then
+			mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
+			mv -v "$target" "$BACKUP_DIR/$rel"
+		fi
+	done
+}
+
+# stow base dotfiles (all machines)
+backup_conflicts base
+stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base
+
+# stow work dotfiles (work machines only)
+if [ "$MACHINE_TYPE" = "work" ]; then
+	backup_conflicts work
+	stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow work
+fi
+
+echo "Dotfiles installed!"
 
 # do some setup stuff
 [ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"

@@ -1,5 +1,5 @@
 # source env
-source "$HOME/env.zsh"
+source "$HOME/.env.zsh"
 
 [ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
 
@@ -11,11 +11,11 @@ select-word-style bash
 # double tab cycle through options
 zstyle ':completion:*' menu select
 
-source "$HOME/completions.zsh"
-source "$HOME/aliases.zsh"
+source "$HOME/.completions.zsh"
+source "$HOME/.aliases.zsh"
 
 # source the prompt
-[ -f "$HOME/ps1.zsh" ] && source "$HOME/ps1.zsh"
+[ -f "$HOME/.ps1.zsh" ] && source "$HOME/.ps1.zsh"
 
 # source "$ZSH_DIR/functions.zsh"
 

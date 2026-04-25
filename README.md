@@ -3,6 +3,28 @@ git clone --depth 1 https://github.com/levontumanyan/home_directory
 ./install.sh
 ```
 
+# Testing
+
+Test `install.sh` in a clean Linux environment using the devcontainer image (requires [Podman](https://podman.io)):
+
+```bash
+podman run --rm -it \
+  -v ~/repos/home_directory:/workspaces/home_directory:z \
+  --userns=keep-id \
+  -w /workspaces/home_directory \
+  --user vscode \
+  localhost/vsc-home_directory-c7ce67ba2cdfe6685c27895981ace7f05c4c12f2d1b273be9ca98862dc2f0087:latest \
+  bash
+```
+
+`--rm` destroys the container on exit so each run starts from a clean slate. Once inside:
+
+```bash
+./install.sh
+```
+
+To rebuild the image after changing `.devcontainer/Dockerfile` or `.devcontainer/devcontainer.json`, use VS Code: `Cmd+Shift+P` → **Dev Containers: Rebuild Container**.
+
 # Keeping Brewfiles updated
 
 After installing new packages on a machine, snapshot the current state back into the repo so other machines stay in sync.
@@ -21,70 +43,46 @@ Then commit and push. The dump overwrites the file with everything currently ins
 
 > Note: `brew bundle dump` outputs everything flat. Casks and macOS-only formulas will be included without any Linux guards — that's expected, the Brewfiles are macOS-first.
 
-Manually make sure that iterm looks at this dir for its settings: `/Users/levontumanyan/home_directory/dotfiles/iterm`
+Manually make sure that iterm looks at this dir for its settings: `~/.config/iterm`
 
-# stow reorg
+# Symlink management (stow)
 
-Migrate symlink management from the custom `find` + `ln` loop in `install.sh` to GNU Stow. This fixes the broken uninstall, handles nested directories (iterm) cleanly, and makes the work/personal split explicit as separate packages.
+Symlinks are managed with [GNU Stow](https://www.gnu.org/software/stow/). Stow mirrors a package directory tree into a target (`$HOME`), creating one symlink per file. It errors out rather than silently overwriting real files, and `-D` cleanly reverses everything.
 
-## Steps
-
-### 1. Install stow
-
-Add `stow` to both Brewfiles so it is available on all machines.
-
-```sh
-# brewfile_work and brewfile_personal
-brew "stow"
-```
-
-### 2. Restructure `dotfiles/` into stow packages
-
-Stow requires each package to be a subdirectory whose contents mirror the layout under `$HOME`. Rename and reorganize:
+## Package structure
 
 ```
 dotfiles/
-  base/           # installed on all machines
-    .aliases.zsh
-    .completions.zsh
-    .env.zsh
-    .ps1.zsh
-    .zshrc
-    .config/
-      iterm/      # was dotfiles/iterm/
-  work/           # installed on work machines only
-    work.zsh
+  base/       # stowed on all machines
+  work/       # stowed on work machines only
 ```
 
-Note: files that are currently sourced from `$HOME` without a leading dot (`aliases.zsh`, etc.) need to be verified — either they stay without dots or `.zshrc` references are updated to match.
+Each package mirrors the layout of `$HOME`. For example:
+- `dotfiles/base/.zshrc` → `~/.zshrc`
+- `dotfiles/base/.config/iterm/com.googlecode.iterm2.plist` → `~/.config/iterm/com.googlecode.iterm2.plist`
+- `dotfiles/work/work.zsh` → `~/work.zsh`
 
-### 3. Update `install.sh`
+## Adding a new dotfile
 
-Replace the `find` + `ln` loop and the `work.zsh` special-case with stow calls:
+1. Create the file at the mirrored path inside `dotfiles/base/`:
+   - `~/.tmux.conf` → `dotfiles/base/.tmux.conf`
+   - `~/.config/foo/bar.conf` → `dotfiles/base/.config/foo/bar.conf`
+2. Re-run `install.sh`, or restow manually:
+   ```sh
+   stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base
+   ```
+3. Commit and push.
 
-```sh
-stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" base
-[ "$MACHINE_TYPE" = "work" ] && stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" work
-```
+For work-only files, use `dotfiles/work/` instead.
 
-Remove the backup loop that guards against stow overwriting real files — stow will refuse to overwrite non-symlink files and error out, which is safer than silently moving things.
+## Removing a dotfile
 
-### 4. Update `uninstall.sh`
-
-Replace the broken manual symlink removal with:
-
-```sh
-stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" -D base
-[ "$MACHINE_TYPE" = "work" ] && stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" -D work
-```
-
-### 5. Verify iterm path
-
-After restructure, update the iterm manual step in this README. iTerm2 will need to point at the new path inside `dotfiles/base/.config/iterm/` (or wherever it lands after restructure).
-
-### 6. Test on a clean machine / VM
-
-Run `install.sh`, confirm symlinks land correctly, then run `uninstall.sh` and confirm all symlinks are removed without touching real files.
+1. Delete the file from `dotfiles/base/` (or `dotfiles/work/`).
+2. Restow to clean up the orphaned symlink:
+   ```sh
+   stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base
+   ```
+3. Commit and push.
 
 ---
 
@@ -98,7 +96,7 @@ Proposed fixes
 
 Todo:
 
-- use stow for the symlink management.
+- [ ] use stow for the symlink management.
 - move k8s functions to it's own thing. Follow Stick convention for this!
 - `sesh.toml` `tmux.conf` should be added to dotfiles.
 - [ ] bring the alt tab settings/tmux/sesh.toml

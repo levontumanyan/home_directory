@@ -2,19 +2,21 @@
 
 set -euox
 
-# locate the backup dir
 . "$(dirname "$0")/setup_envs.sh"
 
-# find all the symlinks in home_dir that point to dotfiles and delete them
-find "$HOME" -maxdepth 1 -type l | while read -r link; do
-  target=$(readlink "$link")
-  case "$target" in
-    "$DOTFILES_DIR"/*)
-      rm "$link"
-      echo "Removed $link"
-      ;;
-  esac
-done
+prompt "Is this a work or personal machine? [work/personal]: " MACHINE_TYPE
+case "$MACHINE_TYPE" in
+	work|personal) ;;
+	*) echo "Invalid choice. Please enter 'work' or 'personal'."; exit 1 ;;
+esac
+
+# unstow base dotfiles (all machines)
+stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" -D base
+
+# unstow work dotfiles (work machines only)
+if [ "$MACHINE_TYPE" = "work" ]; then
+	stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" -D work
+fi
 
 LATEST_BACKUP=$(ls -td "$HOME/dotfiles_backup"/backup_* 2>/dev/null | head -1)
 if [ -d "$LATEST_BACKUP" ]; then
