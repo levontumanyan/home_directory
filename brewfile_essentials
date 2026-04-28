@@ -1,6 +1,7 @@
 brew "fzf"
 brew "gh"
 brew "gnupg"
+brew "pinentry-mac"
 brew "jq"
 brew "sesh"
 brew "shellcheck"
