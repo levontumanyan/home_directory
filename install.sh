@@ -6,13 +6,31 @@ VERBOSE=0
 MACHINE_TYPE=""
 brew_reply=""
 
-while getopts "vm:yn" opt 2>/dev/null; do
+show_help() {
+	echo "Usage: $0 [OPTIONS]"
+	echo ""
+	echo "Options:"
+	echo "  -v          Enable verbose mode (show output in terminal)"
+	echo "  -m TYPE     Set machine type (work or personal)"
+	echo "  -y          Automatically answer 'yes' to profile brew bundle"
+	echo "  -n          Automatically answer 'no' to profile brew bundle"
+	echo "  -h          Show this help message"
+}
+
+while getopts "vm:ynh" opt 2>/dev/null; do
 	case "$opt" in
 	v) VERBOSE=1 ;;
 	m) MACHINE_TYPE="$OPTARG" ;;
 	y) brew_reply="y" ;;
 	n) brew_reply="n" ;;
-	*) ;;
+	h)
+		show_help
+		exit 0
+		;;
+	*)
+		show_help
+		exit 1
+		;;
 	esac
 done
 
