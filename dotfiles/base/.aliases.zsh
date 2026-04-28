@@ -50,6 +50,13 @@ h() {
 # sesh alias
 alias s='sesh connect $(sesh list | fzf)'
 
+# Dynamic LLM alias based on environment
+if [ -f "$HOME/.work.zsh" ]; then
+	alias llm='claude'
+else
+	alias llm='gemini'
+fi
+
 alias c='claude'
 
 # on machines that have only doas
