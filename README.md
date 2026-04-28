@@ -60,7 +60,7 @@ dotfiles/
 Each package mirrors the layout of `$HOME`. For example:
 - `dotfiles/base/.zshrc` → `~/.zshrc`
 - `dotfiles/base/.config/iterm/com.googlecode.iterm2.plist` → `~/.config/iterm/com.googlecode.iterm2.plist`
-- `dotfiles/work/work.zsh` → `~/work.zsh`
+- `dotfiles/work/.work.zsh` → `~/.work.zsh`
 
 ## Adding a new dotfile
 

@@ -3,12 +3,24 @@
 set -eu
 
 VERBOSE=0
-while getopts "v" opt 2>/dev/null; do
-	case "$opt" in v) VERBOSE=1 ;; *) ;; esac
+MACHINE_TYPE=""
+brew_reply=""
+
+while getopts "vm:yn" opt 2>/dev/null; do
+	case "$opt" in
+	v) VERBOSE=1 ;;
+	m) MACHINE_TYPE="$OPTARG" ;;
+	y) brew_reply="y" ;;
+	n) brew_reply="n" ;;
+	*) ;;
+	esac
 done
 
-printf "Is this a work or personal machine? [work/personal]: "
-read -r MACHINE_TYPE
+if [ -z "$MACHINE_TYPE" ]; then
+	printf "Is this a work or personal machine? [work/personal]: "
+	read -r MACHINE_TYPE
+fi
+
 case "$MACHINE_TYPE" in
 work | personal) ;;
 *)
@@ -66,8 +78,10 @@ echo "Installing essential packages..."
 brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
 
 # install profile-specific packages
-printf "Install profile brew packages? [Y/n]: " >/dev/tty
-read -r brew_reply </dev/tty
+if [ -z "$brew_reply" ]; then
+	printf "Install profile brew packages? [Y/n]: " >/dev/tty
+	read -r brew_reply </dev/tty
+fi
 case "$brew_reply" in
 n | N) echo "Skipping profile brew bundle" ;;
 *)
@@ -85,7 +99,7 @@ backup_conflicts() {
 	find "$DOTFILES_DIR/dotfiles/$pkg" -type f | while read -r f; do
 		rel="${f#"$DOTFILES_DIR"/dotfiles/"$pkg"/}"
 		target="$HOME/$rel"
-		if [ -e "$target" ] && [ ! -L "$target" ]; then
+		if [ -e "$target" ] && [ ! -L "$target" ] && [ ! "$target" -ef "$f" ]; then
 			mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
 			mv -v "$target" "$BACKUP_DIR/$rel"
 		fi

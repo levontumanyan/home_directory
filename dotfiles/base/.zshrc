@@ -45,7 +45,7 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
-[ -f "$HOME/work.zsh" ] && source "$HOME/work.zsh"
+[ -f "$HOME/.work.zsh" ] && source "$HOME/.work.zsh"
 
 if [ -z "$TMUX" ] && command -v sesh >/dev/null 2>&1; then
 	sesh connect $(pwd)
