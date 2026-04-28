@@ -96,21 +96,20 @@ Proposed fixes
 
 Todo:
 
-- [ ] make sure that we can control things like gemini/claude in sesh. with an env variable possibly? coming from a dotfile
-- [ ] make sure there is an option to run the script completely uninteractively for testing/debugging
-- [ ] better ps1(include git branching, and kubecontext)
+- [x] make sure there is an option to run the script completely uninteractively for testing/debugging
+- [ ] restoring from backups is broken
 - move k8s functions to it's own thing. Follow Stick convention for this!
 - [ ] bring the alt tab settings/tmux/sesh.toml
 - [ ] create `.claude/settings.json`
   - `gh issue view*` safe to run
 - [ ] idempotency is kinda broken
-- [ ] better separation of work packages to install vs personal machine stuff. and common maybe?
 - [ ] fzf everything - what does that even mean. not just history?
-- [ ] restoring from backups is broken
 - [ ] ownership of the files in this repo (root?)
 - [ ] add history settings
 - [ ] put buckups in one dir...clean up backup files after 3 iterations
 - [ ] automate brew stuff, like upgrade, update, cleanups.
+- [x] make sure that we can control things like gemini/claude in sesh. with an env variable possibly? coming from a dotfile
+- [x] better ps1(include git branching, and kubecontext)
 
 # backup homedir
 
