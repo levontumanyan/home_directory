@@ -1,26 +1,24 @@
 ---
 name: test-changes
-description: Test changes to install.sh and other shell scripts by running shellcheck and executing the installation non-interactively.
+description: Lint modified scripts and execute non-interactive installation.
 ---
 
 # Test Changes
 
-When the user asks to "test the changes", you should follow this testing protocol:
+Execute this protocol when the user requests to test changes:
 
-1. **lint**
-	Run `shellcheck` on all modified shell scripts to ensure there are no syntax errors or warnings.
+1. **Lint**
+	Run shellcheck on modified scripts.
 	```bash
 	make lint
 	```
 
-2. **Run the Install Script Non-Interactively**
-	Execute `install.sh` bypassing all user prompts. Determine the machine type by checking if `~/.work.zsh` exists (use `work` if it does, `personal` otherwise). Use the `-m` flag to specify the machine type and the `-n` flag to skip Homebrew package installation (which saves time during testing).	
+2. **Execute Installation**
+	Determine machine type dynamically and execute with isolated I/O to prevent CLI hangs.
 	```bash
-	# Example for a personal machine
-	./install.sh -m personal -n
-
-	# Example for a work machine (if ~/.work.zsh exists)
-	./install.sh -m work -n
+	m_type=$([ -f ~/.work.zsh ] && echo "work" || echo "personal")
+	AUTOMATED_EXECUTION=1 ./install.sh -m "$m_type" -n
 	```
-3. **Validate the Output**
-	Ensure that the script executes successfully (exit code 0) and that the expected dotfiles are correctly symlinked. Report any errors back to the user.
+
+3. **Validate**
+	Verify exit code 0 and successful symlink creation from the log. Report errors.
