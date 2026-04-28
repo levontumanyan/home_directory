@@ -93,6 +93,12 @@ n | N) echo "Skipping profile brew bundle" ;;
 	;;
 esac
 
+# Cleanup Homebrew
+echo "Cleaning up Homebrew..."
+brew autoremove
+brew cleanup
+brew doctor || true
+
 # back up any real files that would conflict with stow, preserving directory structure
 backup_conflicts() {
 	pkg="$1"
