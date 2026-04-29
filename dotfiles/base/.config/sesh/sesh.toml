@@ -3,28 +3,28 @@ name = "platform-security-team"
 path = "~/repos/platform-security-team"
 startup_command = "git pull"
 preview_command = "ls ~/repos/platform-security-team"
-windows = [ "llm", "vscode" ]
+windows = [ "shell", "llm", "vscode" ]
 
 [[session]]
 name = "platform-security-terraform"
 path = "~/repos/platform-security-terraform"
 startup_command = "git pull"
 preview_command = "ls ~/repos/platform-security-terraform"
-windows = [ "llm", "vscode" ]
+windows = [ "shell", "llm", "vscode" ]
 
 [[session]]
 name = "home_dir"
 path = "~/repos/home_directory"
 startup_command = "git pull"
 preview_command = "ls ~/repos/home_directory"
-windows = [ "llm", "vscode" ]
+windows = [ "shell", "llm", "vscode" ]
 
 [[session]]
 name = "knowledge"
 path = "~/repos/knowledge-base"
 startup_command = "git pull"
 preview_command = "ls ~/repos/knowledge-base"
-windows = [ "llm", "vscode" ]
+windows = [ "shell", "llm", "vscode" ]
 
 [[window]]
 name = "llm"
@@ -33,3 +33,6 @@ startup_script = "llm"
 [[window]]
 name = "vscode"
 startup_script = "code . && exit"
+
+[[window]]
+name = "shell"
