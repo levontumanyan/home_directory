@@ -35,8 +35,23 @@ while getopts "vm:ynh" opt 2>/dev/null; do
 done
 
 if [ -z "$MACHINE_TYPE" ]; then
-	printf "Is this a work or personal machine? [work/personal]: "
-	read -r MACHINE_TYPE
+	# Auto-recognition
+	WORK_FILE="$HOME/.work.zsh"
+	PERSONAL_FILE="$HOME/.personal.zsh"
+
+	if [ -f "$WORK_FILE" ] && [ -f "$PERSONAL_FILE" ]; then
+		echo "Error: Both $WORK_FILE and $PERSONAL_FILE exist. Cannot determine machine type."
+		exit 1
+	elif [ -f "$WORK_FILE" ]; then
+		MACHINE_TYPE="work"
+		echo "Auto-detected work machine (found $WORK_FILE)"
+	elif [ -f "$PERSONAL_FILE" ]; then
+		MACHINE_TYPE="personal"
+		echo "Auto-detected personal machine (found $PERSONAL_FILE)"
+	else
+		printf "Is this a work or personal machine? [work/personal]: "
+		read -r MACHINE_TYPE
+	fi
 fi
 
 case "$MACHINE_TYPE" in
@@ -138,6 +153,12 @@ stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base
 if [ "$MACHINE_TYPE" = "work" ]; then
 	backup_conflicts work
 	stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow work
+fi
+
+# stow personal dotfiles (personal machines only)
+if [ "$MACHINE_TYPE" = "personal" ]; then
+	backup_conflicts personal
+	stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow personal
 fi
 
 echo "Dotfiles installed!"
