@@ -17,5 +17,6 @@ brew "fd"
 brew "bat"
 brew "ripgrep"
 brew "zsh-autosuggestions"
+brew "tailscale"
 
 cask "font-jetbrains-mono-nerd-font"

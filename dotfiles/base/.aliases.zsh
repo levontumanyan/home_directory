@@ -127,3 +127,8 @@ ff_buffer() {
 zle -N ff_buffer
 # 3. The Keybind (CTRL-F)
 bindkey '^f' ff_buffer
+
+# Tailscale / Taildrop
+alias tdrop="tailscale file cp"
+alias tget="tailscale file get"
+
