@@ -49,5 +49,5 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 [ -f "$HOME/.personal.zsh" ] && source "$HOME/.personal.zsh"
 
 if [ -z "$TMUX" ] && command -v tmux >/dev/null 2>&1; then
-	exec tmux new-session -A -s main
+	exec tmux new-session -s "scratch-$$"
 fi
