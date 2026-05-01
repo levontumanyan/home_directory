@@ -4,6 +4,10 @@
 
 Use tabs for indentation in all files. The only exception is YAML, which requires spaces by spec. Never use spaces for indentation elsewhere.
 
+## Issue creation
+
+Unless mentioned otherwise, always create issues in: `https://github.com/elastic/platform-security-team`
+
 ## Knowledge Repository
 
 My personal knowledge base is located at: `~repos/knowledge-base`
