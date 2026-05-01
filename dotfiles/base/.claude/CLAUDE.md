@@ -1,6 +1,11 @@
-# Global Developer Preferences
+# Global Claude Instructions
+
+## Code style
+
+Use tabs for indentation in all files. The only exception is YAML, which requires spaces by spec. Never use spaces for indentation elsewhere.
 
 ## Knowledge Repository
+
 My personal knowledge base is located at: `~repos/knowledge-base`
 
 When I ask you to "document this", "create a doc for this issue", or "create a file with the branch name", do the following:
@@ -12,3 +17,7 @@ When I ask you to "document this", "create a doc for this issue", or "create a f
    - Current repo and path
    - What the issue/feature is about (ask me if unclear)
    - Key decisions or notes
+
+## Environment Access
+
+I do not have access to `<env-name>` (e.g., production, staging). Do not attempt to connect to it, suggest commands that require it, or ask me to verify things against it.

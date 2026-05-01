@@ -147,18 +147,18 @@ backup_conflicts() {
 
 # stow base dotfiles (all machines)
 backup_conflicts base
-stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base
+stow --no-folding --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base
 
 # stow work dotfiles (work machines only)
 if [ "$MACHINE_TYPE" = "work" ]; then
 	backup_conflicts work
-	stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow work
+	stow --no-folding --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow work
 fi
 
 # stow personal dotfiles (personal machines only)
 if [ "$MACHINE_TYPE" = "personal" ]; then
 	backup_conflicts personal
-	stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow personal
+	stow --no-folding --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow personal
 fi
 
 echo "Dotfiles installed!"
