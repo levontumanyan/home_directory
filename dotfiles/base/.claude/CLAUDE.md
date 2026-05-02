@@ -1,5 +1,7 @@
 # Global Claude Instructions
 
+- whenever possible run the command yourself. instead of giving the user a list of commands. If there are several commands in a row execute them one by one.
+
 ## Code style
 
 Use tabs for indentation in all files. The only exception is YAML, which requires spaces by spec. Never use spaces for indentation elsewhere.
