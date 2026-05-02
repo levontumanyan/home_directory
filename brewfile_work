@@ -6,7 +6,9 @@ brew "helm"
 brew "k3d"
 brew "kind"
 brew "okta-aws-cli"
-brew "pinentry-mac"
+if OS.mac?
+	brew "pinentry-mac"
+end
 brew "podman"
 cask "alt-tab"
 cask "claude-code"
