@@ -1,86 +1,95 @@
 # Tailscale & Taildrop
 
-Tailscale is used in this setup to provide a secure, private mesh network between devices (Work and Personal), enabling seamless file transfers via **Taildrop**.
+Tailscale is used in this setup to provide a secure, private mesh network between devices, enabling seamless file transfers via **Taildrop**.
 
 ## Why Tailscale?
-- **Cross-Account**: Works even if your Macs use different iCloud accounts.
+- **Cross-Account**: Works even if your devices use different iCloud/SSO accounts.
 - **Secure**: End-to-end encryption using WireGuard.
 - **Simple**: No firewall configuration or port forwarding required.
 
 ## Setup Instructions
 
-1. **Installation**:
-   - **Mac**: Included in `brewfile_essentials`.
-   - **Mobile (iOS/Android)**: Download "Tailscale" from the App Store or Google Play Store.
+### 1. Installation
+- **macOS**: Included in `brewfile_essentials`. Runs as a system-wide service.
+- **Linux**: Follow the official [Linux installation guide](https://tailscale.com/download/linux).
+- **Mobile (iOS/Android)**: Download "Tailscale" from the App Store or Google Play Store.
 
-2. **Login**:
-   - Open the Tailscale app.
-   - Click "Log in...".
-   - Authenticate using the **same** Tailscale account on all devices (Work Mac, Personal Mac, and Mobile).
+### 2. Service Management
+Tailscale requires a background daemon (`tailscaled`) to be running.
 
-## Headless / Cloud Machines
+- **macOS (Homebrew)**:
+  ```bash
+  sudo brew services start tailscale
+  ```
+- **Linux**:
+  ```bash
+  sudo systemctl enable --now tailscaled
+  ```
 
-For cloud machines or headless servers, use the CLI to authenticate:
+### 3. Authentication
+Log in to your Tailscale account to join the private network.
 
-1. **Installation**: Follow the official Tailscale [Linux installation guide](https://tailscale.com/download/linux).
-2. **Service Management**:
-   - **macOS (Homebrew)**:
-     ```bash
-     brew services start tailscale
-     ```
-   - **Linux**:
-     ```bash
-     systemctl enable --now tailscaled
-     ```
-3. **Authentication**:
-   ```bash
-   tailscale up
-   ```
-   Follow the provided URL to authenticate the machine.
+- **macOS (CLI)**:
+  ```bash
+  tailscale up
+  ```
+- **Linux (Headless)**:
+  Use the `--operator` flag to allow running future Tailscale commands without `sudo`:
+  ```bash
+  sudo tailscale up --operator=$USER
+  ```
+- **macOS (GUI)**:
+  Open the Tailscale app from Applications, click the menu bar icon, and select **Log in...**.
+- **Mobile**:
+  Open the app and authenticate using the same account as your other devices.
 
 ## Fresh Installation & Cleanup
 
-If you need to switch accounts or start from a completely clean state (e.g., clearing the networking stack), follow these steps:
+If you need to switch accounts or start from a completely clean state (clearing the networking stack and local keys), follow these steps:
 
-1. **Uninstall & Wipe State**:
+1. **Logout & Wipe State**:
    ```bash
-   # Logout to clear server-side keys
+   # 1. Clear server-side keys
    tailscale logout
 
-   # Stop and remove the service
+   # 2. Stop the service
+   # macOS:
    sudo brew services stop tailscale
+   # Linux:
+   sudo systemctl stop tailscaled
 
-   # Remove the binary and state files
+   # 3. Remove binary and local state
+   # macOS (Homebrew):
    sudo rm -rf /opt/homebrew/Cellar/tailscale
    rm -rf ~/.local/share/tailscale
    rm -f ~/Library/Preferences/com.tailscale.ipn.macsys.plist
    ```
 
-2. **Reinstall**:
+2. **Reinstall & Re-auth**:
    ```bash
+   # Reinstall
    brew install tailscale
-   ```
 
-3. **Restart as Root Service**:
-   On macOS, Tailscale works most reliably when run as a system-wide root service:
-   ```bash
+   # Start service and authenticate fresh
    sudo brew services start tailscale
    tailscale up --force-reauth
    ```
 
-4. **Gemini CLI (Trusted Folders)**:
-   In headless environments, you must explicitly trust the workspace to avoid interactive prompts. Set this environment variable in your shell profile (`.zshrc` or `.bashrc`):
-   ```bash
-   export GEMINI_CLI_TRUST_WORKSPACE=true
-   ```
+## Gemini CLI Integration
+
+In headless environments, you must explicitly trust the workspace to avoid interactive prompts. Add this to your shell profile (`.zshrc` or `.bashrc`):
+
+```bash
+export GEMINI_CLI_TRUST_WORKSPACE=true
+```
 
 ## Sending Files (Taildrop)
-   - **From Mac**: Click the Tailscale menu bar icon > `Send File...` > Select device.
-   - **From Mobile**: Open a file/photo > tap `Share` > select `Tailscale` > select device.
-   - **Via CLI**:
-     ```bash
-     tdrop <file> <destination-hostname>:
-     ```
+- **From Mac (GUI)**: Click the Tailscale menu bar icon > `Send File...` > Select device.
+- **From Mobile**: Open a file/photo > tap `Share` > select `Tailscale` > select device.
+- **Via CLI**:
+  ```bash
+  tailscale file cp <file> <destination-hostname>:
+  ```
 
 ## Security
-Tailscale is identity-native. Access is tied to your SSO provider. Data is encrypted and never readable by Tailscale servers.
+Tailscale is identity-native. Access is tied to your SSO provider. Data is end-to-end encrypted and never readable by Tailscale servers.
