@@ -1,4 +1,10 @@
 [[session]]
+name = "google-drive"
+path = "~/Library/CloudStorage/GoogleDrive-ltfibonacci@gmail.com/My Drive"
+startup_command = "ls -F"
+windows = [ "shell", "llm" ]
+
+[[session]]
 name = "platform-security-team"
 path = "~/repos/platform-security-team"
 startup_command = "git pull"

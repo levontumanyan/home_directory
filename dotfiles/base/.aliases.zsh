@@ -104,7 +104,7 @@ ff() {
 	local file
 	# Use fd to find files, fzf to select, and bat for the preview
 	file=$(fd --type f --hidden --exclude .git | fzf --preview 'bat --color=always --style=numbers --line-range=:50 {}')
-	
+
 	# If a selection was made, open it in VS Code
 	if [[ -n "$file" ]]; then
 		code "$file"
@@ -131,4 +131,3 @@ bindkey '^f' ff_buffer
 # Tailscale / Taildrop
 alias tdrop="tailscale file cp"
 alias tget="tailscale file get"
-

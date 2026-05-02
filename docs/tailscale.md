@@ -16,7 +16,7 @@ Tailscale is used in this setup to provide a secure, private mesh network betwee
 
 ### 1. Installation
 - **macOS**: Installed automatically via `install.sh` (Homebrew).
-- **Linux**: Installed automatically via `install.sh` (Official Native Script). 
+- **Linux**: Installed automatically via `install.sh` (Official Native Script).
   - *Note: We avoid Homebrew on Linux for Tailscale because the Homebrew formula often lacks the necessary `systemd` unit files.*
 - **Mobile (iOS/Android)**: Download "Tailscale" from the App Store or Google Play Store.
 
@@ -40,10 +40,10 @@ Log in to your Tailscale account to join the private network.
   tailscale up
   ```
 - **Linux (Headless)**:
-  Use the `--operator` flag to allow running future Tailscale commands without `sudo`:
-  ```bash
-  sudo tailscale up --operator=$USER
-  ```
+Use the `--operator` flag to allow running future Tailscale commands without `sudo`:
+```bash
+sudo tailscale up --operator=$USER
+```
 
 ## Sending Files (Taildrop)
 
@@ -72,16 +72,16 @@ zsh -ic "tdrop <file> <destination>:"
 If you need to switch accounts or start from a completely clean state, follow these steps:
 
 1. **Logout & Wipe State**:
-   ```bash
-   tailscale logout
-   sudo brew services stop tailscale  # macOS
-   sudo systemctl stop tailscaled     # Linux
-   sudo rm -rf /var/lib/tailscale     # Linux state
-   rm -rf ~/.local/share/tailscale    # macOS state
-   ```
+```bash
+tailscale logout
+sudo brew services stop tailscale  # macOS
+sudo systemctl stop tailscaled     # Linux
+sudo rm -rf /var/lib/tailscale     # Linux state
+rm -rf ~/.local/share/tailscale    # macOS state
+```
 
 2. **Reinstall**:
-   Re-run `./install.sh`.
+Re-run `./install.sh`.
 
 ## Security
 Tailscale is identity-native. Access is tied to your SSO provider. Data is end-to-end encrypted and never readable by Tailscale servers.

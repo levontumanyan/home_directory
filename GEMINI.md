@@ -1,10 +1,8 @@
 # GEMINI.md
 
-This file provides foundational mandates and guidance for Gemini CLI when working in the `home_directory` repository.
-
 ## Repository Overview
 
-A personal dotfiles and macOS/Linux environment configuration repository. It manages dotfiles, Homebrew packages, and tool installations (kubectl, fzf, zoxide) through symlinking and automated scripts.
+A personal dotfiles and macOS/Linux environment configuration repository. It manages dotfiles, Homebrew packages, and tool installations through symlinking and automated scripts.
 
 ## Core Development Lifecycle
 
@@ -18,8 +16,6 @@ A personal dotfiles and macOS/Linux environment configuration repository. It man
 - **Shell Scripting Standards:**
   - Use `set -euox` for debuggability and safety where appropriate (consistent with `install.sh`).
   - Prefer `sh` or `zsh` as used in existing scripts.
-  - Follow existing conventions for path handling and symlinking (`ln -sfnv`).
-- **Brew Management:** Use `brew_cron.sh` logic for updating package lists. Do not manually edit `brew_formulas.txt` or `brew_casks.txt` unless necessary for a specific installation task.
 - **Tailscale:** Linux uses the native installation script instead of Homebrew to ensure proper `systemd` integration.
 
 ## Key Components
@@ -28,14 +24,13 @@ A personal dotfiles and macOS/Linux environment configuration repository. It man
 |---|---|
 | `install.sh` | Entry point: backs up existing dotfiles, symlinks files from `dotfiles/` to `$HOME`, runs OS-specific setup. |
 | `dotfiles/` | Source of truth for dotfiles (symlinked to `$HOME`). |
-| `linux_setup.sh` | Linux-specific setup logic. |
 | `setup.sh` | Post-installation tasks: git config, fzf installation, kubectl setup. |
 | `uninstall.sh` | Cleanup: removes symlinks, attempts to restore from backup. |
 | `setup_envs.sh` | Shared environment variables. |
 
 ## Important Conventions
 
-- **Sudo Usage:** macOS setup steps (like Homebrew) often require `sudo`. Always warn or explain before running commands that use `sudo`.
+- **Sudo Usage:** prefer to not use `sudo` as much as possible.
 - **iTerm2:** Settings are stored in `dotfiles/iterm/com.googlecode.iterm2.plist`. Users must manually point iTerm2 to this directory.
 - **Git Signing:** Post-install requires manual GPG configuration (see `README.md`).
 
@@ -43,5 +38,4 @@ A personal dotfiles and macOS/Linux environment configuration repository. It man
 
 1. **Restoration:** `uninstall.sh` and general restoration from backups are currently broken.
 2. **Idempotency:** Many scripts are not fully idempotent (e.g., duplicate entries in config files).
-3. **Shell Completions:** `kubectl` completions may not be working correctly.
 4. **Backup Management:** Backups should be consolidated into one directory and cleaned up after several iterations.
