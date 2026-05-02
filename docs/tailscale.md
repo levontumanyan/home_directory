@@ -7,16 +7,21 @@ Tailscale is used in this setup to provide a secure, private mesh network betwee
 - **Secure**: End-to-end encryption using WireGuard.
 - **Simple**: No firewall configuration or port forwarding required.
 
+## My Network (MagicDNS Names)
+- **`personal`**: macOS (Personal MacBook Air)
+- **`work`**: macOS (Work MacBook Pro)
+- **`fibonacci`**: Linux (Cloud Machine)
+
 ## Setup Instructions
 
 ### 1. Installation
 - **macOS**: Installed automatically via `install.sh` (Homebrew).
 - **Linux**: Installed automatically via `install.sh` (Official Native Script). 
-  - *Note: We avoid Homebrew on Linux for Tailscale because the Homebrew formula often lacks the necessary `systemd` unit files, preventing it from running as a background service.*
+  - *Note: We avoid Homebrew on Linux for Tailscale because the Homebrew formula often lacks the necessary `systemd` unit files.*
 - **Mobile (iOS/Android)**: Download "Tailscale" from the App Store or Google Play Store.
 
 ### 2. Service Management
-Tailscale requires a background daemon (`tailscaled`) to be running. This is handled automatically by the setup scripts, but can be managed manually:
+Tailscale requires a background daemon (`tailscaled`) to be running.
 
 - **macOS (Homebrew)**:
   ```bash
@@ -39,57 +44,44 @@ Log in to your Tailscale account to join the private network.
   ```bash
   sudo tailscale up --operator=$USER
   ```
-- **macOS (GUI)**:
-  Open the Tailscale app from Applications, click the menu bar icon, and select **Log in...**.
-- **Mobile**:
-  Open the app and authenticate using the same account as your other devices.
+
+## Sending Files (Taildrop)
+
+### Using Aliases
+The following aliases are defined in `.aliases.zsh`:
+- `tdrop`: Sends files (`tailscale file cp`)
+- `tget`: Receives files (`tailscale file get`)
+
+**Examples:**
+```bash
+# Send a file to the cloud machine
+tdrop my_photo.jpg fibonacci:
+
+# Receive files on the current machine
+tget .
+```
+
+### Agent Usage (For Gemini/Claude)
+For AI agents to use these aliases, they must run commands in an **interactive Zsh shell**:
+```bash
+zsh -ic "tdrop <file> <destination>:"
+```
 
 ## Fresh Installation & Cleanup
 
-If you need to switch accounts or start from a completely clean state (clearing the networking stack and local keys), follow these steps:
+If you need to switch accounts or start from a completely clean state, follow these steps:
 
 1. **Logout & Wipe State**:
    ```bash
-   # 1. Clear server-side keys
    tailscale logout
-
-   # 2. Stop and remove the service
-   # macOS:
-   sudo brew services stop tailscale
-   # Linux:
-   sudo systemctl stop tailscaled
-   sudo systemctl disable tailscaled
-
-   # 3. Remove local state
-   # macOS:
-   rm -rf ~/.local/share/tailscale
-   rm -f ~/Library/Preferences/com.tailscale.ipn.macsys.plist
-   # Linux:
-   sudo rm -rf /var/lib/tailscale
+   sudo brew services stop tailscale  # macOS
+   sudo systemctl stop tailscaled     # Linux
+   sudo rm -rf /var/lib/tailscale     # Linux state
+   rm -rf ~/.local/share/tailscale    # macOS state
    ```
 
-2. **Reinstall & Re-auth**:
-   Re-run the installation scripts to get a fresh copy:
-   ```bash
-   ./install.sh
-   tailscale up --force-reauth
-   ```
-
-## Gemini CLI Integration
-
-In headless environments, you must explicitly trust the workspace to avoid interactive prompts. Add this to your shell profile (`.zshrc` or `.bashrc`):
-
-```bash
-export GEMINI_CLI_TRUST_WORKSPACE=true
-```
-
-## Sending Files (Taildrop)
-- **From Mac (GUI)**: Click the Tailscale menu bar icon > `Send File...` > Select device.
-- **From Mobile**: Open a file/photo > tap `Share` > select `Tailscale` > select device.
-- **Via CLI**:
-  ```bash
-  tailscale file cp <file> <destination-hostname>:
-  ```
+2. **Reinstall**:
+   Re-run `./install.sh`.
 
 ## Security
 Tailscale is identity-native. Access is tied to your SSO provider. Data is end-to-end encrypted and never readable by Tailscale servers.
