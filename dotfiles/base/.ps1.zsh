@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 autoload -Uz colors && colors
 setopt PROMPT_SUBST
 

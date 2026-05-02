@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # source env
 source "$HOME/.env.zsh"
 

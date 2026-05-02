@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # Aliases (Best for Tab Completion)
 alias k='kubectl'
 alias kcd='kubectl config set-context --current --namespace'
@@ -131,3 +132,14 @@ bindkey '^f' ff_buffer
 # Tailscale / Taildrop
 alias tdrop="tailscale file cp"
 alias tget="tailscale file get"
+
+# Send clipboard to a device (defaults to iphone)
+tcopy() {
+	local target="${1:-iphone}"
+	local tmpfile
+	tmpfile="/tmp/clip_$(date +%H%M%S).txt"
+	pbpaste > "$tmpfile"
+	tailscale file cp "$tmpfile" "${target}:"
+	rm "$tmpfile"
+	echo "Sent clipboard to $target"
+}
