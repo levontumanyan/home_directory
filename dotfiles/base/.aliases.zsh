@@ -130,7 +130,7 @@ zle -N ff_buffer
 bindkey '^f' ff_buffer
 
 # Tailscale / Taildrop
-alias tdrop="tailscale file cp"
+alias tsend="tailscale file cp"
 alias tget="tailscale file get"
 
 # Send clipboard to a device (defaults to iphone)

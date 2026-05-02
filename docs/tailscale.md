@@ -49,13 +49,13 @@ sudo tailscale up --operator=$USER
 
 ### Using Aliases
 The following aliases are defined in `.aliases.zsh`:
-- `tdrop`: Sends files (`tailscale file cp`)
+- `tsend`: Sends files (`tailscale file cp`)
 - `tget`: Receives files (`tailscale file get`)
 
 **Examples:**
 ```bash
 # Send a file to the cloud machine
-tdrop my_photo.jpg fibonacci:
+tsend my_photo.jpg fibonacci:
 
 # Receive files on the current machine
 tget .
