@@ -166,13 +166,7 @@ echo "Dotfiles installed!"
 # do some setup stuff
 [ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
 
-if command -v zsh >/dev/null 2>&1; then
-	if [ -z "${AUTOMATED_EXECUTION:-}" ]; then
-		exec >/dev/tty 2>&1
-		exec zsh
-	else
-		echo "Automated execution detected. Skipping interactive zsh spawn."
-	fi
-else
-	echo "Zsh is not installed. Skipping Zsh-specific setup."
+if [ -t 0 ] && [ -z "${AUTOMATED_EXECUTION:-}" ] && command -v zsh >/dev/null 2>&1; then
+	echo "Installation complete! Starting Zsh..."
+	exec zsh
 fi
