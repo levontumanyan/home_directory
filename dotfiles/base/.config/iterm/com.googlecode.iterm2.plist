@@ -62,6 +62,13 @@
 	<false/>
 	<key>GlobalKeyMap</key>
 	<dict>
+		<key>0xd-0x20000</key>
+		<dict>
+			<key>Action</key>
+			<integer>11</integer>
+			<key>Text</key>
+			<string>0x0a</string>
+		</dict>
 		<key>0x19-0x60000</key>
 		<dict>
 			<key>Action</key>
@@ -1170,6 +1177,13 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
+				<key>0xd-0x20000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x0a</string>
+				</dict>
 				<key>0x7f-0x100000</key>
 				<dict>
 					<key>Action</key>
