@@ -11,20 +11,31 @@ Tailscale is used in this setup to provide a secure, private mesh network betwee
 
 ### 1. Installation
 - **macOS**: Included in `brewfile_essentials`. Runs as a system-wide service.
-- **Linux**: Follow the official [Linux installation guide](https://tailscale.com/download/linux).
+- **Linux (Homebrew)**: Included in `brewfile_essentials`. Note: Requires manual service linking (see below).
+- **Linux (Native - Recommended)**: If Homebrew integration fails, use the official script:
+  ```bash
+  curl -fsSL https://tailscale.com/install.sh | sh
+  ```
 - **Mobile (iOS/Android)**: Download "Tailscale" from the App Store or Google Play Store.
 
 ### 2. Service Management
 Tailscale requires a background daemon (`tailscaled`) to be running.
 
-- **macOS (Homebrew)**:
-  ```bash
-  sudo brew services start tailscale
-  ```
-- **Linux**:
-  ```bash
-  sudo systemctl enable --now tailscaled
-  ```
+#### macOS (Homebrew)
+```bash
+sudo brew services start tailscale
+```
+
+#### Linux (Homebrew Integration)
+Homebrew on Linux does not automatically register systemd units. If `systemctl status tailscaled` fails, run:
+```bash
+# 1. Link the service file
+sudo ln -s $(brew --prefix)/opt/tailscale/lib/systemd/system/tailscaled.service /lib/systemd/system/tailscaled.service
+
+# 2. Reload and start
+sudo systemctl daemon-reload
+sudo systemctl enable --now tailscaled
+```
 
 ### 3. Authentication
 Log in to your Tailscale account to join the private network.
