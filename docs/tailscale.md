@@ -12,6 +12,7 @@ Tailscale is used in this setup to provide a secure, private mesh network betwee
 ### 1. Installation
 - **macOS**: Installed automatically via `install.sh` (Homebrew).
 - **Linux**: Installed automatically via `install.sh` (Official Native Script). 
+  - *Note: We avoid Homebrew on Linux for Tailscale because the Homebrew formula often lacks the necessary `systemd` unit files, preventing it from running as a background service.*
 - **Mobile (iOS/Android)**: Download "Tailscale" from the App Store or Google Play Store.
 
 ### 2. Service Management

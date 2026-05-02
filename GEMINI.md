@@ -20,6 +20,7 @@ A personal dotfiles and macOS/Linux environment configuration repository. It man
   - Prefer `sh` or `zsh` as used in existing scripts.
   - Follow existing conventions for path handling and symlinking (`ln -sfnv`).
 - **Brew Management:** Use `brew_cron.sh` logic for updating package lists. Do not manually edit `brew_formulas.txt` or `brew_casks.txt` unless necessary for a specific installation task.
+- **Tailscale:** Linux uses the native installation script instead of Homebrew to ensure proper `systemd` integration.
 
 ## Key Components
 
