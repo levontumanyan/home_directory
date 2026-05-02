@@ -20,6 +20,8 @@ brew "fd"
 brew "bat"
 brew "ripgrep"
 brew "zsh-autosuggestions"
-brew "tailscale"
+if OS.mac?
+	brew "tailscale"
+end
 
 cask "font-jetbrains-mono-nerd-font"

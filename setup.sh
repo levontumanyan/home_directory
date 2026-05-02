@@ -24,6 +24,12 @@ fi
 # create user bin
 mkdir -p ~/bin
 
+# install pre-commit hooks for this repo
+if command -v pre-commit >/dev/null 2>&1; then
+	echo "Installing pre-commit hooks..."
+	pre-commit install
+fi
+
 # Setup Tailscale service
 echo "Setting up Tailscale service..."
 if [ "$(uname)" = "Darwin" ]; then
@@ -32,8 +38,8 @@ if [ "$(uname)" = "Darwin" ]; then
 		brew services start tailscale || true
 	fi
 elif [ "$(uname)" = "Linux" ]; then
-	if command -v systemctl >/dev/null 2>&1 && command -v tailscaled >/dev/null 2>&1; then
+	if command -v systemctl >/dev/null 2>&1 && command -v tailscale >/dev/null 2>&1; then
 		echo "Ensuring Tailscale service is enabled and started..."
-		systemctl enable --now tailscaled || true
+		sudo systemctl enable --now tailscaled || true
 	fi
 fi

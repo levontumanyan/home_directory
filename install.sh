@@ -110,6 +110,12 @@ fi
 echo "Installing essential packages..."
 brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
 
+# install Tailscale natively on Linux
+if [ "$(uname)" = "Linux" ] && ! command -v tailscale >/dev/null 2>&1; then
+	echo "Installing Tailscale natively..."
+	curl -fsSL https://tailscale.com/install.sh | sh
+fi
+
 # install profile-specific packages
 if [ -z "$brew_reply" ]; then
 	printf "Install profile brew packages? [Y/n]: " >/dev/tty

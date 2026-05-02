@@ -10,32 +10,21 @@ Tailscale is used in this setup to provide a secure, private mesh network betwee
 ## Setup Instructions
 
 ### 1. Installation
-- **macOS**: Included in `brewfile_essentials`. Runs as a system-wide service.
-- **Linux (Homebrew)**: Included in `brewfile_essentials`. Note: Requires manual service linking (see below).
-- **Linux (Native - Recommended)**: If Homebrew integration fails, use the official script:
-  ```bash
-  curl -fsSL https://tailscale.com/install.sh | sh
-  ```
+- **macOS**: Installed automatically via `install.sh` (Homebrew).
+- **Linux**: Installed automatically via `install.sh` (Official Native Script). 
 - **Mobile (iOS/Android)**: Download "Tailscale" from the App Store or Google Play Store.
 
 ### 2. Service Management
-Tailscale requires a background daemon (`tailscaled`) to be running.
+Tailscale requires a background daemon (`tailscaled`) to be running. This is handled automatically by the setup scripts, but can be managed manually:
 
-#### macOS (Homebrew)
-```bash
-sudo brew services start tailscale
-```
-
-#### Linux (Homebrew Integration)
-Homebrew on Linux does not automatically register systemd units. If `systemctl status tailscaled` fails, run:
-```bash
-# 1. Link the service file
-sudo ln -s $(brew --prefix)/opt/tailscale/lib/systemd/system/tailscaled.service /lib/systemd/system/tailscaled.service
-
-# 2. Reload and start
-sudo systemctl daemon-reload
-sudo systemctl enable --now tailscaled
-```
+- **macOS (Homebrew)**:
+  ```bash
+  sudo brew services start tailscale
+  ```
+- **Linux (Native)**:
+  ```bash
+  sudo systemctl enable --now tailscaled
+  ```
 
 ### 3. Authentication
 Log in to your Tailscale account to join the private network.
@@ -63,26 +52,25 @@ If you need to switch accounts or start from a completely clean state (clearing 
    # 1. Clear server-side keys
    tailscale logout
 
-   # 2. Stop the service
+   # 2. Stop and remove the service
    # macOS:
    sudo brew services stop tailscale
    # Linux:
    sudo systemctl stop tailscaled
+   sudo systemctl disable tailscaled
 
-   # 3. Remove binary and local state
-   # macOS (Homebrew):
-   sudo rm -rf /opt/homebrew/Cellar/tailscale
+   # 3. Remove local state
+   # macOS:
    rm -rf ~/.local/share/tailscale
    rm -f ~/Library/Preferences/com.tailscale.ipn.macsys.plist
+   # Linux:
+   sudo rm -rf /var/lib/tailscale
    ```
 
 2. **Reinstall & Re-auth**:
+   Re-run the installation scripts to get a fresh copy:
    ```bash
-   # Reinstall
-   brew install tailscale
-
-   # Start service and authenticate fresh
-   sudo brew services start tailscale
+   ./install.sh
    tailscale up --force-reauth
    ```
 
