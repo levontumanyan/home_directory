@@ -16,5 +16,6 @@ if [ -d "$HOME/.local/bin" ] ; then
 fi
 
 # Podman as Docker drop-in
-command -v podman >/dev/null 2>&1 && \
+if [[ "$(uname)" == "Darwin" ]] && command -v podman >/dev/null 2>&1; then
   DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+fi
