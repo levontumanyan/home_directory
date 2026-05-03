@@ -14,3 +14,11 @@ repos:
     rev: v3.10.0-1
     hooks:
     -   id: shfmt
+-   repo: local
+    hooks:
+    -   id: dotfiles-test
+        name: Run Dotfiles Container Test
+        entry: make test
+        language: system
+        files: ^(install\.sh|dotfiles/.*|Makefile)$
+        pass_filenames: false
