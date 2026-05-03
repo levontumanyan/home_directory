@@ -13,3 +13,5 @@ My personal knowledge base is located at: `~repos/knowledge-base`
 ## File Naming Conventions
 
 - **Unified Instructions**: If a repository contains `GEMINI.md` or `CLAUDE.md`, unify them into a single `AGENTS.md` file and symlink the original filenames back to it. `AGENTS.md` is the primary source of truth for all AI instructions.
+
+- In Markdown files, always use a single '#' for top-level section headings. Sub-sections should use '##'. Avoid using '###' or deeper unless absolutely necessary. Major sections must always be at the root heading level (#). Avoid having one # top level heading only.

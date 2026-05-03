@@ -137,3 +137,4 @@ git config --global user.signingkey <YOUR_SIGNING_SUBKEY_ID>
 git config --global commit.gpgsign true
 git config --global tag.gpgsign true
 ```
+\n- [ ] TODO: Migrate ~/.gitconfig to dotfiles/base/ and verify GPG keys before removing HOME .git
