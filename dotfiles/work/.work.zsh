@@ -1,4 +1,5 @@
-# shellcheck shell=zsh
+# shellcheck shell=bash
+# shellcheck disable=SC1091
 # AWS Config Bootstrap - auto-clones repo and sources helpers
 _aws_config_bootstrap() {
 	local repo="${XDG_DATA_HOME:-$HOME/.local/share}/platform-cli-auth"

@@ -1,13 +1,51 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
+# shellcheck shell=bash
 
-# Determine machine type
-m_type="personal"
-if [ -f ~/.work.zsh ]; then
-	m_type="work"
+set -e
+
+# Colors for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo "🚀 Starting Automated Validation..."
+
+# 1. Run installation for PERSONAL
+echo "--- Testing PERSONAL profile ---"
+./install.sh -m personal -t
+
+# Validation
+if [[ -L "$HOME/AGENTS.md" ]]; then
+	echo -e "${GREEN}✓ ~/AGENTS.md is a symlink${NC}"
+else
+	echo -e "${RED}✗ ~/AGENTS.md is NOT a symlink${NC}"
+	exit 1
 fi
 
-AUTOMATED_EXECUTION=1 ./install.sh -m "$m_type" -n
-exit_code=$?
+if grep -q "Personal" "$HOME/AGENTS.md" || grep -q "Agent Instructions" "$HOME/AGENTS.md"; then
+	echo -e "${GREEN}✓ ~/AGENTS.md has correct content${NC}"
+else
+	echo -e "${RED}✗ ~/AGENTS.md has incorrect content${NC}"
+	exit 1
+fi
 
-echo "EXIT_STATUS: $exit_code"
-exit $exit_code
+if [[ -L "$HOME/.gemini/GEMINI.md" ]]; then
+	echo -e "${GREEN}✓ ~/.gemini/GEMINI.md is a symlink${NC}"
+else
+	echo -e "${RED}✗ ~/.gemini/GEMINI.md is NOT a symlink${NC}"
+	exit 1
+fi
+
+# 2. Run installation for WORK
+echo "--- Testing WORK profile ---"
+./install.sh -m work -t
+
+# Validation
+if grep -q "WORK" "$HOME/AGENTS.md"; then
+	echo -e "${GREEN}✓ ~/AGENTS.md switched to WORK content${NC}"
+else
+	echo -e "${RED}✗ ~/AGENTS.md failed to switch to WORK content${NC}"
+	exit 1
+fi
+
+echo -e "\n${GREEN}⭐ All validations passed!${NC}"

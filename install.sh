@@ -98,10 +98,10 @@ if [ "$(uname)" = "Linux" ]; then
 fi
 
 # install Homebrew if missing
-if ! command -v brew >/dev/null 2>&1; then
+if [ "$SKIP_ESSENTIALS" = "0" ] && ! command -v brew >/dev/null 2>&1; then
 	echo "Homebrew not found, installing..."
 	NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-else
+elif [ "$SKIP_ESSENTIALS" = "0" ]; then
 	echo "Homebrew already installed"
 fi
 
@@ -116,7 +116,13 @@ if [ "$SKIP_ESSENTIALS" = "1" ]; then
 	echo "Testing mode: Skipping heavy essentials..."
 	if ! command -v stow >/dev/null 2>&1; then
 		echo "Installing stow (required)..."
-		brew install stow
+		if command -v brew >/dev/null 2>&1; then
+			brew install stow
+		elif command -v apk >/dev/null 2>&1; then
+			sudo apk add stow
+		elif command -v apt-get >/dev/null 2>&1; then
+			sudo apt-get update && sudo apt-get install -y stow
+		fi
 	fi
 else
 	echo "Installing essential packages..."

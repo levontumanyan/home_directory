@@ -1,4 +1,5 @@
-# shellcheck shell=zsh
+# shellcheck shell=bash
+# shellcheck disable=SC1091,SC2034
 # source env
 source "$HOME/.env.zsh"
 
