@@ -166,7 +166,8 @@ backup_conflicts() {
 	find "$DOTFILES_DIR/dotfiles/$pkg" -type f | while read -r f; do
 		rel="${f#"$DOTFILES_DIR"/dotfiles/"$pkg"/}"
 		target="$HOME/$rel"
-		if [ -e "$target" ] && [ ! -L "$target" ] && [ ! "$target" -ef "$f" ]; then
+		# Only back up if it is a real file (not a symlink)
+		if [ -f "$target" ] && [ ! -L "$target" ]; then
 			mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
 			mv -v "$target" "$BACKUP_DIR/$rel"
 		fi
