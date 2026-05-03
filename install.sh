@@ -192,9 +192,7 @@ fi
 echo "Dotfiles installed!"
 
 # do some setup stuff
-if [ -z "${AUTOMATED_EXECUTION:-}" ]; then
-	[ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
-fi
+[ -f "$DOTFILES_DIR/setup.sh" ] && zsh "$DOTFILES_DIR/setup.sh"
 
 if [ -t 0 ] && [ -z "${AUTOMATED_EXECUTION:-}" ] && command -v zsh >/dev/null 2>&1; then
 	echo "Installation complete! Starting Zsh..."
