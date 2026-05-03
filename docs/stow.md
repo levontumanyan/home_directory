@@ -62,3 +62,17 @@ To manually refresh your symlinks after adding new files to the repo:
 # Refresh base dotfiles
 stow -d ~/repos/home_directory/dotfiles -t ~ -R base
 ```
+
+## The Symlink Paradox (Double-Hops)
+
+When managing "intelligent" dotfiles (like `GEMINI.md` or `CLAUDE.md` pointing to a global `AGENTS.md`), we must be careful with relative symlinks.
+
+### The Problem
+If you have a symlink in the repo `base` folder pointing to a file in the `personal` folder, Stow will create a link in your Home directory that points into the Repo. However, once you are inside the repo via that link, any **relative** jumps (like `../AGENTS.md`) are resolved relative to the **Repo's** physical location, not your **Home** directory.
+
+### The Solution
+Relative symlinks must be co-located in the same Stow "package" as their target.
+- **Correct**: `dotfiles/personal/.gemini/GEMINI.md` -> `../AGENTS.md` (where AGENTS.md is also in the `personal` package).
+- **Incorrect**: `dotfiles/base/.gemini/GEMINI.md` -> `../AGENTS.md` (this would look for `dotfiles/base/AGENTS.md`, which doesn't exist).
+
+This is why profile-specific agent instructions are mirrored across `personal` and `work` packages instead of sitting in `base`.

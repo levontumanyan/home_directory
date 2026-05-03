@@ -59,9 +59,13 @@ fi
 echo "--- Testing Base Symlinks ---"
 assert_symlink "$HOME/.zshrc" "dotfiles/base/.zshrc"
 assert_symlink "$HOME/.aliases.zsh" "dotfiles/base/.aliases.zsh"
-assert_symlink "$HOME/.gemini/settings.json" "dotfiles/base/.gemini/settings.json"
 
-# 3. Test Directory Nesting
+# 3. Test Profile Symlinks
+echo "--- Testing Profile Symlinks ---"
+assert_symlink "$HOME/.gemini/settings.json" "dotfiles/personal/.gemini/settings.json"
+assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
+
+# 4. Test Directory Nesting
 echo "--- Testing Nested Directories ---"
 assert_symlink "$HOME/.config/sesh/sesh.toml" "dotfiles/base/.config/sesh/sesh.toml"
 
