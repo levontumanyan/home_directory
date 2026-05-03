@@ -23,3 +23,7 @@ When I ask you to "document this", "create a doc for this issue", or "create a f
 ## Environment Access
 
 I do not have access to `govcloud high` or `frh`. Do not attempt to connect to it, suggest commands that require it, or ask me to verify things against it. I do modify and work on it but through pipelines. I do not have direct access to it.
+
+## File Naming Conventions
+
+- **Unified Instructions**: If a repository contains `GEMINI.md` or `CLAUDE.md`, unify them into a single `AGENTS.md` file and symlink the original filenames back to it. `AGENTS.md` is the primary source of truth for all AI instructions.

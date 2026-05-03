@@ -12,5 +12,4 @@ My personal knowledge base is located at: `~repos/knowledge-base`
 
 ## File Naming Conventions
 
-- For now everytime you see `GEMINI.md` edit it to `AGENTS.md`.
-- Every repo I drop you into make sure any `CLAUDE.md` will be changed to link to `AGENTS.md`.
+- **Unified Instructions**: If a repository contains `GEMINI.md` or `CLAUDE.md`, unify them into a single `AGENTS.md` file and symlink the original filenames back to it. `AGENTS.md` is the primary source of truth for all AI instructions.
