@@ -72,7 +72,8 @@ If you have a symlink in the repo `base` folder pointing to a file in the `perso
 
 ### The Solution
 Relative symlinks must be co-located in the same Stow "package" as their target.
-- **Correct**: `dotfiles/personal/.gemini/GEMINI.md` -> `../AGENTS.md` (where AGENTS.md is also in the `personal` package).
-- **Incorrect**: `dotfiles/base/.gemini/GEMINI.md` -> `../AGENTS.md` (this would look for `dotfiles/base/AGENTS.md`, which doesn't exist).
+
+- **Correct**: `dotfiles/personal/.config/gemini/GEMINI.md` -> `../../AGENTS.md` (where `AGENTS.md` is at `dotfiles/personal/AGENTS.md`).
+- **Incorrect**: `dotfiles/base/.config/gemini/GEMINI.md` -> `../../AGENTS.md` (this would look for `dotfiles/base/AGENTS.md`, which doesn't exist).
 
 This is why profile-specific agent instructions are mirrored across `personal` and `work` packages instead of sitting in `base`.

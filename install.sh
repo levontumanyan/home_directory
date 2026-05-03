@@ -114,6 +114,7 @@ fi
 # always install essential packages
 if [ "$SKIP_ESSENTIALS" = "1" ]; then
 	echo "Testing mode: Skipping heavy essentials..."
+	export AUTOMATED_EXECUTION=1
 	if ! command -v stow >/dev/null 2>&1; then
 		echo "Installing stow (required)..."
 		if command -v brew >/dev/null 2>&1; then
@@ -155,10 +156,12 @@ n | N) echo "Skipping profile brew bundle" ;;
 esac
 
 # Cleanup Homebrew
-echo "Cleaning up Homebrew..."
-brew autoremove
-brew cleanup
-brew doctor || true
+if [ "$SKIP_ESSENTIALS" = "0" ]; then
+	echo "Cleaning up Homebrew..."
+	brew autoremove
+	brew cleanup
+	brew doctor || true
+fi
 
 # back up any real files that would conflict with stow, preserving directory structure
 backup_conflicts() {

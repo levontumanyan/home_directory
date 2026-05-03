@@ -41,6 +41,7 @@ compdef _kex_pods kex
 
 alias python="python3"
 alias pip="pip3"
+alias tree='tree --gitignore -I ".git"'
 
 # over engineered history function
 h() {
@@ -58,8 +59,6 @@ if [ -f "$HOME/.work.zsh" ]; then
 else
 	alias llm='gemini'
 fi
-
-alias c='claude'
 
 # on machines that have only doas
 sudo() {

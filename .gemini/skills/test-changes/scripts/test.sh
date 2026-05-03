@@ -45,7 +45,7 @@ mkdir -p "$HOME/.gemini"
 echo "pre-existing-file" >"$HOME/.gemini/settings.json"
 echo "pre-existing-zshrc" >"$HOME/.zshrc"
 
-./install.sh -m personal -t
+./install.sh -m personal -t -v
 
 # Verify backups were created
 if ls "$HOME"/dotfiles_backup/backup_*/.zshrc >/dev/null 2>&1; then
@@ -62,8 +62,8 @@ assert_symlink "$HOME/.aliases.zsh" "dotfiles/base/.aliases.zsh"
 
 # 3. Test Profile Symlinks
 echo "--- Testing Profile Symlinks ---"
-assert_symlink "$HOME/.gemini/settings.json" "dotfiles/personal/.gemini/settings.json"
-assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
+assert_symlink "$HOME/.config/gemini/settings.json" "dotfiles/base/.config/gemini/settings.json"
+assert_symlink "$HOME/.config/claude/CLAUDE.md" "dotfiles/personal/.config/claude/CLAUDE.md"
 
 # 4. Test Directory Nesting
 echo "--- Testing Nested Directories ---"
@@ -71,7 +71,7 @@ assert_symlink "$HOME/.config/sesh/sesh.toml" "dotfiles/base/.config/sesh/sesh.t
 
 # 4. Test Idempotency
 echo "--- Testing Idempotency ---"
-./install.sh -m personal -t
+./install.sh -m personal -t -v
 echo -e "${GREEN}✓ Second run completed successfully${NC}"
 
 # 5. Test Personal Profile
@@ -95,7 +95,7 @@ stow -D --dir="dotfiles" --target="$HOME" base personal
 
 # 6. Test Work Profile
 echo "--- Testing WORK profile ---"
-./install.sh -m work -t
+./install.sh -m work -t -v
 assert_file_exists "$HOME/.work.zsh"
 if grep -q "WORK" "$HOME/AGENTS.md"; then
 	echo -e "${GREEN}✓ ~/AGENTS.md switched to WORK content${NC}"
