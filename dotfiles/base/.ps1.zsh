@@ -24,7 +24,7 @@ _ps1_update_kube() {
 	ns=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null)
 	[[ -z "$ns" ]] && ns="default"
 
-	_kube_ps1="%{${fg_bold[cyan]}}%}[$ctx:$ns]%{${reset_color}%}"
+	_kube_ps1="%{${fg_bold[cyan]}%}[$ctx:$ns]%{${reset_color}%}"
 }
 
 precmd_functions+=(_ps1_update_kube)
@@ -38,9 +38,9 @@ _ps1_update_git() {
 		if [[ -f "$dir/.git/HEAD" ]]; then
 			IFS= read -r head <"$dir/.git/HEAD"
 			if [[ "$head" == ref:\ refs/heads/* ]]; then
-				_git_ps1=" %{${fg_bold[magenta]}}%}(${head#ref: refs/heads/})%{${reset_color}%}"
+				_git_ps1=" %{${fg_bold[magenta]}%}(${head#ref: refs/heads/})%{${reset_color}%}"
 			else
-				_git_ps1=" %{${fg_bold[magenta]}}%}(${head:0:7})%{${reset_color}%}"
+				_git_ps1=" %{${fg_bold[magenta]}%}(${head:0:7})%{${reset_color}%}"
 			fi
 			return
 		fi
@@ -52,5 +52,5 @@ _ps1_update_git() {
 precmd_functions+=(_ps1_update_git)
 
 # ── prompt ────────────────────────────────────────────────────────────────────
-PROMPT='%{${fg_bold[red]}}%}%{${reset_color}%} %{${fg_bold[yellow]}}%}%~%{${reset_color}%}${_git_ps1}
+PROMPT='%{${fg_bold[red]}%}➜%{${reset_color}%} %{${fg_bold[yellow]}%}%~%{${reset_color}%}${_git_ps1}
 ${_kube_ps1:+${_kube_ps1} }$ '
