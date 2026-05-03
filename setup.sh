@@ -5,6 +5,12 @@
 set -euo xtrace
 setopt pipefail
 
+if [ -n "${AUTOMATED_EXECUTION:-}" ]; then
+	echo "Automated execution detected. Skipping interactive setup."
+	exit 0
+fi
+
+# shellcheck disable=SC1091
 source "$(dirname "$0")/setup_envs.sh"
 
 # Configure git user if not already set

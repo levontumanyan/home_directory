@@ -7,5 +7,5 @@ lint:
 
 .PHONY: test
 test:
-	podman build -t dotfiles-test -f .devcontainer/Dockerfile.alpine .devcontainer/
+	podman build -t dotfiles-test -f .devcontainer/Dockerfile.ubuntu .devcontainer/
 	podman run -it --rm -v $(shell pwd):/workspace:Z dotfiles-test zsh -c "cd /workspace && ./.gemini/skills/test-changes/scripts/test.sh"

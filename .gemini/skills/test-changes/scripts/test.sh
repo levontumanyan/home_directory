@@ -3,6 +3,8 @@
 
 set -e
 
+export AUTOMATED_EXECUTION=1
+
 # Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -35,6 +37,10 @@ else
 	echo -e "${RED}✗ ~/.gemini/GEMINI.md is NOT a symlink${NC}"
 	exit 1
 fi
+
+# Cleanup personal before testing work
+echo "--- Cleaning up PERSONAL ---"
+stow -D --dir="dotfiles" --target="$HOME" base personal
 
 # 2. Run installation for WORK
 echo "--- Testing WORK profile ---"
