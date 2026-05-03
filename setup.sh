@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 # shellcheck shell=bash
 # shellcheck source=setup_envs.sh
+# shellcheck disable=SC1091
 # setup usually once
 set -euo xtrace
 setopt pipefail
@@ -10,7 +11,6 @@ if [ -n "${AUTOMATED_EXECUTION:-}" ]; then
 	exit 0
 fi
 
-# shellcheck disable=SC1091
 source "$(dirname "$0")/setup_envs.sh"
 
 # Configure git user if not already set

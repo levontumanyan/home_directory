@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=setup_envs.sh
+# shellcheck disable=SC1091
 
 set -eu
 
@@ -71,8 +73,6 @@ export MACHINE_TYPE
 # rm -rf $DOTFILES_DIR/.git
 
 # source dated backup dir, dotfiles
-# shellcheck source=setup_envs.sh
-# shellcheck disable=SC1091
 . "$(dirname "$0")/setup_envs.sh"
 
 # set up logging — always write to log; show on terminal only with -v
