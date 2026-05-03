@@ -14,15 +14,19 @@ show_help() {
 	echo "  -m TYPE     Set machine type (work or personal)"
 	echo "  -y          Automatically answer 'yes' to profile brew bundle"
 	echo "  -n          Automatically answer 'no' to profile brew bundle"
+	echo "  -t          Testing mode (skip heavy essentials, minimal stow-only)"
 	echo "  -h          Show this help message"
 }
 
-while getopts "vm:ynh" opt 2>/dev/null; do
+SKIP_ESSENTIALS=0
+
+while getopts "vm:ynth" opt 2>/dev/null; do
 	case "$opt" in
 	v) VERBOSE=1 ;;
 	m) MACHINE_TYPE="$OPTARG" ;;
 	y) brew_reply="y" ;;
 	n) brew_reply="n" ;;
+	t) SKIP_ESSENTIALS=1 ;;
 	h)
 		show_help
 		exit 0
@@ -68,6 +72,7 @@ export MACHINE_TYPE
 
 # source dated backup dir, dotfiles
 # shellcheck source=setup_envs.sh
+# shellcheck disable=SC1091
 . "$(dirname "$0")/setup_envs.sh"
 
 # set up logging — always write to log; show on terminal only with -v
@@ -107,16 +112,27 @@ if [ "$(uname)" = "Linux" ] && ! command -v brew >/dev/null 2>&1; then
 fi
 
 # always install essential packages
-echo "Installing essential packages..."
-brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
+if [ "$SKIP_ESSENTIALS" = "1" ]; then
+	echo "Testing mode: Skipping heavy essentials..."
+	if ! command -v stow >/dev/null 2>&1; then
+		echo "Installing stow (required)..."
+		brew install stow
+	fi
+else
+	echo "Installing essential packages..."
+	brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
+fi
 
 # install Tailscale natively on Linux
-if [ "$(uname)" = "Linux" ] && ! command -v tailscale >/dev/null 2>&1; then
+if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$(uname)" = "Linux" ] && ! command -v tailscale >/dev/null 2>&1; then
 	echo "Installing Tailscale natively..."
 	curl -fsSL https://tailscale.com/install.sh | sh
 fi
 
 # install profile-specific packages
+if [ "$SKIP_ESSENTIALS" = "1" ]; then
+	brew_reply="n"
+fi
 if [ -z "$brew_reply" ]; then
 	printf "Install profile brew packages? [Y/n]: " >/dev/tty
 	read -r brew_reply </dev/tty
