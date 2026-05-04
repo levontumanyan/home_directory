@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=setup_envs.sh
+# shellcheck disable=SC1091
 
 set -eu
 
@@ -14,15 +16,19 @@ show_help() {
 	echo "  -m TYPE     Set machine type (work or personal)"
 	echo "  -y          Automatically answer 'yes' to profile brew bundle"
 	echo "  -n          Automatically answer 'no' to profile brew bundle"
+	echo "  -t          Testing mode (skip heavy essentials, minimal stow-only)"
 	echo "  -h          Show this help message"
 }
 
-while getopts "vm:ynh" opt 2>/dev/null; do
+SKIP_ESSENTIALS=0
+
+while getopts "vm:ynth" opt 2>/dev/null; do
 	case "$opt" in
 	v) VERBOSE=1 ;;
 	m) MACHINE_TYPE="$OPTARG" ;;
 	y) brew_reply="y" ;;
 	n) brew_reply="n" ;;
+	t) SKIP_ESSENTIALS=1 ;;
 	h)
 		show_help
 		exit 0
@@ -67,7 +73,6 @@ export MACHINE_TYPE
 # rm -rf $DOTFILES_DIR/.git
 
 # source dated backup dir, dotfiles
-# shellcheck source=setup_envs.sh
 . "$(dirname "$0")/setup_envs.sh"
 
 # set up logging — always write to log; show on terminal only with -v
@@ -93,10 +98,10 @@ if [ "$(uname)" = "Linux" ]; then
 fi
 
 # install Homebrew if missing
-if ! command -v brew >/dev/null 2>&1; then
+if [ "$SKIP_ESSENTIALS" = "0" ] && ! command -v brew >/dev/null 2>&1; then
 	echo "Homebrew not found, installing..."
 	NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-else
+elif [ "$SKIP_ESSENTIALS" = "0" ]; then
 	echo "Homebrew already installed"
 fi
 
@@ -107,16 +112,34 @@ if [ "$(uname)" = "Linux" ] && ! command -v brew >/dev/null 2>&1; then
 fi
 
 # always install essential packages
-echo "Installing essential packages..."
-brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
+if [ "$SKIP_ESSENTIALS" = "1" ]; then
+	echo "Testing mode: Skipping heavy essentials..."
+	export AUTOMATED_EXECUTION=1
+	if ! command -v stow >/dev/null 2>&1; then
+		echo "Installing stow (required)..."
+		if command -v brew >/dev/null 2>&1; then
+			brew install stow
+		elif command -v apk >/dev/null 2>&1; then
+			sudo apk add stow
+		elif command -v apt-get >/dev/null 2>&1; then
+			sudo apt-get update && sudo apt-get install -y stow
+		fi
+	fi
+else
+	echo "Installing essential packages..."
+	brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
+fi
 
 # install Tailscale natively on Linux
-if [ "$(uname)" = "Linux" ] && ! command -v tailscale >/dev/null 2>&1; then
+if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$(uname)" = "Linux" ] && ! command -v tailscale >/dev/null 2>&1; then
 	echo "Installing Tailscale natively..."
 	curl -fsSL https://tailscale.com/install.sh | sh
 fi
 
 # install profile-specific packages
+if [ "$SKIP_ESSENTIALS" = "1" ]; then
+	brew_reply="n"
+fi
 if [ -z "$brew_reply" ]; then
 	printf "Install profile brew packages? [Y/n]: " >/dev/tty
 	read -r brew_reply </dev/tty
@@ -133,10 +156,12 @@ n | N) echo "Skipping profile brew bundle" ;;
 esac
 
 # Cleanup Homebrew
-echo "Cleaning up Homebrew..."
-brew autoremove
-brew cleanup
-brew doctor || true
+if [ "$SKIP_ESSENTIALS" = "0" ]; then
+	echo "Cleaning up Homebrew..."
+	brew autoremove
+	brew cleanup
+	brew doctor || true
+fi
 
 # back up any real files that would conflict with stow, preserving directory structure
 backup_conflicts() {
@@ -144,7 +169,8 @@ backup_conflicts() {
 	find "$DOTFILES_DIR/dotfiles/$pkg" -type f | while read -r f; do
 		rel="${f#"$DOTFILES_DIR"/dotfiles/"$pkg"/}"
 		target="$HOME/$rel"
-		if [ -e "$target" ] && [ ! -L "$target" ] && [ ! "$target" -ef "$f" ]; then
+		# Only back up if it is a real file (not a symlink)
+		if [ -f "$target" ] && [ ! -L "$target" ]; then
 			mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
 			mv -v "$target" "$BACKUP_DIR/$rel"
 		fi
@@ -174,5 +200,7 @@ echo "Dotfiles installed!"
 
 if [ -t 0 ] && [ -z "${AUTOMATED_EXECUTION:-}" ] && command -v zsh >/dev/null 2>&1; then
 	echo "Installation complete! Starting Zsh..."
+	# Reset stdout and stderr to the terminal (tty)
+	exec >/dev/tty 2>&1
 	exec zsh
 fi

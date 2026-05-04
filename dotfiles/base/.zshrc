@@ -1,4 +1,5 @@
-# shellcheck shell=zsh
+# shellcheck shell=bash
+# shellcheck disable=SC1091,SC2034
 # source env
 source "$HOME/.env.zsh"
 
@@ -49,7 +50,18 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 [ -f "$HOME/.work.zsh" ] && source "$HOME/.work.zsh"
 [ -f "$HOME/.personal.zsh" ] && source "$HOME/.personal.zsh"
 
-# Only launch tmux if we are in an interactive shell and NOT already in tmux
+# Auto-launch tmux / sesh
 if [[ -z "$TMUX" && $- == *i* ]]; then
-	exec tmux new-session -s "scratch-$$"
+	if command -v sesh >/dev/null 2>&1; then
+		{
+			exec </dev/tty
+			session=$(sesh list -t -c | fzf --height 40% --reverse --border-label ' sesh ' --border --prompt '⚡ ' --select-1 --exit-0)
+			if [[ -n "$session" ]]; then
+				sesh connect "$session"
+			fi
+			exec <&1
+		}
+	else
+		tmux new-session -A -s main
+	fi
 fi

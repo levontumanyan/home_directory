@@ -1,1 +1,1 @@
-# shellcheck shell=zsh
+# shellcheck shell=bash

@@ -1,4 +1,5 @@
-# shellcheck shell=zsh
+# shellcheck shell=bash
+# shellcheck disable=SC2034,SC2207
 # Aliases (Best for Tab Completion)
 alias k='kubectl'
 alias kcd='kubectl config set-context --current --namespace'
@@ -14,8 +15,8 @@ alias kdp='kubectl describe pod'
 alias kgd='kubectl get deployments'
 alias kdd='kubectl describe deployment'
 
-kld() { kubectl logs deployments/$1; }
-kldf() { kubectl logs -f deployments/$1; }
+kld() { kubectl logs deployments/"$1"; }
+kldf() { kubectl logs -f deployments/"$1"; }
 
 _kld_deployments() {
 	local -a deployments
@@ -40,6 +41,7 @@ compdef _kex_pods kex
 
 alias python="python3"
 alias pip="pip3"
+alias tree='tree --gitignore -I ".git"'
 
 # over engineered history function
 h() {
@@ -57,8 +59,6 @@ if [ -f "$HOME/.work.zsh" ]; then
 else
 	alias llm='gemini'
 fi
-
-alias c='claude'
 
 # on machines that have only doas
 sudo() {
@@ -81,7 +81,7 @@ fkill() {
 	pids=$(echo "$selection" | awk '{print $1}')
 
 	for pid in $pids; do
-		if kill -15 $pid 2>/dev/null; then
+		if kill -15 "$pid" 2>/dev/null; then
 			echo "Killed: $pid"
 		fi
 	done

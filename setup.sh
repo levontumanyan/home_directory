@@ -1,14 +1,22 @@
 #!/usr/bin/env zsh
 # shellcheck shell=bash
 # shellcheck source=setup_envs.sh
+# shellcheck disable=SC1091
 # setup usually once
 set -euo xtrace
 setopt pipefail
 
+if [ -n "${AUTOMATED_EXECUTION:-}" ]; then
+	echo "Automated execution detected. Skipping interactive setup."
+	exit 0
+fi
+
 source "$(dirname "$0")/setup_envs.sh"
 
 # Configure git user if not already set
-if [ -z "$(git config --global user.name)" ] || [ -z "$(git config --global user.email)" ]; then
+if [ -n "${AUTOMATED_EXECUTION:-}" ]; then
+	echo "Automated execution detected. Skipping git configuration."
+elif [ -z "$(git config --global user.name)" ] || [ -z "$(git config --global user.email)" ]; then
 	echo "Git user.name and user.email not configured."
 	git_name="" git_email=""
 	prompt "Please enter your git user name:" git_name
