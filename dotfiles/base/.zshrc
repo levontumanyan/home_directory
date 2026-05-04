@@ -51,6 +51,7 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 [ -f "$HOME/.personal.zsh" ] && source "$HOME/.personal.zsh"
 
 # Only launch tmux if we are in an interactive shell and NOT already in tmux
-if [[ -z "$TMUX" && $- == *i* ]]; then
-	exec tmux new-session -s "scratch-$$"
+if [[ -z "$TMUX" && $- == *i* ]] && command -v tmux >/dev/null 2>&1; then
+	# Use "main" as a default session name, attach if it exists
+	exec tmux new-session -A -s "main"
 fi
