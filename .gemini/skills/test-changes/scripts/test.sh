@@ -62,8 +62,8 @@ assert_symlink "$HOME/.aliases.zsh" "dotfiles/base/.aliases.zsh"
 
 # 3. Test Profile Symlinks
 echo "--- Testing Profile Symlinks ---"
-assert_symlink "$HOME/.config/gemini/settings.json" "dotfiles/base/.config/gemini/settings.json"
-assert_symlink "$HOME/.config/claude/CLAUDE.md" "dotfiles/personal/.config/claude/CLAUDE.md"
+assert_symlink "$HOME/.gemini/settings.json" "dotfiles/base/.gemini/settings.json"
+assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
 
 # 4. Test Directory Nesting
 echo "--- Testing Nested Directories ---"
