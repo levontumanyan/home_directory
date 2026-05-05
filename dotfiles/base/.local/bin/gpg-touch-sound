@@ -1,4 +1,20 @@
 #!/bin/bash
-afplay /System/Library/Sounds/Glass.aiff &
-osascript -e 'display notification "Waiting for YubiKey touch..." with title "GPG Auth"' &
+
+# Only trigger alerts for operations that likely require a YubiKey touch
+# (signing or decrypting)
+SHOULD_ALERT=0
+for arg in "$@"; do
+	case "$arg" in
+	--sign | -s | --clearsign | --detach-sign | -b | --decrypt | -d | --edit-key)
+		SHOULD_ALERT=1
+		break
+		;;
+	esac
+done
+
+if [ "$SHOULD_ALERT" -eq 1 ]; then
+	afplay /System/Library/Sounds/Glass.aiff &
+	osascript -e 'display notification "Waiting for YubiKey touch..." with title "GPG Auth"' &
+fi
+
 exec /opt/homebrew/bin/gpg "$@"
