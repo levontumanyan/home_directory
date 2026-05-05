@@ -9,7 +9,7 @@ windows = [ "shell", "llm" ]
 [[session]]
 name = "fibonacci"
 path = "~"
-windows = [ "remote-shell", "remote-llm", "remote-vscode" ]
+windows = [ "remote-shell", "remote-llm", "remote-vscode", "cloud-lab" ]
 
 [[window]]
 name = "remote-shell"
@@ -22,3 +22,7 @@ startup_script = "ssh -t fibonacci \"gemini\""
 [[window]]
 name = "remote-vscode"
 startup_script = "code --remote ssh-remote+fibonacci ~ && exit"
+
+[[window]]
+name = "cloud-lab"
+startup_script = "code ~/repos/cloud-lab/cloud-lab.code-workspace && exit"
