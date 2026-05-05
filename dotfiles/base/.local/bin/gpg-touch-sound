@@ -4,12 +4,19 @@
 # (signing or decrypting)
 SHOULD_ALERT=0
 for arg in "$@"; do
-	case "$arg" in
-	--sign | -s | --clearsign | --detach-sign | -b | --decrypt | -d | --edit-key | --status-fd*)
+	# Check for:
+	# 1. Bundled short flags containing 's' (sign), 'b' (detach-sign), or 'd' (decrypt)
+	#    Ensuring it starts with '-' and isn't just a long flag or path
+	# 2. Explicit long flags
+	if [[ $arg =~ ^-[a-zA-Z]*[sbd][a-zA-Z]*$ ]] ||
+		[[ $arg == "--sign" ]] ||
+		[[ $arg == "--clearsign" ]] ||
+		[[ $arg == "--detach-sign" ]] ||
+		[[ $arg == "--decrypt" ]] ||
+		[[ $arg == "--edit-key" ]]; then
 		SHOULD_ALERT=1
 		break
-		;;
-	esac
+	fi
 done
 
 if [ "$SHOULD_ALERT" -eq 1 ]; then
