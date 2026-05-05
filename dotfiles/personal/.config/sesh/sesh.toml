@@ -1,0 +1,24 @@
+import = ["~/.config/sesh/base.toml"]
+
+[[session]]
+name = "google-drive"
+path = "~/Library/CloudStorage/GoogleDrive-ltfibonacci@gmail.com/My Drive"
+startup_command = "ls -F"
+windows = [ "shell", "llm" ]
+
+[[session]]
+name = "fibonacci"
+path = "~"
+windows = [ "remote-shell", "remote-llm", "remote-vscode" ]
+
+[[window]]
+name = "remote-shell"
+startup_script = "ssh fibonacci"
+
+[[window]]
+name = "remote-llm"
+startup_script = "ssh -t fibonacci \"gemini\""
+
+[[window]]
+name = "remote-vscode"
+startup_script = "code --remote ssh-remote+fibonacci ~ && exit"

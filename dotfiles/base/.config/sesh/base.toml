@@ -1,0 +1,24 @@
+[[session]]
+name = "home_dir"
+path = "~/repos/home_directory"
+startup_command = "git pull"
+preview_command = "ls ~/repos/home_directory"
+windows = [ "shell", "llm", "vscode" ]
+
+[[session]]
+name = "knowledge"
+path = "~/repos/knowledge-base"
+startup_command = "git pull"
+preview_command = "ls ~/repos/knowledge-base"
+windows = [ "shell", "llm", "vscode" ]
+
+[[window]]
+name = "llm"
+startup_script = "llm"
+
+[[window]]
+name = "vscode"
+startup_script = "code . && exit"
+
+[[window]]
+name = "shell"

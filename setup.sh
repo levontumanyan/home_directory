@@ -43,7 +43,7 @@ echo "Setting up Tailscale service..."
 if [ "$(uname)" = "Darwin" ]; then
 	if command -v brew >/dev/null 2>&1 && brew list tailscale >/dev/null 2>&1; then
 		echo "Ensuring Tailscale service is started..."
-		brew services start tailscale || true
+		sudo brew services start tailscale || true
 	fi
 elif [ "$(uname)" = "Linux" ]; then
 	if command -v systemctl >/dev/null 2>&1 && command -v tailscale >/dev/null 2>&1; then

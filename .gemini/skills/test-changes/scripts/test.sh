@@ -67,7 +67,8 @@ assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
 
 # 4. Test Directory Nesting
 echo "--- Testing Nested Directories ---"
-assert_symlink "$HOME/.config/sesh/sesh.toml" "dotfiles/base/.config/sesh/sesh.toml"
+assert_symlink "$HOME/.config/sesh/sesh.toml" "dotfiles/personal/.config/sesh/sesh.toml"
+assert_symlink "$HOME/.config/sesh/base.toml" "dotfiles/base/.config/sesh/base.toml"
 
 # 4. Test Idempotency
 echo "--- Testing Idempotency ---"

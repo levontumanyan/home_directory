@@ -26,7 +26,9 @@ In this setup the two work together:
 
 ## How sessions are defined (`sesh.toml`)
 
-Four named project sessions, all following the same pattern:
+Configurations are split into `base.toml` (common), `personal/sesh.toml`, and `work/sesh.toml`. Personal and work configs import the base settings.
+
+Example session:
 
 ```toml
 [[session]]
@@ -34,15 +36,17 @@ name = "home_dir"
 path = "~/repos/home_directory"
 startup_command = "git pull"
 preview_command = "ls ~/repos/home_directory"
-windows = [ "claude", "vscode" ]
+windows = [ "shell", "llm", "vscode" ]
 ```
 
-Each session gets two pre-configured windows (defined once at the bottom of the file):
+Each session can use pre-configured windows (defined in `base.toml` or profile-specific files):
 
 | Window | startup_script | Effect |
 |---|---|---|
-| `claude` | `claude` | Opens Claude Code CLI |
+| `shell` | (default) | Standard shell window |
+| `llm` | `llm` | Opens LLM chat CLI |
 | `vscode` | `code . && exit` | Opens VS Code in project root; window closes after launch |
+| `remote-*` | `ssh ...` | Remote connection templates (Personal only) |
 
 The `startup_command = "git pull"` runs once when the session is first created, not on every attach.
 
