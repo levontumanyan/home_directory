@@ -1,0 +1,10 @@
+[user]
+	name = levontumanyan
+	email = 5532305+levontumanyan@users.noreply.github.com
+	signingkey = 2135B1DE37E2426D
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
+[gpg]
+	program = /Users/levontumanyan/.local/bin/gpg-touch-sound
