@@ -59,6 +59,7 @@ fi
 echo "--- Testing Base Symlinks ---"
 assert_symlink "$HOME/.zshrc" "dotfiles/base/.zshrc"
 assert_symlink "$HOME/.aliases.zsh" "dotfiles/base/.aliases.zsh"
+assert_symlink "$HOME/.gitconfig" "dotfiles/base/.gitconfig"
 
 # 3. Test Profile Symlinks
 echo "--- Testing Profile Symlinks ---"
