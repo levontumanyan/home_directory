@@ -1,3 +1,4 @@
 #!/bin/bash
-afplay /System/Library/Sounds/Tink.aiff &
+afplay /System/Library/Sounds/Glass.aiff &
+osascript -e 'display notification "Waiting for YubiKey touch..." with title "GPG Auth"' &
 exec /opt/homebrew/bin/gpg "$@"
