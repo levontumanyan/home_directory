@@ -5,7 +5,7 @@
 SHOULD_ALERT=0
 for arg in "$@"; do
 	case "$arg" in
-	--sign | -s | --clearsign | --detach-sign | -b | --decrypt | -d | --edit-key)
+	--sign | -s | --clearsign | --detach-sign | -b | --decrypt | -d | --edit-key | --status-fd*)
 		SHOULD_ALERT=1
 		break
 		;;
