@@ -1,0 +1,3 @@
+#!/bin/bash
+afplay /System/Library/Sounds/Tink.aiff &
+exec /opt/homebrew/bin/gpg "$@"

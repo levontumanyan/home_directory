@@ -19,6 +19,7 @@ When I ask you to "document this", "create a doc for this issue", or "create a f
    - Current repo and path
    - What the issue/feature is about (ask me if unclear)
    - Key decisions or notes
+5. When I ask you to create a subissue i want you to use:
 
 ## Environment Access
 

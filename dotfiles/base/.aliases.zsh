@@ -43,6 +43,12 @@ alias python="python3"
 alias pip="pip3"
 alias tree='tree --gitignore -I ".git"'
 
+# gpg signing makes a sound
+gpg() {
+	afplay /System/Library/Sounds/Tink.aiff &
+	command gpg "$@"
+}
+
 # over engineered history function
 h() {
 	fc -l -t "%F %T" -50 | awk '{
