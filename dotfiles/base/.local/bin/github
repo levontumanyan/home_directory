@@ -118,9 +118,9 @@ days_until() {
 
 add_days() {
 	if [[ $(uname) == Darwin ]]; then
-		date -j -v "+${2}d" -f "%Y-%m-%d" "$1" "+%Y-%m-%d" 2>/dev/null || echo "$1"
+		date -j -v "${2}d" -f "%Y-%m-%d" "$1" "+%Y-%m-%d" 2>/dev/null || echo "$1"
 	else
-		date -d "$1 +${2} days" "+%Y-%m-%d" 2>/dev/null || echo "$1"
+		date -d "$1 ${2} days" "+%Y-%m-%d" 2>/dev/null || echo "$1"
 	fi
 }
 
@@ -427,14 +427,16 @@ if [[ $MODE == karma ]]; then
 		echo "Usage: github --karma <github-username>"
 		exit 1
 	fi
+	TEN_DAYS_AGO=$(add_days "$TODAY" -10)
 	echo ""
 	echo -e "${BOLD}GitHub  ·  Karma Score${RST}"
-	echo -e "${DIM}@${KARMA_USER}  ·  $(date '+%A, %B %d %Y')${RST}"
+	echo -e "${DIM}@${KARMA_USER}  ·  last 10 days  ·  $(date '+%A, %B %d %Y')${RST}"
 	printf '\n%sCounting approvals for @%s...%s' "$DIM" "$KARMA_USER" "$RST" >&2
 
-	# All PRs reviewed by this user (any review type), excluding own
+	# All PRs reviewed by this user in the last 10 days (any review type), excluding own
 	ALL_REVIEWED=$(gh search prs \
 		--reviewed-by "$KARMA_USER" \
+		--updated "${TEN_DAYS_AGO}..${TODAY}" \
 		--owner elastic \
 		--limit 100 \
 		--json number,url,repository,author)
@@ -443,6 +445,7 @@ if [[ $MODE == karma ]]; then
 	APPROVED_PRS_JSON=$(gh search prs \
 		--reviewed-by "$KARMA_USER" \
 		--review approved \
+		--updated "${TEN_DAYS_AGO}..${TODAY}" \
 		--owner elastic \
 		--limit 100 \
 		--json number,url,repository,author)
@@ -462,7 +465,7 @@ if [[ $MODE == karma ]]; then
 
 	echo ""
 	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
-	echo -e "${DIM}Note: limited to last 100 results from gh search${RST}"
+	echo -e "${DIM}Note: date filter uses updated-at; window ${TEN_DAYS_AGO}..${TODAY}${RST}"
 	exit 0
 fi
 
