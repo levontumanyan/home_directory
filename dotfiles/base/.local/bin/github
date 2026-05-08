@@ -42,6 +42,7 @@ usage() {
 		${BOLD}FLAGS${RST}
 		    (none)           Sprint view: current sprint, next sprint, backlog
 		    -D, --due         Open issues assigned to you due today
+		    -o, --overdue     Open issues assigned to you that are past due
 		    -d, --done        Issues you completed (Status=Done in project)
 		    -i, --in-progress Issues currently In Progress (Status=In Progress)
 		    -y, --yesterday   Issues you closed yesterday
@@ -66,6 +67,7 @@ MODE="sprint"
 while [[ $# -gt 0 ]]; do
 	case "$1" in
 	-D | --due) MODE="due" ;;
+	-o | --overdue) MODE="overdue" ;;
 	-d | --done) MODE="done" ;;
 	-i | --in-progress) MODE="inprogress" ;;
 	-y | --yesterday) MODE="yesterday" ;;
@@ -517,6 +519,7 @@ yesterday) STATES="[CLOSED]" ;;
 recent) STATES="[CLOSED]" ;;
 inprogress) STATES="[OPEN]" ;;
 due) STATES="[OPEN]" ;;
+overdue) STATES="[OPEN]" ;;
 esac
 
 DATA=$(gh api graphql --field query='
@@ -772,6 +775,21 @@ elif [[ $MODE == due ]]; then
 		print_issues "$DUE_ISSUES"
 	else
 		echo -e "  ${DIM}Nothing due today.${RST}"
+	fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: overdue
+# ══════════════════════════════════════════════════════════════════════════════
+elif [[ $MODE == overdue ]]; then
+	OD_ISSUES=$(echo "$ISSUES" | jq --arg t "$TODAY" '[.[] | select(.due != null and .due < $t)]')
+	OC=$(echo "$OD_ISSUES" | jq 'length')
+	echo -e "${DIM}assigned to you · past due as of ${TODAY}${RST}"
+	echo ""
+	echo -e "${RED}${BOLD}⚠  OVERDUE  (${OC})${RST}"
+	if [[ $OC -gt 0 ]]; then
+		print_issues "$OD_ISSUES"
+	else
+		echo -e "  ${DIM}Nothing overdue.${RST}"
 	fi
 fi
 
