@@ -4,12 +4,15 @@
       "Bash(gh issue view *)",
       "Bash(gh pr view *)",
       "Bash(gh pr diff *)",
-      "Bash(gh issue list *)",
+      "Bash(gh issue *)",
       "Bash(gh pr list *)",
       "Bash(git log *)",
       "Bash(git diff *)",
       "Bash(git status)",
       "Bash(grep -r *)",
+      "Bash(bk build view *)",
+      "Bash(bk artifacts *)",
+      "Bash(kubectl logs *)",
       "WebSearch"
     ],
     "deny": []
@@ -17,5 +20,6 @@
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh"
-  }
+  },
+  "skipAutoPermissionPrompt": true
 }
