@@ -1,0 +1,724 @@
+#!/usr/bin/env bash
+set -euo pipefail
+#
+# When adding a new flag, update ALL of the following:
+#   1. usage()          — add the flag description
+#   2. flag parsing     — add the case entry
+#   3. mode block       — implement the logic
+#   4. dotfiles/base/.zsh/completions/_github — add the flag to the completion list
+#
+# ── config ────────────────────────────────────────────────────────────────────
+REPO_OWNER="elastic"
+REPO_NAME="platform-security-team"
+TF_REPO="elastic/platform-security-terraform"
+TEAM_REPO="elastic/platform-security-team"
+PROJECT_NUMBER=2289
+SPRINT_FIELD_ID="PVTIF_lADOAGc3Zs4BSCW-zg_sDTE"
+# shellcheck disable=SC2034  # reserved for future use
+PROJECT_NODE_ID="PVT_kwDOAGc3Zs4BSCW-"
+# shellcheck disable=SC2034  # reserved for future use
+STATUS_FIELD_ID="PVTSSF_lADOAGc3Zs4BSCW-zg_sCpA"
+# shellcheck disable=SC2034  # reserved for future use
+POINTS_FIELD_ID="PVTF_lADOAGc3Zs4BSCW-zg_sDTA"
+ME="levontumanyan"
+
+# ── colors ────────────────────────────────────────────────────────────────────
+RED=$'\033[0;31m'
+YLW=$'\033[1;33m'
+GRN=$'\033[0;32m'
+CYN=$'\033[0;36m'
+BOLD=$'\033[1m'
+DIM=$'\033[2m'
+RST=$'\033[0m'
+
+# ── usage ─────────────────────────────────────────────────────────────────────
+usage() {
+	cat <<-EOF
+		${BOLD}github${RST} — personal GitHub issue dashboard
+
+		${BOLD}USAGE${RST}
+		    github [flags]
+
+		${BOLD}FLAGS${RST}
+		    (none)           Sprint view: current sprint, next sprint, backlog
+		    -d, --done        Issues you completed (Status=Done in project)
+		    -i, --in-progress Issues currently In Progress (Status=In Progress)
+		    -y, --yesterday   Issues you closed yesterday
+		    -r, --recent      Issues you closed in the last 3 days
+		    -c, --created     Open issues you created in ${REPO_OWNER}/${REPO_NAME}
+		    -p, --pr          Your open pull requests across elastic/*
+		    -R, --reviews     PRs you reviewed in the last 3 days
+		    -k, --karma USER  PR approval karma score for a GitHub user
+		    -s, --sprints     Sprint calendar for project #${PROJECT_NUMBER}
+		    -t, --transfer    Transfer your open issues from ${TF_REPO}
+		                      to ${TEAM_REPO}
+		    -h, --help        Show this help
+
+		${BOLD}CONFIG${RST}
+		    Repo:    ${REPO_OWNER}/${REPO_NAME}
+		    Project: https://github.com/orgs/elastic/projects/${PROJECT_NUMBER}
+	EOF
+}
+
+# ── flags ─────────────────────────────────────────────────────────────────────
+MODE="sprint"
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+	-d | --done) MODE="done" ;;
+	-i | --in-progress) MODE="inprogress" ;;
+	-y | --yesterday) MODE="yesterday" ;;
+	-r | --recent) MODE="recent" ;;
+	-c | --created) MODE="created" ;;
+	-p | --pr) MODE="pr" ;;
+	-R | --reviews) MODE="reviews" ;;
+	-k | --karma)
+		MODE="karma"
+		KARMA_USER="${2:-}"
+		[[ -n ${2:-} ]] && shift
+		;;
+	-s | --sprints) MODE="sprints" ;;
+	-t | --transfer) MODE="transfer" ;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		echo "Unknown flag: $1"
+		echo
+		usage
+		exit 1
+		;;
+	esac
+	shift
+done
+
+# ── date helpers ──────────────────────────────────────────────────────────────
+epoch() {
+	if [[ $(uname) == Darwin ]]; then
+		date -j -f "%Y-%m-%d" "$1" "+%s" 2>/dev/null || echo 0
+	else
+		date -d "$1" "+%s" 2>/dev/null || echo 0
+	fi
+}
+
+fmtdate() {
+	if [[ $(uname) == Darwin ]]; then
+		date -j -f "%Y-%m-%d" "$1" "+%b %d" 2>/dev/null || echo "$1"
+	else
+		date -d "$1" "+%b %d" 2>/dev/null || echo "$1"
+	fi
+}
+
+days_until() {
+	local t now
+	t=$(epoch "$1")
+	now=$(date "+%s")
+	echo $(((t - now + 86399) / 86400))
+}
+
+add_days() {
+	if [[ $(uname) == Darwin ]]; then
+		date -j -v "+${2}d" -f "%Y-%m-%d" "$1" "+%Y-%m-%d" 2>/dev/null || echo "$1"
+	else
+		date -d "$1 +${2} days" "+%Y-%m-%d" 2>/dev/null || echo "$1"
+	fi
+}
+
+TODAY=$(date -u +%Y-%m-%d)
+YESTERDAY=$(add_days "$TODAY" -1)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: created  (exits early — author filter, no project GraphQL needed)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == created ]]; then
+	echo ""
+	echo -e "${BOLD}GitHub  ·  Issues I Created${RST}"
+	echo -e "${DIM}${REPO_OWNER}/${REPO_NAME}  ·  $(date '+%A, %B %d %Y')${RST}"
+	printf '\n%sFetching...%s' "$DIM" "$RST" >&2
+
+	CREATED=$(gh issue list \
+		--repo "${REPO_OWNER}/${REPO_NAME}" \
+		--author "@me" \
+		--state open \
+		--limit 100 \
+		--json number,title,url,labels,createdAt,assignees)
+
+	printf "\r\033[K" >&2
+
+	CC=$(echo "$CREATED" | jq 'length')
+	echo -e "${DIM}${CC} open${RST}"
+
+	if [[ $CC -eq 0 ]]; then
+		echo -e "\n  ${DIM}No open issues created by you.${RST}"
+	else
+		echo ""
+		echo "$CREATED" | jq -r \
+			'.[] | [
+				(.number | tostring),
+				.title,
+				.url,
+				(.labels | map(.name) | join(", ")),
+				(.createdAt | split("T")[0]),
+				(.assignees | map(.login) | join(", "))
+			] | join("\u0001")' |
+			while IFS=$'\x01' read -r num title url labels created_at assignees; do
+				lbl=""
+				[[ -n $labels ]] && lbl="${DIM}  [${labels}]${RST}"
+				asgn=""
+				[[ -n $assignees ]] && asgn="  ${DIM}→ ${assignees}${RST}"
+				echo -e "  ${CYN}●${RST} ${BOLD}#${num}${RST}  ${title}${lbl}"
+				echo -e "    ${DIM}created $(fmtdate "$created_at")${asgn}  ·  ${url}${RST}"
+			done
+	fi
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: sprints  (exits early — no GraphQL fetch needed)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == sprints ]]; then
+	echo ""
+	echo -e "${BOLD}GitHub  ·  Sprint Calendar${RST}"
+	echo -e "${DIM}Project #${PROJECT_NUMBER}  ·  $(date '+%A, %B %d %Y')${RST}"
+	printf '\n%sFetching sprints...%s' "$DIM" "$RST" >&2
+
+	SPRINT_DATA=$(gh api graphql --field query='
+	{
+	  node(id: "'"$SPRINT_FIELD_ID"'") {
+	    ... on ProjectV2IterationField {
+	      configuration {
+	        iterations          { id title startDate duration }
+	        completedIterations { id title startDate duration }
+	      }
+	    }
+	  }
+	}')
+
+	printf "\r\033[K" >&2
+
+	# completed sprints
+	COMPLETED=$(echo "$SPRINT_DATA" | jq '.data.node.configuration.completedIterations | reverse')
+	CC=$(echo "$COMPLETED" | jq 'length')
+	if [[ $CC -gt 0 ]]; then
+		echo ""
+		echo -e "${DIM}${BOLD}COMPLETED${RST}"
+		echo "$COMPLETED" | jq -r '.[] | [.title, .startDate, (.duration|tostring)] | join("\u0001")' |
+			while IFS=$'\x01' read -r title start_date dur; do
+				end_date=$(add_days "$start_date" "$dur")
+				echo -e "  ${DIM}  ${title}  ·  $(fmtdate "$start_date") – $(fmtdate "$end_date")${RST}"
+			done
+	fi
+
+	# active + upcoming sprints
+	UPCOMING=$(echo "$SPRINT_DATA" | jq '.data.node.configuration.iterations')
+	UC=$(echo "$UPCOMING" | jq 'length')
+	if [[ $UC -gt 0 ]]; then
+		echo ""
+		echo -e "${BOLD}UPCOMING${RST}"
+		echo "$UPCOMING" | jq -r '.[] | [.title, .startDate, (.duration|tostring)] | join("\u0001")' |
+			while IFS=$'\x01' read -r title start_date dur; do
+				end_date=$(add_days "$start_date" "$dur")
+				days_to_start=$(days_until "$start_date")
+				days_to_end=$(days_until "$end_date")
+
+				if [[ $days_to_start -le 0 && $days_to_end -gt 0 ]]; then
+					# current sprint
+					if [[ $days_to_end -le 3 ]]; then
+						DC=$RED
+					elif [[ $days_to_end -le 7 ]]; then
+						DC=$YLW
+					else
+						DC=$GRN
+					fi
+					echo -e "  ${GRN}◉ ${BOLD}${title}${RST}  ${DIM}$(fmtdate "$start_date") – ${DC}$(fmtdate "$end_date")${RST}${DIM} (${days_to_end}d left)${RST}"
+				else
+					echo -e "  ${CYN}○${RST}  ${title}  ${DIM}$(fmtdate "$start_date") – $(fmtdate "$end_date")  ·  starts in ${days_to_start}d${RST}"
+				fi
+			done
+	fi
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	echo -e "${DIM}https://github.com/orgs/elastic/projects/${PROJECT_NUMBER}${RST}"
+	exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: pr  (exits early — no GraphQL fetch needed)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == pr ]]; then
+	echo ""
+	echo -e "${BOLD}GitHub  ·  Pull Requests${RST}"
+	echo -e "${DIM}$(date '+%A, %B %d %Y')${RST}"
+	printf '\n%sFetching your open PRs...%s' "$DIM" "$RST" >&2
+
+	PRS=$(gh search prs \
+		--author "@me" \
+		--state open \
+		--owner elastic \
+		--limit 50 \
+		--json number,title,url,repository,isDraft,createdAt,updatedAt)
+
+	printf "\r\033[K" >&2
+
+	PR_COUNT=$(echo "$PRS" | jq 'length')
+	echo -e "${DIM}${PR_COUNT} open${RST}"
+
+	if [[ $PR_COUNT -eq 0 ]]; then
+		echo -e "\n  ${DIM}No open pull requests.${RST}"
+	else
+		# group by repo
+		echo "$PRS" | jq -r '[.[].repository.nameWithOwner] | unique | .[]' |
+			while IFS= read -r repo; do
+				REPO_PRS=$(echo "$PRS" | jq --arg r "$repo" '[.[] | select(.repository.nameWithOwner == $r)]')
+				RPC=$(echo "$REPO_PRS" | jq 'length')
+				echo ""
+				echo -e "${CYN}${BOLD}${repo}${RST}  ${DIM}(${RPC})${RST}"
+				echo "$REPO_PRS" | jq -r \
+					'.[] | [(.number|tostring), .title, .url, (.isDraft|tostring), (.updatedAt | split("T")[0])] | join("\u0001")' |
+					while IFS=$'\x01' read -r num title url is_draft updated; do
+						if [[ $is_draft == "true" ]]; then
+							pc="$DIM"
+							state_label="draft"
+						else
+							pc="$GRN"
+							state_label="open"
+						fi
+						echo -e "  ${pc}●${RST} ${BOLD}#${num}${RST}  ${title}"
+						echo -e "    ${DIM}${pc}${state_label}${RST}${DIM}  ·  updated $(fmtdate "$updated")  ·  ${url}${RST}"
+					done
+			done
+	fi
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: reviews  (exits early — uses gh search, no project GraphQL needed)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == reviews ]]; then
+	THREE_DAYS_AGO=$(add_days "$TODAY" -3)
+	echo ""
+	echo -e "${BOLD}GitHub  ·  PRs I Reviewed${RST}"
+	echo -e "${DIM}last 3 days  ·  $(date '+%A, %B %d %Y')${RST}"
+	printf '\n%sFetching...%s' "$DIM" "$RST" >&2
+
+	REVIEWED=$(gh search prs \
+		--reviewed-by "@me" \
+		--updated "${THREE_DAYS_AGO}..${TODAY}" \
+		--limit 100 \
+		--json number,title,url,repository,author,isDraft,updatedAt)
+
+	printf "\r\033[K" >&2
+
+	RC=$(echo "$REVIEWED" | jq 'length')
+	echo -e "${DIM}${RC} found (updated ${THREE_DAYS_AGO}..${TODAY})${RST}"
+
+	if [[ $RC -eq 0 ]]; then
+		echo -e "\n  ${DIM}No reviewed PRs found.${RST}"
+	else
+		HUMAN_PRS=$(echo "$REVIEWED" | jq '[.[] | select(.author.login | test("renovate";"i") | not)]')
+		RENOVATE_PRS=$(echo "$REVIEWED" | jq '[.[] | select(.author.login | test("renovate";"i"))]')
+
+		HC=$(echo "$HUMAN_PRS" | jq 'length')
+		if [[ $HC -gt 0 ]]; then
+			echo ""
+			echo -e "${BOLD}HUMAN  (${HC})${RST}"
+			echo "$HUMAN_PRS" | jq -r '[.[].repository.nameWithOwner] | unique | .[]' |
+				while IFS= read -r repo; do
+					REPO_PRS=$(echo "$HUMAN_PRS" | jq --arg r "$repo" '[.[] | select(.repository.nameWithOwner == $r)]')
+					RPC=$(echo "$REPO_PRS" | jq 'length')
+					echo ""
+					echo -e "  ${CYN}${BOLD}${repo}${RST}  ${DIM}(${RPC})${RST}"
+					echo "$REPO_PRS" | jq -r \
+						'.[] | [(.number|tostring), .title, .url, (.isDraft|tostring), .author.login, (.updatedAt|split("T")[0])] | join("\u0001")' |
+						while IFS=$'\x01' read -r num title url is_draft author updated; do
+							[[ $is_draft == "true" ]] && pc="$DIM" || pc="$GRN"
+							echo -e "    ${pc}●${RST} ${BOLD}#${num}${RST}  ${title}"
+							echo -e "      ${DIM}by ${author}  ·  updated $(fmtdate "$updated")  ·  ${url}${RST}"
+						done
+				done
+		fi
+
+		RVC=$(echo "$RENOVATE_PRS" | jq 'length')
+		if [[ $RVC -gt 0 ]]; then
+			echo ""
+			echo -e "${DIM}${BOLD}RENOVATE  (${RVC})${RST}"
+			echo "$RENOVATE_PRS" | jq -r \
+				'.[] | [(.number|tostring), .title, .url, .repository.nameWithOwner, (.updatedAt|split("T")[0])] | join("\u0001")' |
+				while IFS=$'\x01' read -r num title url repo updated; do
+					echo -e "  ${DIM}● #${num}  ${repo}  ${title}${RST}"
+					echo -e "    ${DIM}updated $(fmtdate "$updated")  ·  ${url}${RST}"
+				done
+		fi
+	fi
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	echo -e "${DIM}Note: date filter uses updated-at, not review timestamp${RST}"
+	exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: transfer  (exits early — no GraphQL fetch needed)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == transfer ]]; then
+	echo ""
+	echo -e "${BOLD}GitHub  ·  Transfer issues${RST}"
+	echo -e "${DIM}${TF_REPO}  →  ${TEAM_REPO}${RST}"
+	printf '\n%sFetching your open issues in %s...%s\n' "$DIM" "$TF_REPO" "$RST" >&2
+
+	TF_ISSUES=$(gh issue list \
+		--repo "$TF_REPO" \
+		--assignee "@me" \
+		--state open \
+		--limit 100 \
+		--json number,title,url)
+
+	TF_COUNT=$(echo "$TF_ISSUES" | jq 'length')
+
+	if [[ $TF_COUNT -eq 0 ]]; then
+		echo -e "  ${DIM}No open issues assigned to you in ${TF_REPO}.${RST}"
+		exit 0
+	fi
+
+	echo ""
+	echo -e "${YLW}${BOLD}→  TO TRANSFER  (${TF_COUNT})${RST}"
+	echo "$TF_ISSUES" | jq -r '.[] | [(.number|tostring), .title, .url] | join("\u0001")' |
+		while IFS=$'\x01' read -r num title url; do
+			echo -e "  ${YLW}#${num}${RST}  ${title}"
+			echo -e "       ${DIM}${url}${RST}"
+		done
+
+	echo ""
+	printf '%sTransfer these %s issue(s) to %s? [y/N] %s' "$YLW" "$TF_COUNT" "$TEAM_REPO" "$RST" >/dev/tty
+	read -r confirm </dev/tty
+	if [[ $confirm != "y" && $confirm != "Y" ]]; then
+		echo "Aborted."
+		exit 0
+	fi
+
+	echo ""
+	echo "$TF_ISSUES" | jq -r '.[].number' |
+		while read -r n; do
+			printf "  Transferring #%-6s" "$n"
+			if gh issue transfer "$n" "$TEAM_REPO" --repo "$TF_REPO" 2>/dev/null; then
+				echo -e "  ${GRN}done${RST}"
+			else
+				echo -e "  ${RED}failed${RST}"
+			fi
+		done
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: karma  (exits early — uses gh search, no project GraphQL needed)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == karma ]]; then
+	if [[ -z ${KARMA_USER:-} ]]; then
+		echo "Usage: github --karma <github-username>"
+		exit 1
+	fi
+	echo ""
+	echo -e "${BOLD}GitHub  ·  Karma Score${RST}"
+	echo -e "${DIM}@${KARMA_USER}  ·  $(date '+%A, %B %d %Y')${RST}"
+	printf '\n%sCounting approvals for @%s...%s' "$DIM" "$KARMA_USER" "$RST" >&2
+
+	# All PRs reviewed by this user (any review type), excluding own
+	ALL_REVIEWED=$(gh search prs \
+		--reviewed-by "$KARMA_USER" \
+		--owner elastic \
+		--limit 100 \
+		--json number,url,repository,author)
+
+	# PRs where the overall status is approved AND reviewed by this user, excluding own
+	APPROVED_PRS_JSON=$(gh search prs \
+		--reviewed-by "$KARMA_USER" \
+		--review approved \
+		--owner elastic \
+		--limit 100 \
+		--json number,url,repository,author)
+
+	printf "\r\033[K" >&2
+
+	# Exclude PRs the user authored from both counts
+	TOTAL_REVIEWED=$(echo "$ALL_REVIEWED" | jq --arg u "$KARMA_USER" \
+		'[.[] | select(.author.login != $u)] | length')
+	APPROVED_COUNT=$(echo "$APPROVED_PRS_JSON" | jq --arg u "$KARMA_USER" \
+		'[.[] | select(.author.login != $u)] | length')
+
+	echo -e "${BOLD}@${KARMA_USER}${RST}"
+	echo ""
+	echo -e "  ${GRN}${BOLD}${APPROVED_COUNT}${RST}  PRs they reviewed that are approved"
+	echo -e "  ${CYN}${BOLD}${TOTAL_REVIEWED}${RST}  total PRs reviewed (excl. own)"
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	echo -e "${DIM}Note: limited to last 100 results from gh search${RST}"
+	exit 0
+fi
+
+# ── fetch (sprint / done / yesterday / recent / inprogress modes) ─────────────
+printf '%sFetching…%s' "$DIM" "$RST" >&2
+
+case "$MODE" in
+sprint) STATES="[OPEN]" ;;
+done) STATES="[OPEN, CLOSED]" ;;
+yesterday) STATES="[CLOSED]" ;;
+recent) STATES="[CLOSED]" ;;
+inprogress) STATES="[OPEN]" ;;
+esac
+
+DATA=$(gh api graphql --field query='
+{
+  repository(owner: "'"$REPO_OWNER"'", name: "'"$REPO_NAME"'") {
+    issues(first: 100, filterBy: {assignee: "'"$ME"'", states: '"$STATES"'}) {
+      nodes {
+        number title url state
+        closedAt
+        labels(first: 8) { nodes { name } }
+        projectItems(first: 5) {
+          nodes {
+            project { number }
+            fieldValues(first: 15) {
+              nodes {
+                __typename
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                  field { ... on ProjectV2SingleSelectField { name } }
+                }
+                ... on ProjectV2ItemFieldIterationValue {
+                  title startDate duration
+                  field { ... on ProjectV2IterationField { name } }
+                }
+                ... on ProjectV2ItemFieldDateValue {
+                  date
+                  field { ... on ProjectV2Field { name } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}')
+
+printf "\r\033[K" >&2
+
+# ── transform ─────────────────────────────────────────────────────────────────
+ISSUES=$(echo "$DATA" | jq --argjson proj "$PROJECT_NUMBER" '
+  .data.repository.issues.nodes | map(
+    . as $issue |
+    (.projectItems.nodes | map(select(.project.number == $proj)) | .[0]) as $item |
+    ($item.fieldValues.nodes // []) as $fvals |
+    {
+      number:   $issue.number,
+      title:    $issue.title,
+      url:      $issue.url,
+      state:    $issue.state,
+      closedAt: ($issue.closedAt // "" | if . != "" then split("T")[0] else "" end),
+      labels:   ($issue.labels.nodes | map(.name) | join(", ")),
+      status:   ($fvals | map(select(.__typename == "ProjectV2ItemFieldSingleSelectValue" and .field.name == "Status") | .name) | .[0] // ""),
+      sprint:   ($fvals | map(select(.__typename == "ProjectV2ItemFieldIterationValue" and .field.name == "Sprint") | {title, startDate, duration}) | .[0] // null),
+      due:      ($fvals | map(select(.__typename == "ProjectV2ItemFieldDateValue" and (.field.name == "Due Date" or .field.name == "Target date")) | .date) | .[0] // null)
+    }
+  )
+')
+
+TOTAL=$(echo "$ISSUES" | jq 'length')
+
+# ── header ────────────────────────────────────────────────────────────────────
+echo ""
+echo -e "${BOLD}GitHub  ·  ${REPO_OWNER}/${REPO_NAME}${RST}"
+echo -e "${DIM}$(date '+%A, %B %d %Y')${RST}"
+
+# ── status color ──────────────────────────────────────────────────────────────
+status_color() {
+	case "$1" in
+	"In progress") printf '%s' "$GRN" ;;
+	"Blocked") printf '%s' "$RED" ;;
+	"Waiting") printf '%s' "$YLW" ;;
+	"Done") printf '%s' "$DIM" ;;
+	*) printf '%s' "$RST" ;;
+	esac
+}
+
+# ── render issues ─────────────────────────────────────────────────────────────
+print_issues() {
+	local json="$1"
+	echo "$json" | jq -r \
+		'.[] | [
+			(.number | tostring),
+			.title,
+			.url,
+			.labels,
+			.status,
+			(.due // ""),
+			(.closedAt // "")
+		] | join("\u0001")' |
+		while IFS=$'\x01' read -r num title url labels status due closed_at; do
+			local sc lbl due_str closed_str
+			sc=$(status_color "$status")
+			lbl=""
+			[[ -n $labels ]] && lbl="${DIM}  [${labels}]${RST}"
+			due_str=""
+			if [[ -n $due ]]; then
+				local days fmt
+				days=$(days_until "$due")
+				fmt=$(fmtdate "$due")
+				if [[ $days -lt 0 ]]; then
+					due_str="  ${RED}due ${fmt}${RST}"
+				elif [[ $days -le 3 ]]; then
+					due_str="  ${RED}due ${fmt} (${days}d)${RST}"
+				elif [[ $days -le 7 ]]; then
+					due_str="  ${YLW}due ${fmt} (${days}d)${RST}"
+				else
+					due_str="  ${DIM}due ${fmt}${RST}"
+				fi
+			fi
+			closed_str=""
+			[[ -n $closed_at ]] && closed_str="  ${DIM}closed $(fmtdate "$closed_at")${RST}"
+			echo -e "  ${sc}●${RST} ${BOLD}#${num}${RST}  ${title}${lbl}${due_str}${closed_str}"
+			echo -e "    ${DIM}${sc}${status:-—}${RST}${DIM}  ·  ${url}${RST}"
+		done
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: sprint
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == sprint ]]; then
+	CURRENT_SPRINT_TITLE=$(echo "$ISSUES" | jq -r --arg today "$TODAY" '
+		[.[] | select(.sprint != null) | .sprint] |
+		unique_by(.title) |
+		map(select(.startDate <= $today)) |
+		sort_by(.startDate) | last | .title // ""')
+
+	IN_SPRINT=$(echo "$ISSUES" | jq --arg s "$CURRENT_SPRINT_TITLE" \
+		'[.[] | select(.sprint.title == $s and $s != "")]')
+	NEXT_SPRINT=$(echo "$ISSUES" | jq --arg s "$CURRENT_SPRINT_TITLE" --arg today "$TODAY" \
+		'[.[] | select(.sprint != null and .sprint.title != $s and .sprint.startDate > $today)] | sort_by(.sprint.startDate)')
+	BACKLOG=$(echo "$ISSUES" | jq --arg s "$CURRENT_SPRINT_TITLE" --arg today "$TODAY" \
+		'[.[] | select(.sprint == null or (.sprint.title != $s and .sprint.startDate <= $today))]')
+
+	echo -e "${DIM}${TOTAL} open${RST}"
+
+	SC=$(echo "$IN_SPRINT" | jq 'length')
+	if [[ $SC -gt 0 ]]; then
+		SPRINT_START=$(echo "$IN_SPRINT" | jq -r '.[0].sprint.startDate // ""')
+		SPRINT_DUR=$(echo "$IN_SPRINT" | jq -r '.[0].sprint.duration // 14')
+		SPRINT_END=""
+		[[ -n $SPRINT_START ]] && SPRINT_END=$(add_days "$SPRINT_START" "$SPRINT_DUR")
+		if [[ -n $SPRINT_END ]]; then
+			DAYS=$(days_until "$SPRINT_END")
+			FMT=$(fmtdate "$SPRINT_END")
+			if [[ $DAYS -le 3 ]]; then
+				DC=$RED
+			elif [[ $DAYS -le 7 ]]; then
+				DC=$YLW
+			else
+				DC=$GRN
+			fi
+			sprint_meta="${DIM}ends ${DC}${FMT}${RST}${DIM} (${DAYS}d)  ·  ${SC} issues${RST}"
+		else
+			sprint_meta="${DIM}${SC} issues${RST}"
+		fi
+		echo ""
+		echo -e "${GRN}${BOLD}◉  ${CURRENT_SPRINT_TITLE:-CURRENT SPRINT}${RST}  ${sprint_meta}"
+		print_issues "$IN_SPRINT"
+	fi
+
+	NC=$(echo "$NEXT_SPRINT" | jq 'length')
+	if [[ $NC -gt 0 ]]; then
+		while IFS= read -r sprint_name; do
+			SPRINT_ITEMS=$(echo "$NEXT_SPRINT" | jq --arg s "$sprint_name" '[.[] | select(.sprint.title == $s)]')
+			SIC=$(echo "$SPRINT_ITEMS" | jq 'length')
+			SP_START=$(echo "$SPRINT_ITEMS" | jq -r '.[0].sprint.startDate // ""')
+			echo ""
+			echo -e "${CYN}${BOLD}○  ${sprint_name}${RST}  ${DIM}starts $(fmtdate "$SP_START")  ·  ${SIC} issues${RST}"
+			print_issues "$SPRINT_ITEMS"
+		done < <(echo "$NEXT_SPRINT" | jq -r '[.[].sprint.title] | unique | .[]')
+	fi
+
+	BC=$(echo "$BACKLOG" | jq 'length')
+	if [[ $BC -gt 0 ]]; then
+		echo ""
+		echo -e "${DIM}${BOLD}·  BACKLOG  (${BC})${RST}"
+		print_issues "$BACKLOG"
+	fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: done
+# ══════════════════════════════════════════════════════════════════════════════
+elif [[ $MODE == "done" ]]; then
+	DONE_ISSUES=$(echo "$ISSUES" | jq '[.[] | select(.status == "Done")]')
+	DC=$(echo "$DONE_ISSUES" | jq 'length')
+	echo -e "${DIM}${DC} issues with Status=Done${RST}"
+	echo ""
+	echo -e "${DIM}${BOLD}✓  DONE  (${DC})${RST}"
+	if [[ $DC -gt 0 ]]; then
+		print_issues "$DONE_ISSUES"
+	else
+		echo -e "  ${DIM}No issues marked Done.${RST}"
+	fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: yesterday
+# ══════════════════════════════════════════════════════════════════════════════
+elif [[ $MODE == yesterday ]]; then
+	YESTERDAY_ISSUES=$(echo "$ISSUES" | jq --arg y "$YESTERDAY" '[.[] | select(.closedAt == $y)]')
+	YC=$(echo "$YESTERDAY_ISSUES" | jq 'length')
+	echo -e "${DIM}closed on $YESTERDAY${RST}"
+	echo ""
+	echo -e "${GRN}${BOLD}✓  CLOSED YESTERDAY  (${YC})${RST}"
+	if [[ $YC -gt 0 ]]; then
+		print_issues "$YESTERDAY_ISSUES"
+	else
+		echo -e "  ${DIM}Nothing closed yesterday.${RST}"
+	fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: recent
+# ══════════════════════════════════════════════════════════════════════════════
+elif [[ $MODE == recent ]]; then
+	THREE_DAYS_AGO=$(add_days "$TODAY" -3)
+	RECENT_ISSUES=$(echo "$ISSUES" | jq --arg cutoff "$THREE_DAYS_AGO" \
+		'[.[] | select(.closedAt >= $cutoff and .closedAt != "")]')
+	RC=$(echo "$RECENT_ISSUES" | jq 'length')
+	echo -e "${DIM}closed since $(fmtdate "$THREE_DAYS_AGO")${RST}"
+	echo ""
+	echo -e "${GRN}${BOLD}✓  CLOSED LAST 3 DAYS  (${RC})${RST}"
+	if [[ $RC -gt 0 ]]; then
+		print_issues "$RECENT_ISSUES"
+	else
+		echo -e "  ${DIM}Nothing closed in the last 3 days.${RST}"
+	fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: inprogress
+# ══════════════════════════════════════════════════════════════════════════════
+elif [[ $MODE == inprogress ]]; then
+	IP_ISSUES=$(echo "$ISSUES" | jq '[.[] | select(.status == "In Progress")]')
+	IC=$(echo "$IP_ISSUES" | jq 'length')
+	echo -e "${DIM}${IC} issues with Status=In Progress${RST}"
+	echo ""
+	echo -e "${GRN}${BOLD}▶  IN PROGRESS  (${IC})${RST}"
+	if [[ $IC -gt 0 ]]; then
+		print_issues "$IP_ISSUES"
+	else
+		echo -e "  ${DIM}No issues currently In Progress.${RST}"
+	fi
+fi
+
+# ── footer ────────────────────────────────────────────────────────────────────
+echo ""
+echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+echo -e "${DIM}https://github.com/orgs/elastic/projects/${PROJECT_NUMBER}${RST}"

@@ -1,0 +1,21 @@
+#compdef github
+
+_github() {
+	local -a opts
+	opts=(
+		'(-d --done)'{-d,--done}'[show issues with Status=Done]'
+		'(-i --in-progress)'{-i,--in-progress}'[show issues currently In Progress]'
+		'(-y --yesterday)'{-y,--yesterday}'[show issues closed yesterday]'
+		'(-r --recent)'{-r,--recent}'[show issues closed in the last 3 days]'
+		'(-c --created)'{-c,--created}'[show open issues you created]'
+		'(-p --pr)'{-p,--pr}'[show open pull requests across elastic/*]'
+		'(-R --reviews)'{-R,--reviews}'[show PRs you reviewed in the last 3 days]'
+		'(-k --karma)'{-k,--karma}'[show PR approval karma score for a GitHub user]:username: '
+		'(-s --sprints)'{-s,--sprints}'[show sprint calendar for project #2289]'
+		'(-t --transfer)'{-t,--transfer}'[transfer open issues from platform-security-terraform to platform-security-team]'
+		'(-h --help)'{-h,--help}'[show help]'
+	)
+	_arguments -s $opts
+}
+
+_github "$@"
