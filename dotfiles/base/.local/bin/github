@@ -41,6 +41,7 @@ usage() {
 
 		${BOLD}FLAGS${RST}
 		    (none)           Sprint view: current sprint, next sprint, backlog
+		    -D, --due         Open issues assigned to you due today
 		    -d, --done        Issues you completed (Status=Done in project)
 		    -i, --in-progress Issues currently In Progress (Status=In Progress)
 		    -y, --yesterday   Issues you closed yesterday
@@ -64,6 +65,7 @@ usage() {
 MODE="sprint"
 while [[ $# -gt 0 ]]; do
 	case "$1" in
+	-D | --due) MODE="due" ;;
 	-d | --done) MODE="done" ;;
 	-i | --in-progress) MODE="inprogress" ;;
 	-y | --yesterday) MODE="yesterday" ;;
@@ -514,6 +516,7 @@ done) STATES="[OPEN, CLOSED]" ;;
 yesterday) STATES="[CLOSED]" ;;
 recent) STATES="[CLOSED]" ;;
 inprogress) STATES="[OPEN]" ;;
+due) STATES="[OPEN]" ;;
 esac
 
 DATA=$(gh api graphql --field query='
@@ -754,6 +757,21 @@ elif [[ $MODE == inprogress ]]; then
 		print_issues "$IP_ISSUES"
 	else
 		echo -e "  ${DIM}No issues currently In Progress.${RST}"
+	fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: due
+# ══════════════════════════════════════════════════════════════════════════════
+elif [[ $MODE == due ]]; then
+	DUE_ISSUES=$(echo "$ISSUES" | jq --arg t "$TODAY" '[.[] | select(.due == $t)]')
+	DC=$(echo "$DUE_ISSUES" | jq 'length')
+	echo -e "${DIM}assigned to you · due today (${TODAY})${RST}"
+	echo ""
+	echo -e "${RED}${BOLD}⚑  DUE TODAY  (${DC})${RST}"
+	if [[ $DC -gt 0 ]]; then
+		print_issues "$DUE_ISSUES"
+	else
+		echo -e "  ${DIM}Nothing due today.${RST}"
 	fi
 fi
 

@@ -3,6 +3,7 @@
 _github() {
 	local -a opts
 	opts=(
+		'(-D --due)'{-D,--due}'[show open issues assigned to you due today]'
 		'(-d --done)'{-d,--done}'[show issues with Status=Done]'
 		'(-i --in-progress)'{-i,--in-progress}'[show issues currently In Progress]'
 		'(-y --yesterday)'{-y,--yesterday}'[show issues closed yesterday]'
