@@ -433,39 +433,75 @@ if [[ $MODE == karma ]]; then
 	echo -e "${DIM}@${KARMA_USER}  ·  last 10 days  ·  $(date '+%A, %B %d %Y')${RST}"
 	printf '\n%sCounting approvals for @%s...%s' "$DIM" "$KARMA_USER" "$RST" >&2
 
-	# All PRs reviewed by this user in the last 10 days (any review type), excluding own
+	# Try fast path: gh search reviewed-by (fails for private profiles)
 	ALL_REVIEWED=$(gh search prs \
 		--reviewed-by "$KARMA_USER" \
 		--updated "${TEN_DAYS_AGO}..${TODAY}" \
 		--owner elastic \
 		--limit 100 \
-		--json number,url,repository,author)
+		--json number,url,repository,author 2>/dev/null || true)
 
-	# PRs where the overall status is approved AND reviewed by this user, excluding own
-	APPROVED_PRS_JSON=$(gh search prs \
-		--reviewed-by "$KARMA_USER" \
-		--review approved \
-		--updated "${TEN_DAYS_AGO}..${TODAY}" \
-		--owner elastic \
-		--limit 100 \
-		--json number,url,repository,author)
+	KARMA_MODE="fast"
+	if [[ -z $ALL_REVIEWED || $ALL_REVIEWED == "[]" ]]; then
+		KARMA_MODE="slow"
+	fi
 
 	printf "\r\033[K" >&2
 
-	# Exclude PRs the user authored from both counts
-	TOTAL_REVIEWED=$(echo "$ALL_REVIEWED" | jq --arg u "$KARMA_USER" \
-		'[.[] | select(.author.login != $u)] | length')
-	APPROVED_COUNT=$(echo "$APPROVED_PRS_JSON" | jq --arg u "$KARMA_USER" \
-		'[.[] | select(.author.login != $u)] | length')
+	if [[ $KARMA_MODE == fast ]]; then
+		APPROVED_PRS_JSON=$(gh search prs \
+			--reviewed-by "$KARMA_USER" \
+			--review approved \
+			--updated "${TEN_DAYS_AGO}..${TODAY}" \
+			--owner elastic \
+			--limit 100 \
+			--json number,url,repository,author 2>/dev/null || echo "[]")
+
+		TOTAL_REVIEWED=$(echo "$ALL_REVIEWED" | jq --arg u "$KARMA_USER" \
+			'[.[] | select(.author.login != $u)] | length')
+		APPROVED_COUNT=$(echo "$APPROVED_PRS_JSON" | jq --arg u "$KARMA_USER" \
+			'[.[] | select(.author.login != $u)] | length')
+		NOTE="date filter uses updated-at"
+	else
+		# Slow path for private profiles: scan recent PRs in PSEC repos via REST
+		# and check the reviews endpoint on each one.
+		TOTAL_REVIEWED=0
+		APPROVED_COUNT=0
+		CANDIDATE_PRS="[]"
+		for scan_repo in "$TF_REPO" "$TEAM_REPO"; do
+			repo_prs=$(gh pr list \
+				--repo "$scan_repo" \
+				--state all \
+				--limit 50 \
+				--json number,author \
+				--jq "[.[] | {number, author_login: .author.login, repo: \"${scan_repo}\"}]" 2>/dev/null || echo "[]")
+			CANDIDATE_PRS=$(echo "$CANDIDATE_PRS $repo_prs" | jq -s 'add')
+		done
+		CANDIDATE_COUNT=$(echo "$CANDIDATE_PRS" | jq 'length')
+		printf '%sPrivate profile — scanning %s recent PRs across PSEC repos...%s\n' \
+			"$DIM" "$CANDIDATE_COUNT" "$RST" >&2
+
+		while IFS=$'\x01' read -r repo num author_login; do
+			[[ $author_login == "$KARMA_USER" ]] && continue
+			reviews=$(gh api "repos/${repo}/pulls/${num}/reviews" \
+				--jq "[.[] | select(.user.login == \"$KARMA_USER\")]" 2>/dev/null || echo "[]")
+			[[ $(echo "$reviews" | jq 'length') -eq 0 ]] && continue
+			TOTAL_REVIEWED=$((TOTAL_REVIEWED + 1))
+			approved=$(echo "$reviews" | jq '[.[] | select(.state == "APPROVED")] | length')
+			[[ $approved -gt 0 ]] && APPROVED_COUNT=$((APPROVED_COUNT + 1))
+		done < <(echo "$CANDIDATE_PRS" | jq -r \
+			'.[] | [.repo, (.number|tostring), .author_login] | join("\u0001")')
+		NOTE="private profile — scanned last 50 PRs in TF+team repos"
+	fi
 
 	echo -e "${BOLD}@${KARMA_USER}${RST}"
 	echo ""
-	echo -e "  ${GRN}${BOLD}${APPROVED_COUNT}${RST}  PRs they reviewed that are approved"
+	echo -e "  ${GRN}${BOLD}${APPROVED_COUNT}${RST}  PRs approved"
 	echo -e "  ${CYN}${BOLD}${TOTAL_REVIEWED}${RST}  total PRs reviewed (excl. own)"
 
 	echo ""
 	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
-	echo -e "${DIM}Note: date filter uses updated-at; window ${TEN_DAYS_AGO}..${TODAY}${RST}"
+	echo -e "${DIM}window: ${TEN_DAYS_AGO}..${TODAY}  ·  ${NOTE}${RST}"
 	exit 0
 fi
 
