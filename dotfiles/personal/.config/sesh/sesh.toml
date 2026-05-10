@@ -7,6 +7,11 @@ startup_command = "ls -F"
 windows = [ "shell", "llm" ]
 
 [[session]]
+name = "equiquant"
+path = "~/repos/equiquant"
+windows = [ "shell", "llm" ]
+
+[[session]]
 name = "fibonacci"
 path = "~"
 windows = [ "remote-shell", "remote-llm", "remote-vscode", "cloud-lab" ]
