@@ -42,7 +42,7 @@ fi
 echo "Setting up Tailscale service..."
 if [ "$(uname)" = "Darwin" ]; then
 	if command -v brew >/dev/null 2>&1 && brew list tailscale >/dev/null 2>&1; then
-		if ! brew services list | grep -q "tailscale[[:space:]]\+started"; then
+		if ! tailscale status >/dev/null 2>&1; then
 			echo "Tailscale service not started. Starting..."
 			sudo brew services start tailscale || true
 		else
@@ -54,4 +54,12 @@ elif [ "$(uname)" = "Linux" ]; then
 		echo "Ensuring Tailscale service is enabled and started..."
 		sudo systemctl enable --now tailscaled || true
 	fi
+fi
+
+# Link ripgrep to rg for Gemini CLI compatibility
+if command -v rg >/dev/null 2>&1; then
+	echo "Linking rg to ~/bin/ripgrep..."
+	ln -sf "$(which rg)" "$HOME/bin/ripgrep"
+else
+	echo "Warning: rg not found. Skipping ripgrep symlink."
 fi
