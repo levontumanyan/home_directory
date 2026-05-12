@@ -1,5 +1,7 @@
 # Agent Instructions (WORK)
 
+- Anytime you create/update an issue, create/update a pr. Give the full link at the end of your response!
+
 # Code Style & Standards
 
 - **Comments**: Don't overdo comments. If something is important and needs to be documented suggest edits to markdown files. If you are making changes to a file that exists in different environments keep in mind consistency.

@@ -3,14 +3,11 @@
 _github() {
 	local -a opts
 	opts=(
-		'(-D --due)'{-D,--due}'[show open issues assigned to you due today]'
-		'(-o --overdue)'{-o,--overdue}'[show open issues assigned to you that are past due]'
-		'(-d --done)'{-d,--done}'[show issues with Status=Done]'
-		'(-i --in-progress)'{-i,--in-progress}'[show issues currently In Progress]'
-		'(-y --yesterday)'{-y,--yesterday}'[show issues closed yesterday]'
-		'(-r --recent)'{-r,--recent}'[show issues closed in the last 3 days]'
+		'(-D --due)'{-D,--due}'[show open issues with a due date, grouped by day]'
+		'(-i --issues)'{-i,--issues}'[show completed issues (closed last 30d or Status=Done) + in progress]'
 		'(-c --created)'{-c,--created}'[show open issues you created]'
 		'(-p --pr)'{-p,--pr}'[show open pull requests across elastic/*]'
+		'(-m --merged)'{-m,--merged}'[show your last 25 merged/closed PRs across elastic/*]'
 		'(-R --reviews)'{-R,--reviews}'[show PRs you reviewed in the last 3 days]'
 		'(-k --karma)'{-k,--karma}'[show PR approval karma score for a GitHub user]:username: '
 		'(-s --sprints)'{-s,--sprints}'[show sprint calendar for project #2289]'
