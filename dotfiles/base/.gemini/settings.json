@@ -28,6 +28,19 @@
     "df",
     "uname",
     "date",
-    "pwd"
+    "pwd",
+    "gh auth status",
+    "gh repo view",
+    "gh pr list",
+    "gh pr view",
+    "gh pr status",
+    "gh issue list",
+    "gh issue view",
+    "gh issue status",
+    "gh release list",
+    "gh release view",
+    "gh run list",
+    "gh run view",
+    "gh api"
   ]
 }
