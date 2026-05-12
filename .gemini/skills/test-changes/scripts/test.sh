@@ -85,7 +85,7 @@ else
 	echo -e "${RED}✗ .work.zsh should NOT be present in personal profile${NC}"
 	exit 1
 fi
-if grep -q "Agent Instructions" "$HOME/AGENTS.md" && ! grep -q "WORK" "$HOME/AGENTS.md"; then
+if grep -q "System Instruction" "$HOME/AGENTS.md" && ! grep -q "WORK" "$HOME/AGENTS.md"; then
 	echo -e "${GREEN}✓ ~/AGENTS.md has personal content${NC}"
 else
 	echo -e "${RED}✗ ~/AGENTS.md content incorrect for personal${NC}"

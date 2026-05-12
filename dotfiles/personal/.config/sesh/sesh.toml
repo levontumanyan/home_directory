@@ -4,17 +4,17 @@ import = ["~/.config/sesh/base.toml"]
 name = "google-drive"
 path = "~/Library/CloudStorage/GoogleDrive-ltfibonacci@gmail.com/My Drive"
 startup_command = "ls -F"
-windows = [ "shell", "llm" ]
+windows = [ "shell", "llm", "vscode" ]
 
 [[session]]
 name = "equiquant"
-path = "~/repos/equiquant"
-windows = [ "shell", "llm" ]
+path = "~/repos/equiquant/main"
+windows = [ "shell", "llm", "vscode" ]
 
 [[session]]
 name = "fibonacci"
 path = "~"
-windows = [ "remote-shell", "remote-llm", "remote-vscode", "cloud-lab" ]
+windows = [ "remote-shell", "remote-llm", "cloud-lab" ]
 
 [[window]]
 name = "remote-shell"
@@ -22,7 +22,7 @@ startup_script = "ssh fibonacci"
 
 [[window]]
 name = "remote-llm"
-startup_script = "ssh -t fibonacci \"gemini\""
+startup_script = "ssh -t fibonacci \"llm\""
 
 [[window]]
 name = "remote-vscode"

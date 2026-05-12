@@ -59,7 +59,7 @@ fi
 # Link ripgrep to rg for Gemini CLI compatibility
 if command -v rg >/dev/null 2>&1; then
 	echo "Linking rg to ~/bin/ripgrep..."
-	ln -sf "$(which rg)" "$HOME/bin/ripgrep"
+	ln -sf "$(which rg)" "$HOME/.local/bin/ripgrep"
 else
 	echo "Warning: rg not found. Skipping ripgrep symlink."
 fi
