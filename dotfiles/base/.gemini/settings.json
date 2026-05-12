@@ -6,5 +6,28 @@
   },
   "ide": {
     "hasSeenNudge": true
-  }
+  },
+  "allowedCommands": [
+    "ls",
+    "cat",
+    "grep",
+    "git status",
+    "git diff",
+    "git log",
+    "git rev-parse",
+    "git branch",
+    "git remote",
+    "brew list",
+    "brew services list",
+    "tailscale status",
+    "tailscale ping",
+    "which",
+    "command -v",
+    "find",
+    "du",
+    "df",
+    "uname",
+    "date",
+    "pwd"
+  ]
 }
