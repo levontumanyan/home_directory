@@ -59,6 +59,9 @@ h() {
 # sesh alias
 alias s='sesh connect $(sesh list | fzf)'
 
+# iTerm2 project setups
+alias eq='open "iterm2://runscript?name=equiquant.py"'
+
 # Dynamic LLM alias based on environment
 if [ -f "$HOME/.work.zsh" ]; then
 	alias llm='claude'

@@ -7,7 +7,7 @@ A personal dotfiles and macOS/Linux environment configuration repository. It man
 ## Core Development Lifecycle
 
 ### Research & Strategy
-- **Reproduce Issues:** Before fixing bugs (e.g., broken `uninstall.sh` or `restore`), reproduce them with a minimal script or manual test.
+- **Reproduce Issues:** Before fixing bugs (e.g., broken `uninstall.sh` or `restore`), reproduce them with a minimal script or manual test. Don't use `stow` command directly just to test a new symlink working. Run the `./install.sh -t -n` in order to test truly e2e.
 - **Dependency Awareness:** Always check `setup_envs.sh` for global variables (`DOTFILES_DIR`, `BACKUP_DIR`).
 
 ### Execution

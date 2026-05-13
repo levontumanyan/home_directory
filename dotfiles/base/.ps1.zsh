@@ -51,6 +51,16 @@ _ps1_update_git() {
 
 precmd_functions+=(_ps1_update_git)
 
+# ── iterm title ───────────────────────────────────────────────────────────────
+# Function to send title escape sequence to iTerm2
+set_iterm_title() {
+	# %~ displays the current path, shortening home to ~
+	print -Pn "\e]1;%~\a"
+}
+
+# Hooks the function into the zsh prompt cycle
+precmd_functions+=(set_iterm_title)
+
 # ── prompt ────────────────────────────────────────────────────────────────────
 PROMPT='%{${fg_bold[red]}%}➜%{${reset_color}%} %{${fg_bold[yellow]}%}%~%{${reset_color}%}${_git_ps1}
 ${_kube_ps1:+${_kube_ps1} }$ '

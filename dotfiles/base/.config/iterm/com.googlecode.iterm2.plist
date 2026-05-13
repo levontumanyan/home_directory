@@ -40,6 +40,8 @@
 	<integer>10</integer>
 	<key>ClickToSelectCommand</key>
 	<false/>
+	<key>CustomScriptsFolder</key>
+	<string>/Users/levontumanyan/.config/iterm/scripts</string>
 	<key>Default Bookmark Guid</key>
 	<string>355029FC-E22C-443E-A1D6-82B5DBC54E05</string>
 	<key>Default Browser Profile Guid</key>
@@ -54,6 +56,8 @@
 	<true/>
 	<key>DisableTabBarTooltips</key>
 	<true/>
+	<key>EnableAPIServer</key>
+	<true/>
 	<key>EnableDivisionView</key>
 	<false/>
 	<key>ExtendBackgroundColorIntoMargins</key>
@@ -62,13 +66,6 @@
 	<false/>
 	<key>GlobalKeyMap</key>
 	<dict>
-		<key>0xd-0x20000</key>
-		<dict>
-			<key>Action</key>
-			<integer>11</integer>
-			<key>Text</key>
-			<string>0x0a</string>
-		</dict>
 		<key>0x19-0x60000</key>
 		<dict>
 			<key>Action</key>
@@ -120,6 +117,13 @@
 			<string></string>
 			<key>Version</key>
 			<integer>2</integer>
+		</dict>
+		<key>0xd-0x20000</key>
+		<dict>
+			<key>Action</key>
+			<integer>11</integer>
+			<key>Text</key>
+			<string>0x0a</string>
 		</dict>
 		<key>0xf700-0x300000</key>
 		<dict>
@@ -226,6 +230,8 @@
 	<array>
 		<dict>
 			<key>ASCII Anti Aliased</key>
+			<true/>
+			<key>Allow Title Reporting</key>
 			<true/>
 			<key>Ambiguous Double Width</key>
 			<false/>
@@ -1177,13 +1183,6 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
-				<key>0xd-0x20000</key>
-				<dict>
-					<key>Action</key>
-					<integer>11</integer>
-					<key>Text</key>
-					<string>0x0a</string>
-				</dict>
 				<key>0x7f-0x100000</key>
 				<dict>
 					<key>Action</key>
@@ -1203,6 +1202,13 @@
 					<string>0x17</string>
 					<key>Version</key>
 					<integer>2</integer>
+				</dict>
+				<key>0xd-0x20000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x0a</string>
 				</dict>
 				<key>0xf702-0x280000</key>
 				<dict>
@@ -1402,6 +1408,8 @@
 			<array/>
 			<key>Terminal Type</key>
 			<string>xterm-256color</string>
+			<key>Title Components</key>
+			<integer>1</integer>
 			<key>Transparency</key>
 			<real>0.15884486607142856</real>
 			<key>Treat Option as Alt</key>
@@ -2648,6 +2656,8 @@
 	<integer>10</integer>
 	<key>UseBorder</key>
 	<false/>
+	<key>UseCustomScriptsFolder</key>
+	<true/>
 	<key>VisualIndicatorForEsc</key>
 	<false/>
 	<key>WindowNumber</key>
