@@ -21,4 +21,5 @@ repos:
         entry: make test
         language: system
         files: ^(install\.sh|dotfiles/.*|Makefile)$
+        exclude: \.md$
         pass_filenames: false

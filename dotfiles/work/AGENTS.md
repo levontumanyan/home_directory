@@ -1,14 +1,17 @@
 # Agent Instructions (WORK)
 
-- Anytime you create/update an issue, create/update a pr. Give the full link at the end of your response!
-
 # Code Style & Standards
 
 - **Comments**: Don't overdo comments. If something is important and needs to be documented suggest edits to markdown files. If you are making changes to a file that exists in different environments keep in mind consistency.
 - **Indentation**: Use one tab per hierarchy level for all code. If a file is using tabs use tabs, otherwise use spaces. For any new files check conventions. If no conventions in the repo use tabs for indentation, unless it is yaml.
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
 - **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
-- **After merging main into a branch, always push to remote immediately** — a local merge without pushing leaves GitHub showing the branch as out of date. Always check this before running any buildkite plan or apply commands! Remote has to be updated with main!
+
+# github
+
+- Anytime you create/update an issue, create/update a pr. Give the full link at the end of your response! For example: `https://github.com/elastic/platform-security-team/issues/1280`
+- **PR and issue references**: Whenever you mention a PR or GitHub issue by number, always format it as a markdown hyperlink so it is clickable. For example: [PR #2407](https://github.com/elastic/platform-security-terraform/pull/2407) or [issue #901](https://github.com/elastic/platform-security-team/issues/901). Never reference a number alone without a link.
+- Before triggering any buildkite plan or apply, always run `gh pr update-branch <PR_NUMBER>` to merge main into the branch. Also run that after everytime you commit new changes to a pr. If it reports conflicts, resolve them via rebase before proceeding.
 
 # tools
 
