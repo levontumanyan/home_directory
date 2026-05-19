@@ -11,7 +11,6 @@
       "Bash(git tag *)",
       "Bash(git blame *)",
       "Bash(git shortlog *)",
-
       "Bash(gh pr view *)",
       "Bash(gh pr list *)",
       "Bash(gh pr diff *)",
@@ -30,18 +29,15 @@
       "Bash(gh repo view *)",
       "Bash(gh api *)",
       "Bash(gh search *)",
-
       "Bash(bk build view *)",
       "Bash(bk artifacts *)",
       "Bash(bk pipeline view *)",
       "Bash(bk build list *)",
-
       "Bash(kubectl logs *)",
       "Bash(kubectl get *)",
       "Bash(kubectl describe *)",
       "Bash(kubectl top *)",
       "Bash(kubectl explain *)",
-
       "Bash(grep -r *)",
       "Bash(grep *)",
       "Bash(rg *)",
@@ -55,7 +51,6 @@
       "Bash(jq *)",
       "Bash(curl -s *)",
       "Bash(curl --silent *)",
-
       "WebSearch"
     ],
     "deny": []
@@ -64,5 +59,10 @@
     "type": "command",
     "command": "~/.claude/statusline.sh"
   },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
+  },
+  "theme": "dark",
   "skipAutoPermissionPrompt": true
 }
