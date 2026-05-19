@@ -28,8 +28,6 @@ gh api --method PATCH /repos/owner/repo/pulls/1560 -f body="New description"
 
 **Why This Happens**: The GraphQL API used by `gh pr` commands tries to access organization-level fields that classic personal access tokens cannot read, even with all scopes enabled. The REST API uses different permission checks and succeeds where GraphQL fails.
 
-See [Token Scope Limitations](#token-scope-limitations-with-gh-pr-commands) section for complete workaround patterns.
-
 ### GitHub Issue Types
 
 GitHub repos can have first-class Issue Types (Initiative, Epic, Task, Bug, Enhancement, etc.) visible in the issue UI as a "Type" dropdown. These are **not** labels — they are a structured metadata field.
@@ -898,7 +896,7 @@ The `event` field controls the review state: `COMMENT` (neutral), `APPROVE`, or 
 - **Suggestion replaces the targeted line(s)** — the content inside the block becomes the new code when applied.
 - If suggestion code contains triple backticks, wrap with four backticks: `` ```` suggestion ... ```` ``
 - Suggestions posted via the reviews endpoint (bundled) are grouped as one review notification.
-- **Always include Claude Code attribution** in the review `body` field (see [Claude Code Attribution](#claude-code-attribution)).
+- **Always include Claude Code attribution** in the review `body` field.
 
 #### Determining Line Numbers
 
