@@ -63,6 +63,13 @@ Never use plain `echo` + `read` for interactive prompts in scripts called from `
 
 Use tabs for indentation in all files — shell scripts, Makefiles, config files, etc. The only exception is YAML, which requires spaces by spec. Never use spaces for indentation elsewhere.
 
+## Stow behavior
+
+`install.sh` uses `stow --no-folding`. This means stow creates real directories at the target and only symlinks individual files — it does **not** symlink whole directories. This means:
+
+- New subdirectories under `dotfiles/base/` (e.g. `.claude/hooks/`) do **not** need to be pre-created on the target machine — stow will create them as real directories automatically.
+- Do not add `mkdir -p` guards for directories that stow is responsible for creating.
+
 ## Guarding rules
 
 All commands that may not be present on every machine must be guarded:
