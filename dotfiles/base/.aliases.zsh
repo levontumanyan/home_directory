@@ -66,7 +66,7 @@ alias eq='open "iterm2://runscript?name=equiquant.py"'
 if [ -f "$HOME/.work.zsh" ]; then
 	alias llm='claude'
 else
-	alias llm='gemini'
+	alias llm='agy'
 fi
 
 # on machines that have only doas
