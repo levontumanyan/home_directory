@@ -1,0 +1,12 @@
+{
+  "colorScheme": "dark",
+  "enableTelemetry": false,
+  "policyPaths": [
+    "/Users/levontumanyan/.gemini/antigravity-cli/policies"
+  ],
+  "trustedWorkspaces": [
+    "/Users/levontumanyan/repos/home_directory",
+    "/Users/levontumanyan/repos/equiquant/equiquant"
+  ]
+}
+
