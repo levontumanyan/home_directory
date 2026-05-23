@@ -1,5 +1,5 @@
 IMAGE_NAME := dotfiles-test
-SCRIPTS := install.sh setup.sh setup_envs.sh uninstall.sh
+SCRIPTS := install.sh setup.sh setup_envs.sh uninstall.sh scripts/dump_brewfile.sh
 
 .PHONY: lint
 lint:

@@ -38,12 +38,12 @@ The install.sh script prompts at start: work or personal.
 To update Brewfiles from currently installed packages, run on the appropriate machine:
 ```sh
 # on a work machine
-brew bundle dump --force --file=brewfile_work
+brew bundle dump --file=brewfile_work --no-vscode --force
 
 # on a personal machine
-brew bundle dump --force --file=brewfile_personal
+brew bundle dump --file=brewfile_personal --no-vscode --force
 ```
-The dump overwrites the file with everything currently installed — formulas, casks, taps, and VS Code extensions. Commit and push after dumping.
+The dump overwrites the file with everything currently installed — formulas, casks, and taps, excluding VS Code extensions. Commit and push after dumping.
 
 # Periodic Brewfile Maintenance
 

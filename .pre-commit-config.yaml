@@ -24,3 +24,9 @@ repos:
         files: ^(install\.sh|dotfiles/.*|Makefile)$
         exclude: \.md$
         pass_filenames: false
+    -   id: dump-brewfile
+        name: Dump Brewfile
+        entry: ./scripts/dump_brewfile.sh
+        language: system
+        always_run: true
+        pass_filenames: false
