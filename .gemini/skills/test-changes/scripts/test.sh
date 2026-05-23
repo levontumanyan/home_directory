@@ -41,8 +41,8 @@ echo "🚀 Starting Comprehensive Automated Validation..."
 
 # 1. Test Conflict Handling
 echo "--- Testing Conflict Handling ---"
-mkdir -p "$HOME/.gemini"
-echo "pre-existing-file" >"$HOME/.gemini/settings.json"
+mkdir -p "$HOME/.gemini/antigravity-cli"
+echo "pre-existing-file" >"$HOME/.gemini/antigravity-cli/settings.json"
 echo "pre-existing-zshrc" >"$HOME/.zshrc"
 
 ./install.sh -m personal -t -v
@@ -63,7 +63,7 @@ assert_symlink "$HOME/.gitconfig" "dotfiles/base/.gitconfig"
 
 # 3. Test Profile Symlinks
 echo "--- Testing Profile Symlinks ---"
-assert_symlink "$HOME/.gemini/settings.json" "dotfiles/base/.gemini/settings.json"
+assert_symlink "$HOME/.gemini/antigravity-cli/settings.json" "dotfiles/base/.gemini/antigravity-cli/settings.json"
 assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
 
 # 4. Test Directory Nesting

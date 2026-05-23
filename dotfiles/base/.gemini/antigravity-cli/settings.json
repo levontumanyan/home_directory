@@ -1,12 +1,67 @@
 {
+  "allowNonWorkspaceAccess": true,
   "colorScheme": "dark",
   "enableTelemetry": false,
-  "policyPaths": [
-    "/Users/levontumanyan/.gemini/antigravity-cli/policies"
-  ],
+  "permissions": {
+    "allow": [
+      "command(git status)",
+      "command(git log)",
+      "command(git diff)",
+      "command(git show)",
+      "command(git branch)",
+      "command(git remote)",
+      "command(git stash list)",
+      "command(git tag)",
+      "command(git fetch)",
+      "command(git blame)",
+      "command(git shortlog)",
+      "command(git worktree`)",
+      "command(gh pr view)",
+      "command(gh pr list)",
+      "command(gh pr diff)",
+      "command(gh pr checks)",
+      "command(gh pr status)",
+      "command(gh pr review)",
+      "command(gh issue view)",
+      "command(gh issue list)",
+      "command(gh issue)",
+      "command(gh run view)",
+      "command(gh run list)",
+      "command(gh workflow list)",
+      "command(gh workflow view)",
+      "command(gh release list)",
+      "command(gh release view)",
+      "command(gh repo view)",
+      "command(gh api)",
+      "command(gh search)",
+      "command(bk build view)",
+      "command(bk artifacts)",
+      "command(bk pipeline view)",
+      "command(bk build list)",
+      "command(kubectl logs)",
+      "command(kubectl get)",
+      "command(kubectl describe)",
+      "command(kubectl top)",
+      "command(kubectl explain)",
+      "command(grep)",
+      "command(rg)",
+      "command(find)",
+      "command(cat)",
+      "command(ls)",
+      "command(head)",
+      "command(tail)",
+      "command(wc)",
+      "command(diff)",
+      "command(jq)",
+      "command(curl)",
+      "command(echo)",
+      "command(date)",
+      "command(make lint)"
+    ]
+  },
   "trustedWorkspaces": [
     "/Users/levontumanyan/repos/home_directory",
-    "/Users/levontumanyan/repos/equiquant/equiquant"
+    "/Users/levontumanyan/repos/equiquant/equiquant",
+    "/Users/levontumanyan/repos/equiquant/equiquant--portfolio-db-normalization"
   ]
 }
-
