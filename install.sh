@@ -77,7 +77,11 @@ export MACHINE_TYPE
 
 # set up logging — always write to log; show on terminal only with -v
 mkdir -p "$LOG_DIR"
-printf "Log: %s\n" "$LOG_FILE" >/dev/tty
+if [ -c /dev/tty ] && [ -w /dev/tty ] && tty -s; then
+	printf "Log: %s\n" "$LOG_FILE" >/dev/tty
+else
+	printf "Log: %s\n" "$LOG_FILE" >&2
+fi
 if [ "$VERBOSE" = "1" ]; then
 	exec > >(tee -a "$LOG_FILE") 2>&1
 else
@@ -141,8 +145,7 @@ if [ "$SKIP_ESSENTIALS" = "1" ]; then
 	brew_reply="n"
 fi
 if [ -z "$brew_reply" ]; then
-	printf "Install profile brew packages? [Y/n]: " >/dev/tty
-	read -r brew_reply </dev/tty
+	prompt "Install profile brew packages? [Y/n]:" brew_reply
 fi
 case "$brew_reply" in
 n | N) echo "Skipping profile brew bundle" ;;

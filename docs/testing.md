@@ -1,18 +1,39 @@
-# container
+# Container Testing
+
+Testing instructions for running dotfiles configuration in a clean containerized Linux environment using Apple's native container tool.
+
+# Getting Started
+
+To run these tests, ensure Apple's container system service is started:
 
 ```bash
-podman machine init --cpus 1 --memory 1024 --disk-size 20 --rootful=false
+container system start
+```
 
-# build the image
-podman build -t localhost/dotfiles-test .devcontainer
+# Building and Running the Test Environment
 
-# run the container and stay inside
-podman run -it --rm -v "$(pwd):/workspace:Z" localhost/dotfiles-test zsh
+Build the container image using the [Containerfile](file:///Users/levontumanyan/repos/home_directory/.devcontainer/Containerfile):
 
-# 2. Run the test (Personal)
-podman run -it --rm -v "$(pwd):/workspace:Z" localhost/dotfiles-test zsh -c "cd /workspace && ./install.sh -m personal -t && zsh"
+```bash
+container build -t localhost/dotfiles-test -f .devcontainer/Containerfile .devcontainer
+```
 
-# 3. Run the test (Work)
-podman run -it --rm -v "$(pwd):/workspace:Z" localhost/dotfiles-test zsh -c "cd /workspace && ./install.sh -m work -t && zsh"
+## Running an Interactive Session
 
+```bash
+container run -it --rm -v "$(pwd):/workspace" localhost/dotfiles-test zsh
+```
+
+## Running the Automated Install Tests
+
+To test the personal configuration profile:
+
+```bash
+container run -it --rm -v "$(pwd):/workspace" localhost/dotfiles-test zsh -c "cd /workspace && ./install.sh -m personal -t && zsh"
+```
+
+To test the work configuration profile:
+
+```bash
+container run -it --rm -v "$(pwd):/workspace" localhost/dotfiles-test zsh -c "cd /workspace && ./install.sh -m work -t && zsh"
 ```

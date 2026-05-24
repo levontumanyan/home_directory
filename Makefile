@@ -6,14 +6,18 @@ lint:
 	shellcheck $(SCRIPTS)
 	shfmt -d -i 0 $(SCRIPTS)
 
+.PHONY: system-start
+system-start:
+	container system start
+
 .PHONY: build-test
-build-test:
-	podman build -t $(IMAGE_NAME) -f .devcontainer/Dockerfile.ubuntu .devcontainer/
+build-test: system-start
+	container build -t $(IMAGE_NAME) -f .devcontainer/Containerfile .devcontainer/
 
 .PHONY: test
 test: build-test
-	podman run -it --rm -v $(shell pwd):/workspace:Z $(IMAGE_NAME) zsh -c "cd /workspace && ./.gemini/skills/test-changes/scripts/test.sh"
+	container run --rm -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./.gemini/skills/test-changes/scripts/test.sh"
 
 .PHONY: dev
 dev: build-test
-	podman run -it --rm -v $(shell pwd):/workspace:Z $(IMAGE_NAME) zsh
+	container run -it --rm -v $(shell pwd):/workspace $(IMAGE_NAME) zsh

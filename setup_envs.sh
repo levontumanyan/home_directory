@@ -1,8 +1,13 @@
 # shellcheck shell=bash
-# prompt <message> <varname> — always prints to terminal even when stdout is redirected to log
+# prompt <message> <varname> — prints to tty if available, otherwise stderr, even when stdout is redirected to log
 prompt() {
-	printf "%s " "$1" >/dev/tty
-	read -r "$2" </dev/tty
+	if [ -c /dev/tty ] && [ -w /dev/tty ] && tty -s; then
+		printf "%s " "$1" >/dev/tty
+		read -r "$2" </dev/tty
+	else
+		printf "%s " "$1" >&2
+		read -r "$2"
+	fi
 }
 
 DOTFILES_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"

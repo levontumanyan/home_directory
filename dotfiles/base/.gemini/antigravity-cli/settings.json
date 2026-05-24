@@ -2,6 +2,7 @@
   "allowNonWorkspaceAccess": true,
   "colorScheme": "dark",
   "enableTelemetry": false,
+  "model": "Claude Sonnet 4.6 (Thinking)",
   "permissions": {
     "allow": [
       "command(git status)",
@@ -62,6 +63,7 @@
   "trustedWorkspaces": [
     "/Users/levontumanyan/repos/home_directory",
     "/Users/levontumanyan/repos/equiquant/equiquant",
-    "/Users/levontumanyan/repos/equiquant/equiquant--portfolio-db-normalization"
+    "/Users/levontumanyan/repos/equiquant/equiquant--portfolio-db-normalization",
+    "/Users/levontumanyan/repos/knowledge-base"
   ]
 }

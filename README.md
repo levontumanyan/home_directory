@@ -5,15 +5,13 @@ git clone --depth 1 https://github.com/levontumanyan/home_directory
 
 # Testing
 
-Test `install.sh` in a clean Linux environment using the devcontainer image (requires [Podman](https://podman.io)):
+Test `install.sh` in a clean Linux environment using the devcontainer image (requires Apple's native `container` tool):
 
 ```bash
-podman run --rm -it \
-  -v ~/repos/home_directory:/workspaces/home_directory:z \
-  --userns=keep-id \
+container run --rm -it \
+  -v ~/repos/home_directory:/workspaces/home_directory \
   -w /workspaces/home_directory \
-  --user vscode \
-  localhost/vsc-home_directory-c7ce67ba2cdfe6685c27895981ace7f05c4c12f2d1b273be9ca98862dc2f0087:latest \
+  dotfiles-test \
   zsh
 ```
 
@@ -23,7 +21,7 @@ podman run --rm -it \
 ./install.sh
 ```
 
-To rebuild the image after changing `.devcontainer/Dockerfile` or `.devcontainer/devcontainer.json`, use VS Code: `Cmd+Shift+P` → **Dev Containers: Rebuild Container**.
+To rebuild the image after changing `.devcontainer/Containerfile` or `.devcontainer/devcontainer.json`, run `make build-test`.
 
 # Keeping Brewfiles updated
 
