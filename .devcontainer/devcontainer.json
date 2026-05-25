@@ -1,7 +1,7 @@
 {
   "name": "Dotfiles Dev Container",
   "build": {
-    "dockerfile": "Dockerfile"
+    "dockerfile": "Containerfile"
   },
   "mounts": [
     "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
