@@ -92,9 +92,6 @@ set -x
 
 echo "=== install started: $(date) ==="
 
-# create general backup dir
-[ ! -d "$BACKUP_DIR" ] && mkdir -pv "$BACKUP_DIR"
-
 # on Linux, ensure linuxbrew is in PATH before using brew
 if [ "$(uname)" = "Linux" ]; then
 	test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
@@ -181,18 +178,23 @@ backup_conflicts() {
 }
 
 # stow base dotfiles (all machines)
-backup_conflicts base
+if [ ! -f "$HOME/.work.zsh" ] && [ ! -f "$HOME/.personal.zsh" ]; then
+	backup_conflicts base
+	if [ "$MACHINE_TYPE" = "work" ]; then
+		backup_conflicts work
+	else
+		backup_conflicts personal
+	fi
+fi
 stow --no-folding --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base
 
 # stow work dotfiles (work machines only)
 if [ "$MACHINE_TYPE" = "work" ]; then
-	backup_conflicts work
 	stow --no-folding --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow work
 fi
 
 # stow personal dotfiles (personal machines only)
 if [ "$MACHINE_TYPE" = "personal" ]; then
-	backup_conflicts personal
 	stow --no-folding --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow personal
 fi
 

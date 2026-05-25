@@ -130,7 +130,5 @@ git config --global tag.gpgsign true
 
 # Known Issues and Priorities
 
-- Restoring from backups is currently broken.
-- uninstall.sh does not remove the .zshrc symlink.
 - Many scripts are not fully idempotent (e.g., duplicate entries in config files).
 - Backups should be consolidated into one directory and cleaned up after several iterations.

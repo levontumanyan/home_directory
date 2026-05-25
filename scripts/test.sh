@@ -37,6 +37,15 @@ assert_file_exists() {
 	fi
 }
 
+assert_not_symlink() {
+	if [[ -L $1 ]]; then
+		echo -e "${RED}✗ $1 should NOT be a symlink (still points to $(readlink "$1"))${NC}"
+		exit 1
+	else
+		echo -e "${GREEN}✓ $1 is correctly NOT a symlink${NC}"
+	fi
+}
+
 echo "🚀 Starting Comprehensive Automated Validation..."
 
 # 1. Test Conflict Handling
@@ -54,6 +63,12 @@ else
 	echo -e "${RED}✗ Conflict backup NOT found for .zshrc${NC}"
 	exit 1
 fi
+if ls "$HOME"/dotfiles_backup/backup_*/.gemini/antigravity-cli/settings.json >/dev/null 2>&1; then
+	echo -e "${GREEN}✓ Conflict backup created for nested settings.json${NC}"
+else
+	echo -e "${RED}✗ Conflict backup NOT found for nested settings.json${NC}"
+	exit 1
+fi
 
 # 2. Test Base Symlinks
 echo "--- Testing Base Symlinks ---"
@@ -66,17 +81,27 @@ echo "--- Testing Profile Symlinks ---"
 assert_symlink "$HOME/.gemini/antigravity-cli/settings.json" "dotfiles/base/.gemini/antigravity-cli/settings.json"
 assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
 
+# Verify chained symlink resolves to real content
+if grep -q "System Instruction" "$HOME/.claude/CLAUDE.md"; then
+	echo -e "${GREEN}✓ ~/.claude/CLAUDE.md chained symlink resolves to real content${NC}"
+else
+	echo -e "${RED}✗ ~/.claude/CLAUDE.md chained symlink does not resolve${NC}"
+	exit 1
+fi
+
 # 4. Test Directory Nesting
 echo "--- Testing Nested Directories ---"
 assert_symlink "$HOME/.config/sesh/sesh.toml" "dotfiles/personal/.config/sesh/sesh.toml"
 assert_symlink "$HOME/.config/sesh/base.toml" "dotfiles/base/.config/sesh/base.toml"
 
-# 4. Test Idempotency
+# 5. Test Idempotency
 echo "--- Testing Idempotency ---"
 ./install.sh -m personal -t -v
 echo -e "${GREEN}✓ Second run completed successfully${NC}"
+assert_symlink "$HOME/.zshrc" "dotfiles/base/.zshrc"
+assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
 
-# 5. Test Personal Profile
+# 6. Test Personal Profile
 echo "--- Testing PERSONAL profile ---"
 assert_file_exists "$HOME/.personal.zsh"
 if [[ ! -f "$HOME/.work.zsh" ]]; then
@@ -95,7 +120,7 @@ fi
 # Cleanup before switching
 stow -D --dir="dotfiles" --target="$HOME" base personal
 
-# 6. Test Work Profile
+# 7. Test Work Profile
 echo "--- Testing WORK profile ---"
 ./install.sh -m work -t -v
 assert_file_exists "$HOME/.work.zsh"
@@ -105,5 +130,14 @@ else
 	echo -e "${RED}✗ ~/AGENTS.md failed to switch to WORK content${NC}"
 	exit 1
 fi
+
+# Verify work-only symlinks
+assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/work/.claude/CLAUDE.md"
+assert_symlink "$HOME/.agents/skills/gh/SKILL.md" "dotfiles/work/.agents/skills/gh/SKILL.md"
+assert_symlink "$HOME/.claude/skills" "dotfiles/work/.claude/skills"
+
+# Verify profile-switch cleanup
+assert_not_symlink "$HOME/.personal.zsh"
+assert_symlink "$HOME/.zshrc" "dotfiles/base/.zshrc"
 
 echo -e "\n${GREEN}⭐ All comprehensive validations passed!${NC}"

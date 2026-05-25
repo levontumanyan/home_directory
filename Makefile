@@ -1,5 +1,5 @@
 IMAGE_NAME := dotfiles-test
-SCRIPTS := install.sh setup.sh setup_envs.sh uninstall.sh scripts/dump_brewfile.sh
+SCRIPTS := install.sh setup.sh setup_envs.sh scripts/dump_brewfile.sh scripts/test.sh
 
 .PHONY: lint
 lint:
@@ -16,7 +16,7 @@ build-test: system-start
 
 .PHONY: test
 test: build-test
-	container run --rm -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./.gemini/skills/test-changes/scripts/test.sh"
+	container run --rm -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./scripts/test.sh"
 
 .PHONY: dev
 dev: build-test
