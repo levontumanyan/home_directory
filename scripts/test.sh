@@ -57,13 +57,14 @@ echo "pre-existing-zshrc" >"$HOME/.zshrc"
 ./install.sh -m personal -t -v
 
 # Verify backups were created
-if ls "$HOME"/dotfiles_backup/backup_*/.zshrc >/dev/null 2>&1; then
+BACKUP_BASE="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/backups"
+if ls "$BACKUP_BASE"/backup_*/.zshrc >/dev/null 2>&1; then
 	echo -e "${GREEN}✓ Conflict backup created for .zshrc${NC}"
 else
 	echo -e "${RED}✗ Conflict backup NOT found for .zshrc${NC}"
 	exit 1
 fi
-if ls "$HOME"/dotfiles_backup/backup_*/.gemini/antigravity-cli/settings.json >/dev/null 2>&1; then
+if ls "$BACKUP_BASE"/backup_*/.gemini/antigravity-cli/settings.json >/dev/null 2>&1; then
 	echo -e "${GREEN}✓ Conflict backup created for nested settings.json${NC}"
 else
 	echo -e "${RED}✗ Conflict backup NOT found for nested settings.json${NC}"

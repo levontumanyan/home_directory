@@ -77,18 +77,13 @@ export MACHINE_TYPE
 
 # set up logging — always write to log; show on terminal only with -v
 mkdir -p "$LOG_DIR"
-if [ -c /dev/tty ] && [ -w /dev/tty ] && tty -s; then
-	printf "Log: %s\n" "$LOG_FILE" >/dev/tty
-else
-	printf "Log: %s\n" "$LOG_FILE" >&2
-fi
+say "Log: $LOG_FILE"
 if [ "$VERBOSE" = "1" ]; then
 	exec > >(tee -a "$LOG_FILE") 2>&1
+	set -x
 else
 	exec >>"$LOG_FILE" 2>&1
 fi
-
-set -x
 
 echo "=== install started: $(date) ==="
 
@@ -179,6 +174,7 @@ backup_conflicts() {
 
 # stow base dotfiles (all machines)
 if [ ! -f "$HOME/.work.zsh" ] && [ ! -f "$HOME/.personal.zsh" ]; then
+	say "First install: backing up any conflicting files to $BACKUP_DIR"
 	backup_conflicts base
 	if [ "$MACHINE_TYPE" = "work" ]; then
 		backup_conflicts work
