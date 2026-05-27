@@ -57,7 +57,8 @@
       "command(curl)",
       "command(echo)",
       "command(date)",
-      "command(make lint)"
+      "command(make lint)",
+      "command(d2)"
     ]
   },
   "trustedWorkspaces": [

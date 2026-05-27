@@ -1,0 +1,39 @@
+direction: down
+
+start: "Start install.sh" {shape: oval}
+
+detect: "Detect Profile" {
+	prompt: "Prompt or Auto-recognize Machine Type"
+	choice: "Determine work or personal"
+}
+
+setup_logging: "Initialize Log" {
+	write: "Redirect outputs to log file (~/.local/share/dotfiles/log/...)"
+}
+
+deps: "Install Dependencies" {
+	brew: "Install Homebrew (if missing)"
+	essentials: "Install essential packages (brewfile_essentials)"
+	profile_deps: "Install profile-specific packages (brewfile_work/brewfile_personal)"
+}
+
+backup: "Check & Backup Conflicts" {
+	scan: "Scan Home directory for real files"
+	mv: "Move conflicting real files to dated backup dir"
+}
+
+stowing: "Symlink Dotfiles via Stow" {
+	stow_base: "Stow base package"
+	stow_profile: "Stow work or personal package"
+}
+
+post: "Run Post-Setup (setup.sh)" {
+	git: "Setup Git global name/email"
+	precommit: "Install pre-commit hooks"
+	tailscale: "Enable Tailscale service"
+	rg: "Symlink rg to ~/.local/bin/ripgrep"
+}
+
+finish: "Done! (Exec Zsh)" {shape: circle}
+
+start -> detect -> setup_logging -> deps -> backup -> stowing -> post -> finish
