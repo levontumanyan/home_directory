@@ -13,3 +13,11 @@ _aws_config_bootstrap() {
 }
 _aws_config_bootstrap
 unset -f _aws_config_bootstrap
+
+opencode-auth-mcps() {
+	local mcps
+	mapfile -t mcps < <(jq -r '.mcp | keys[]' ~/.config/opencode/opencode.jsonc)
+	for mcp in "${mcps[@]}"; do
+		opencode mcp auth "$mcp"
+	done
+}
