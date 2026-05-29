@@ -1,0 +1,77 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"model": "litellm/llm-gateway/claude-sonnet-4-6",
+	"small_model": "litellm/llm-gateway/claude-haiku-4-5",
+	"mcp": {
+		"elastic-docs": {
+			"type": "remote",
+			"url": "https://www.elastic.co/docs/_mcp/"
+		},
+		"elastic-team-internal-docs": {
+			"type": "remote",
+			"url": "https://codex.elastic.dev/mcp"
+		}
+	},
+	"provider": {
+		"litellm": {
+			"npm": "@ai-sdk/openai-compatible",
+			"name": "LiteLLM",
+			"options": {
+				"baseURL": "https://elastic.litellm-prod.ai",
+				"setCacheKey": true
+			},
+			"models": {
+				"llm-gateway/claude-opus-4-7": { "name": "Claude Opus 4.7" },
+				"llm-gateway/claude-opus-4-6": { "name": "Claude Opus 4.6" },
+				"llm-gateway/claude-sonnet-4-6": { "name": "Claude Sonnet 4.6", "limit": { "context": 1000000, "output": 64000 }, "cost": { "input": 3.00, "output": 15.00, "cache": { "read": 0.30, "write": 3.75 } } },
+				"llm-gateway/claude-haiku-4-5": { "name": "Claude Haiku 4.5", "limit": { "context": 200000, "output": 64000 }, "cost": { "input": 1.00, "output": 5.00, "cache": { "read": 0.10, "write": 1.25 } } },
+				"llm-gateway/gpt-5.5": { "name": "GPT-5.5" },
+				"llm-gateway/gpt-5.4-pro": { "name": "GPT-5.4 Pro" },
+				"llm-gateway/gpt-5.4": { "name": "GPT-5.4" },
+				"llm-gateway/gpt-5.4-mini": { "name": "GPT-5.4 Mini" },
+				"llm-gateway/gpt-5.4-nano": { "name": "GPT-5.4 Nano" },
+				"llm-gateway/gpt-5.3-chat": { "name": "GPT-5.3 Chat" },
+				"llm-gateway/gpt-5.3-codex": { "name": "GPT-5.3 Codex" },
+				"llm-gateway/gpt-5.2": { "name": "GPT-5.2" },
+				"llm-gateway/gpt-5.2-codex": { "name": "GPT-5.2 Codex" },
+				"llm-gateway/gpt-5.1": { "name": "GPT-5.1" },
+				"llm-gateway/gpt-5.1-chat": { "name": "GPT-5.1 Chat" },
+				"llm-gateway/gpt-5-mini": { "name": "GPT-5 Mini" },
+				"llm-gateway/gpt-5-nano": { "name": "GPT-5 Nano" },
+				"llm-gateway/gpt-4.1": { "name": "GPT-4.1" },
+				"llm-gateway/gpt-4.1-mini": { "name": "GPT-4.1 Mini" },
+				"llm-gateway/gpt-4.1-nano": { "name": "GPT-4.1 Nano" },
+				"llm-gateway/gemini-3.1-pro-preview": { "name": "Gemini 3.1 Pro (Preview)" },
+				"llm-gateway/gemini-3.1-flash-image-preview": { "name": "Gemini 3.1 Flash Image (Preview)" },
+				"llm-gateway/gemini-3-pro-preview": { "name": "Gemini 3 Pro (Preview)" },
+				"llm-gateway/gemini-3-flash-preview": { "name": "Gemini 3 Flash (Preview)" },
+				"llm-gateway/gemini-2.5-pro": { "name": "Gemini 2.5 Pro" },
+				"llm-gateway/gemini-2.5-flash-lite": { "name": "Gemini 2.5 Flash Lite" },
+				"llm-gateway/Kimi-K2.6": { "name": "Kimi K2.6" },
+				"llm-gateway/Kimi-K2.5": { "name": "Kimi K2.5" },
+				"llm-gateway/Kimi-K2-Thinking": { "name": "Kimi K2 Thinking" },
+				"llm-gateway/DeepSeek-V4-Flash": { "name": "DeepSeek V4 Flash" },
+				"llm-gateway/Mistral-Large-3": { "name": "Mistral Large 3" },
+				"llm-gateway/Ministral-3B": { "name": "Ministral 3B" },
+				"llm-gateway/Codestral-2501": { "name": "Codestral 2501" }
+			}
+		},
+		"ollama": {
+			"npm": "@ai-sdk/openai-compatible",
+			"name": "Ollama Local",
+			"options": {
+				"baseURL": "http://127.0.0.1:11434/v1"
+			},
+			"models": {
+				"qwen2.5-coder:32b": {
+					"name": "qwen2.5-coder:32b",
+					"tools": true
+				},
+				"qwen3.5:35b-a3b": {
+					"name": "qwen3.5:35b-a3b",
+					"tools": true
+				}
+			}
+		}
+	}
+}
