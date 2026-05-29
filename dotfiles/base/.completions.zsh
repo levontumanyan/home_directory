@@ -34,5 +34,10 @@ command -v uv >/dev/null 2>&1 && {
 	eval "$(uv generate-shell-completion zsh)"
 }
 
+# source opencode completions
+command -v opencode >/dev/null 2>&1 && {
+	source <(opencode completion zsh)
+}
+
 # Prioritize make targets over files and variables
 zstyle ':completion:*:*:make:*' tag-order 'targets'
