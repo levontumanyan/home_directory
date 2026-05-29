@@ -17,6 +17,14 @@
 
 - When you need to check buildkite pipeline, use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.
 
+## MCP Priority Order (Elastic questions)
+
+When answering Elastic-related questions, check sources in this order:
+
+1. `elastic-team-internal-docs` — internal processes, runbooks, team knowledge (codex.elastic.dev)
+2. `elastic-docs` — public product docs, API reference, feature docs (elastic.co/docs)
+3. Web search — blogs, announcements, anything not covered above
+
 # PSEC GitHub Project Board
 
 The **only** relevant GitHub Project for PSEC work is [Platform Security Team (#2289)](https://github.com/orgs/elastic/projects/2289).

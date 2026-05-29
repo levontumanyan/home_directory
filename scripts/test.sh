@@ -46,6 +46,22 @@ assert_not_symlink() {
 	fi
 }
 
+assert_realpath() {
+	local link="$1"
+	local expected_part="$2"
+	local actual
+	actual=$(realpath "$link" 2>/dev/null) || {
+		echo -e "${RED}✗ realpath $link failed${NC}"
+		exit 1
+	}
+	if [[ $actual == *"$expected_part"* ]]; then
+		echo -e "${GREEN}✓ $link resolves to $actual${NC}"
+	else
+		echo -e "${RED}✗ $link resolves to $actual, expected something containing $expected_part${NC}"
+		exit 1
+	fi
+}
+
 echo "🚀 Starting Comprehensive Automated Validation..."
 
 # 1. Test Conflict Handling
@@ -81,6 +97,8 @@ assert_symlink "$HOME/.gitconfig" "dotfiles/base/.gitconfig"
 echo "--- Testing Profile Symlinks ---"
 assert_symlink "$HOME/.gemini/antigravity-cli/settings.json" "dotfiles/base/.gemini/antigravity-cli/settings.json"
 assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
+assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/personal/AGENTS.md"
+assert_realpath "$HOME/AGENTS.md" "dotfiles/personal/AGENTS.md"
 
 # Verify chained symlink resolves to real content
 if grep -q "System Instruction" "$HOME/.claude/CLAUDE.md"; then
@@ -96,6 +114,7 @@ echo "--- Testing Idempotency ---"
 echo -e "${GREEN}✓ Second run completed successfully${NC}"
 assert_symlink "$HOME/.zshrc" "dotfiles/base/.zshrc"
 assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
+assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/personal/AGENTS.md"
 
 # 6. Test Personal Profile
 echo "--- Testing PERSONAL profile ---"
@@ -129,6 +148,8 @@ fi
 
 # Verify work-only symlinks
 assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/work/.claude/CLAUDE.md"
+assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/work/AGENTS.md"
+assert_realpath "$HOME/AGENTS.md" "dotfiles/work/AGENTS.md"
 assert_symlink "$HOME/.agents/skills/gh/SKILL.md" "dotfiles/work/.agents/skills/gh/SKILL.md"
 assert_symlink "$HOME/.claude/skills" "dotfiles/work/.claude/skills"
 

@@ -21,7 +21,7 @@ repos:
         name: Run Dotfiles Container Test
         entry: make test
         language: system
-        files: ^(install\.sh|dotfiles/.*|Makefile)$
+        files: ^(install\.sh|scripts/test\.sh|dotfiles/.*|Makefile)$
         exclude: \.md$
         pass_filenames: false
     -   id: dump-brewfile
