@@ -26,3 +26,4 @@ if OS.mac?
 end
 
 cask "font-jetbrains-mono-nerd-font"
+cask "claude-code@latest"
