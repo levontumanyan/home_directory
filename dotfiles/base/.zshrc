@@ -49,3 +49,7 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 [ -f "$HOME/.work.zsh" ] && source "$HOME/.work.zsh"
 [ -f "$HOME/.personal.zsh" ] && source "$HOME/.personal.zsh"
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/ubuntu/.local/bin:$PATH"

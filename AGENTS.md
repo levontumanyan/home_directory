@@ -6,82 +6,34 @@ This file provides guidance to AI coding assistants (like Antigravity and Claude
 
 A personal cross-platform (macOS + Linux) dotfiles and home directory configuration repository. It manages dotfiles, Homebrew packages, and tool installations through symlinking and automated scripts using GNU Stow, with separate work and personal machine profiles.
 
-# Key Scripts and Components
+# Stow Layer Structure
 
-- **install.sh** — Entry point: detects or prompts for work/personal profile, backs up conflicting files, stows dotfiles/base (all machines) and dotfiles/work or dotfiles/personal, and installs Homebrew packages.
-- **setup_envs.sh** — Sourced by all scripts: defines and exports DOTFILES_DIR, BACKUP_DIR, MACHINE_TYPE, LOG_DIR, and LOG_FILE, and provides the `prompt` helper.
-- **setup.sh** — Post-installation tasks: one-time setup (git user config if not set), fzf setup, kubectl setup.
-- **scripts/test.sh** — End-to-end install tests: runs install.sh twice and asserts symlinks are correct. Always run via `make test` — never run `scripts/test.sh` directly, as it must execute inside the container to avoid stowing into the real `$HOME`.
-- **scripts/dump_brewfile.sh** — Detects machine type and dumps the correct brewfile; runs as a pre-commit hook.
-- **dotfiles/** — Source of truth for dotfiles (symlinked to $HOME via stow).
+Three layers are stowed in order: `dotfiles/base/` (all machines), `dotfiles/os/<platform>/` (darwin or linux), `dotfiles/profile/<type>/` (work or personal). When adding a new dotfile, place it in the right layer — agents should not assume all dotfiles live under base.
 
 # Work vs Personal Profiles
 
-install.sh determines machine type at start. On a machine that already has `~/.work.zsh` or `~/.personal.zsh`, the type is auto-detected. Otherwise it prompts. Pass `-m work` or `-m personal` to skip the prompt entirely.
+Profile is auto-detected at install time: if `~/.work.zsh` exists → work, if `~/.personal.zsh` exists → personal, otherwise prompts. Pass `-m work` or `-m personal` to skip. Brewfiles: brewfile_work for work machines, brewfile_personal for personal.
 
-- Both profiles: dotfiles/base is stowed for all machines.
-- Work only: dotfiles/work is also stowed; .zshrc sources .work.zsh automatically if present.
-- Personal only: dotfiles/personal is stowed.
-- Brewfiles: brewfile_work is installed on work machines, brewfile_personal on personal ones.
+# Testing
 
-To manually update Brewfiles from currently installed packages:
-```sh
-# on a work machine
-brew bundle dump --file=brewfile_work --no-vscode --force
-
-# on a personal machine
-brew bundle dump --file=brewfile_personal --no-vscode --force
-```
-The dump overwrites the file with everything currently installed — formulas, casks, and taps, excluding VS Code extensions. Commit and push after dumping.
-
-# Periodic Brewfile Maintenance
-
-A pre-commit hook (`scripts/dump_brewfile.sh`) auto-dumps the correct brewfile on every commit. Manual dumps are still needed when working on another machine or when the hook hasn't run. Check staleness with:
-```sh
-brew bundle check --file=brewfile_work
-```
-If it reports anything not in the file, run a manual dump and commit.
-
-# Dotfiles Layout and Purpose
-
-All files live under dotfiles/base/ unless noted. dotfiles/work/ and dotfiles/personal/ contain profile-specific files.
-
-- **.zshrc** — Sources .env.zsh, .completions.zsh, .aliases.zsh, .ps1.zsh; configures history, zoxide, zsh-autosuggestions (brew-guarded), and optionally .work.zsh or .personal.zsh.
-- **.env.zsh** — Homebrew PATH setup, adds ~/bin and ~/.local/bin to PATH.
-- **.aliases.zsh** — kubectl aliases, python/pip -> python3/pip3, history alias, fkill, doas.
-- **.completions.zsh** — compinit, brew FPATH (brew-guarded), kubectl/fzf/gh/uv completions.
-- **.ps1.zsh** — Custom prompt: user@host ➜ ~/dir
-- **.gitconfig** — Git identity, GPG signing key, and gpg-touch-sound wrapper (pre-configured, no post-install changes needed).
-- **.config/** — App config dirs: iterm/ (iTerm2 profile).
-- **.gemini/** — Settings and policies for Gemini / Antigravity.
-- **.work.zsh** (dotfiles/work/) — Work-specific configuration: kubectl aliases, DOCKER_HOST (podman), AWS config bootstrap.
-- **.personal.zsh** (dotfiles/personal/) — Marker and config file for personal machines.
+Always run tests via `make test` — never run `scripts/test.sh` directly, as it must execute inside the container to avoid stowing into the real `$HOME`.
 
 # Core Development Lifecycle
 
-## Research and Strategy
-- Reproduce Issues: Before fixing bugs, reproduce them with a minimal script or manual test. Don't use the stow command directly to test a new symlink working. Run `./install.sh -t -n` to test truly e2e.
-- Dependency Awareness: Always check setup_envs.sh for global variables (DOTFILES_DIR, BACKUP_DIR).
-
-## Execution and Coding Standards
-- Surgical Edits: When modifying dotfiles (e.g., .zshrc, .aliases.zsh), avoid rewriting the entire file. Use the replace tool for targeted changes.
-- Idempotency: Scripts are idempotent — stow uses --restow, all optional tools are guarded, and re-installs skip backup/conflict steps. Keep them that way.
-- Shell Scripting Standards: Use `set -eu` for safety where appropriate (consistent with install.sh). Prefer sh or zsh as used in existing scripts.
-- Tailscale: Linux uses the native installation script instead of Homebrew to ensure proper systemd integration.
+- Reproduce Issues: Before fixing bugs, run `./install.sh -t -n` to test truly e2e.
+- Idempotency: Scripts are idempotent — stow uses --restow, all optional tools are guarded, re-installs skip backup/conflict steps. Keep them that way.
+- Shell Scripting Standards: Use `set -eu`. Prefer sh or zsh as used in existing scripts.
+- Tailscale: On Linux, installed natively via `curl | sh` if not already present; this runs after brew bundle so it only fires on a truly fresh machine.
 - Sudo Usage: Prefer not to use sudo as much as possible.
-- Git Signing: Signing is pre-configured in .gitconfig. After install on a new machine, only import the GPG key — no git config changes needed.
+- Git Signing: Only import the GPG key after install on a new machine — no git config changes needed.
 
 # Script Prompting Conventions
 
-install.sh redirects stdout/stderr to a log file. Any script that needs user input must use the `prompt` helper defined in setup_envs.sh, which always writes to the terminal regardless of log redirection:
-```sh
-prompt "Please enter a value:" varname
-```
-Never use plain `echo + read` for interactive prompts in scripts called from install.sh.
+install.sh redirects stdout/stderr to a log file. Use `say()` for informational output to the terminal, `prompt` for interactive input — both write to `/dev/tty` directly and bypass log redirection. Never use plain `echo + read`.
 
 # Code Style
 
-Use tabs for indentation in all files — shell scripts, Makefiles, config files, etc. The only exception is YAML, which requires spaces by spec. Never use spaces for indentation elsewhere.
+Use tabs for indentation in all files — shell scripts, Makefiles, config files, etc. The only exception is YAML, which requires spaces by spec.
 
 # Guarding Rules
 
@@ -92,12 +44,8 @@ All commands that may not be present on every machine must be guarded:
 
 # Committing Changes
 
-Before staging and committing, always run `make lint` first. Only proceed with the commit if lint passes cleanly.
+Before staging and committing, always run `make lint` first. Only proceed if lint passes cleanly.
 
-# Git Commit Signing Configuration
-
-GPG signing is pre-configured in `.gitconfig` (committed in dotfiles/base). After install on a new machine, the only required step is importing the GPG key — no git config changes needed.
-
-# Known Issues and Priorities
+# Known Issues
 
 - Log files (`~/.local/state/dotfiles/logs/`) and backup dirs (`~/.local/state/dotfiles/backups/`) accumulate with no cleanup or retention logic. Old entries must be pruned manually.

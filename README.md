@@ -51,14 +51,17 @@ Symlinks are managed with [GNU Stow](https://www.gnu.org/software/stow/). Stow m
 
 ```
 dotfiles/
-  base/       # stowed on all machines
-  work/       # stowed on work machines only
+  base/             # stowed on all machines
+  os/darwin/        # stowed on macOS only
+  os/linux/         # stowed on Linux only
+  profile/work/     # stowed on work machines
+  profile/personal/ # stowed on personal machines
 ```
 
 Each package mirrors the layout of `$HOME`. For example:
 - `dotfiles/base/.zshrc` → `~/.zshrc`
-- `dotfiles/base/.config/iterm/com.googlecode.iterm2.plist` → `~/.config/iterm/com.googlecode.iterm2.plist`
-- `dotfiles/work/.work.zsh` → `~/.work.zsh`
+- `dotfiles/os/darwin/.config/iterm/com.googlecode.iterm2.plist` → `~/.config/iterm/com.googlecode.iterm2.plist`
+- `dotfiles/profile/work/.work.zsh` → `~/.work.zsh`
 
 ## Adding a new dotfile
 
@@ -70,11 +73,11 @@ Each package mirrors the layout of `$HOME`. For example:
    ```
 3. Commit and push.
 
-For work-only files, use `dotfiles/work/` instead.
+For work-only files, use `dotfiles/profile/work/` instead.
 
 ## Removing a dotfile
 
-1. Delete the file from `dotfiles/base/` (or `dotfiles/work/`).
+1. Delete the file from the appropriate layer (`dotfiles/base/`, `dotfiles/os/<platform>/`, or `dotfiles/profile/<type>/`).
 2. Restow to clean up the orphaned symlink:
    ```sh
    stow --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base

@@ -142,6 +142,12 @@ if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ] && [ "$OS_TYPE" = "linux
 	curl -fsSL https://antigravity.google/cli/install.sh | bash
 fi
 
+# install pinentry-tty on Linux for GPG passphrase entry over SSH/terminal
+if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ] && [ "$OS_TYPE" = "linux" ] && ! command -v pinentry-tty >/dev/null 2>&1; then
+	echo "Installing pinentry-tty..."
+	sudo apt-get install -y pinentry-tty
+fi
+
 # install profile-specific packages
 if [ "$SKIP_ESSENTIALS" = "1" ] || [ "$MINIMAL" = "1" ]; then
 	brew_reply="n"
