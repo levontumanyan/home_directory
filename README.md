@@ -63,7 +63,6 @@ Each package mirrors the layout of `$HOME`. For example:
 ## Adding a new dotfile
 
 1. Create the file at the mirrored path inside `dotfiles/base/`:
-   - `~/.tmux.conf` → `dotfiles/base/.tmux.conf`
    - `~/.config/foo/bar.conf` → `dotfiles/base/.config/foo/bar.conf`
 2. Re-run `install.sh`, or restow manually:
    ```sh
@@ -98,11 +97,9 @@ Todo:
 - [ ] create `.claude/settings.json`
   - [ ] add skills
   - `gh issue view*` safe to run
-- [ ] make sure that we can control things like gemini/claude in sesh. with an env variable possibly? coming from a dotfile
 - [ ] make sure there is an option to run the script completely uninteractively for testing/debugging
 - [ ] better ps1(include git branching, and kubecontext)
 - move k8s functions to it's own thing. Follow Stick convention for this!
-- [ ] bring the alt tab settings/tmux/sesh.toml
 - [ ] idempotency is kinda broken
 - [ ] fzf everything - what does that even mean. not just history?
 - [ ] ownership of the files in this repo (root?)

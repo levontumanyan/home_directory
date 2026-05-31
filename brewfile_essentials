@@ -7,13 +7,11 @@ if OS.mac?
 end
 brew "ykman"
 brew "jq"
-brew "sesh"
 brew "shellcheck"
 brew "shfmt"
 brew "d2"
 brew "kubectl"
 brew "stow"
-brew "tmux"
 brew "tree"
 brew "uv"
 brew "zoxide"

@@ -46,13 +46,13 @@ If it reports anything not in the file, run a manual dump and commit.
 
 All files live under dotfiles/base/ unless noted. dotfiles/work/ and dotfiles/personal/ contain profile-specific files.
 
-- **.zshrc** — Sources .env.zsh, .completions.zsh, .aliases.zsh, .ps1.zsh; configures history, zoxide, zsh-autosuggestions (brew-guarded), sesh (existence-guarded), and optionally .work.zsh or .personal.zsh.
+- **.zshrc** — Sources .env.zsh, .completions.zsh, .aliases.zsh, .ps1.zsh; configures history, zoxide, zsh-autosuggestions (brew-guarded), and optionally .work.zsh or .personal.zsh.
 - **.env.zsh** — Homebrew PATH setup, adds ~/bin and ~/.local/bin to PATH.
-- **.aliases.zsh** — kubectl aliases, python/pip -> python3/pip3, history alias, sesh alias, fkill, doas.
+- **.aliases.zsh** — kubectl aliases, python/pip -> python3/pip3, history alias, fkill, doas.
 - **.completions.zsh** — compinit, brew FPATH (brew-guarded), kubectl/fzf/gh/uv completions.
 - **.ps1.zsh** — Custom prompt: user@host ➜ ~/dir
 - **.gitconfig** — Git identity, GPG signing key, and gpg-touch-sound wrapper (pre-configured, no post-install changes needed).
-- **.config/** — App config dirs: iterm/ (iTerm2 profile), sesh/ (session manager), tmux/.
+- **.config/** — App config dirs: iterm/ (iTerm2 profile).
 - **.gemini/** — Settings and policies for Gemini / Antigravity.
 - **.work.zsh** (dotfiles/work/) — Work-specific configuration: kubectl aliases, DOCKER_HOST (podman), AWS config bootstrap.
 - **.personal.zsh** (dotfiles/personal/) — Marker and config file for personal machines.
@@ -87,7 +87,7 @@ Use tabs for indentation in all files — shell scripts, Makefiles, config files
 
 All commands that may not be present on every machine must be guarded:
 - Brew-dependent: wrap with `command -v brew >/dev/null 2>&1`
-- Optional tools (kubectl, fzf, sesh, zoxide, etc.): use `command -v <tool> >/dev/null 2>&1 &&`
+- Optional tools (kubectl, fzf, zoxide, etc.): use `command -v <tool> >/dev/null 2>&1 &&`
 - Optional files (`.fzf.zsh`, `.local/bin/env`, `.work.zsh`): use `[ -f <path> ] &&`
 
 # Committing Changes

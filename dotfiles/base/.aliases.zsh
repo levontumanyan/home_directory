@@ -56,9 +56,6 @@ h() {
 	}'
 }
 
-# sesh alias
-alias s='sesh connect $(sesh list | fzf)'
-
 # iTerm2 project setups
 alias eq='open "iterm2://runscript?name=equiquant.py"'
 

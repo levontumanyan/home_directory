@@ -90,12 +90,7 @@ else
 	exit 1
 fi
 
-# 4. Test Directory Nesting
-echo "--- Testing Nested Directories ---"
-assert_symlink "$HOME/.config/sesh/sesh.toml" "dotfiles/personal/.config/sesh/sesh.toml"
-assert_symlink "$HOME/.config/sesh/base.toml" "dotfiles/base/.config/sesh/base.toml"
-
-# 5. Test Idempotency
+# 4. Test Idempotency
 echo "--- Testing Idempotency ---"
 ./install.sh -m personal -t -v
 echo -e "${GREEN}✓ Second run completed successfully${NC}"
