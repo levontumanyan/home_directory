@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC2296,SC2206
 # Must come BEFORE compinit
 if command -v brew >/dev/null 2>&1; then
   FPATH="${HOME}/.zsh/completions:$(brew --prefix)/share/zsh/site-functions:${FPATH}"
@@ -39,5 +39,17 @@ command -v opencode >/dev/null 2>&1 && {
 	source <(opencode completion zsh)
 }
 
-# Prioritize make targets over files and variables
-zstyle ':completion:*:*:make:*' tag-order 'targets'
+# Custom make completion to display descriptions parsed from 'target: ## description'
+_make_with_desc() {
+	if [[ -f Makefile || -f makefile ]]; then
+		local -a targets
+		targets=(${(f)"$(grep -E '^[a-zA-Z_-]+:\s*##\s*.*$' [Mm]akefile 2>/dev/null | awk 'BEGIN {FS = ":[ \t]*##[ \t]*"}; {print $1 ":" $2}')"})
+		if (( ${#targets} > 0 )); then
+			_describe 'make targets' targets
+			return
+		fi
+	fi
+	# Fallback to standard zsh make completion
+	_make
+}
+compdef _make_with_desc make

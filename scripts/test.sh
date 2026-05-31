@@ -96,9 +96,9 @@ assert_symlink "$HOME/.gitconfig" "dotfiles/base/.gitconfig"
 # 3. Test Profile Symlinks
 echo "--- Testing Profile Symlinks ---"
 assert_symlink "$HOME/.gemini/antigravity-cli/settings.json" "dotfiles/base/.gemini/antigravity-cli/settings.json"
-assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
-assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/personal/AGENTS.md"
-assert_realpath "$HOME/AGENTS.md" "dotfiles/personal/AGENTS.md"
+assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/profile/personal/.claude/CLAUDE.md"
+assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/profile/personal/AGENTS.md"
+assert_realpath "$HOME/AGENTS.md" "dotfiles/profile/personal/AGENTS.md"
 
 # Verify chained symlink resolves to real content
 if grep -q "System Instruction" "$HOME/.claude/CLAUDE.md"; then
@@ -113,8 +113,8 @@ echo "--- Testing Idempotency ---"
 ./install.sh -m personal -t -v
 echo -e "${GREEN}✓ Second run completed successfully${NC}"
 assert_symlink "$HOME/.zshrc" "dotfiles/base/.zshrc"
-assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/personal/.claude/CLAUDE.md"
-assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/personal/AGENTS.md"
+assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/profile/personal/.claude/CLAUDE.md"
+assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/profile/personal/AGENTS.md"
 
 # 6. Test Personal Profile
 echo "--- Testing PERSONAL profile ---"
@@ -133,7 +133,9 @@ else
 fi
 
 # Cleanup before switching
-stow -D --dir="dotfiles" --target="$HOME" base personal
+stow -D --dir="dotfiles" --target="$HOME" base
+stow -D --dir="dotfiles/profile" --target="$HOME" personal
+stow -D --dir="dotfiles/os" --target="$HOME" linux
 
 # 7. Test Work Profile
 echo "--- Testing WORK profile ---"
@@ -147,11 +149,11 @@ else
 fi
 
 # Verify work-only symlinks
-assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/work/.claude/CLAUDE.md"
-assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/work/AGENTS.md"
-assert_realpath "$HOME/AGENTS.md" "dotfiles/work/AGENTS.md"
-assert_symlink "$HOME/.agents/skills/gh/SKILL.md" "dotfiles/work/.agents/skills/gh/SKILL.md"
-assert_symlink "$HOME/.claude/skills" "dotfiles/work/.claude/skills"
+assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/profile/work/.claude/CLAUDE.md"
+assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/profile/work/AGENTS.md"
+assert_realpath "$HOME/AGENTS.md" "dotfiles/profile/work/AGENTS.md"
+assert_symlink "$HOME/.agents/skills/gh/SKILL.md" "dotfiles/profile/work/.agents/skills/gh/SKILL.md"
+assert_symlink "$HOME/.claude/skills" "dotfiles/profile/work/.claude/skills"
 
 # Verify profile-switch cleanup
 assert_not_symlink "$HOME/.personal.zsh"

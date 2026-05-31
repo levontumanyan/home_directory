@@ -4,6 +4,11 @@
 - Exception Rule: You may query the binary version strictly if the requested operation relies on a flag or feature introduced in a specific release. If a version check is executed, state the required version and the feature dependency.
 - If the user asks about a Github issue or pr, always use `gh` cli commands. Do not fetch the website directly. Also every time you mention/create a pr/issue provide the full link to the user.
 
+# GitHub Issue & PR Bodies
+
+Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or
+`gh pr create` — backticks and nested quotes corrupt the markdown.
+
 ## Code Style & Standards
 
 - **Indentation**: Use one tab per hierarchy level for all code. Never use spaces, except for YAML files.
