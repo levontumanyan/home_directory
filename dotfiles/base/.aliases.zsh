@@ -43,21 +43,12 @@ alias python="python3"
 alias pip="pip3"
 alias tree='tree --gitignore -I ".git"'
 
-# gpg signing makes a sound
-gpg() {
-	afplay /System/Library/Sounds/Tink.aiff &
-	command gpg "$@"
-}
-
 # over engineered history function
 h() {
 	fc -l -t "%F %T" -50 | awk '{
 		printf "\033[36m%s %s\033[0m \033[1m%s\033[0m\n", $2, $3, substr($0, index($0,$4))
 	}'
 }
-
-# iTerm2 project setups
-alias eq='open "iterm2://runscript?name=equiquant.py"'
 
 # Dynamic LLM alias based on environment
 if [ -f "$HOME/.work.zsh" ]; then
@@ -138,14 +129,3 @@ bindkey '^f' ff_buffer
 # Tailscale / Taildrop
 alias tsend="tailscale file cp"
 alias tget="tailscale file get"
-
-# Send clipboard to a device (defaults to iphone)
-tcopy() {
-	local target="${1:-iphone}"
-	local tmpfile
-	tmpfile="/tmp/clip_$(date +%H%M%S).txt"
-	pbpaste > "$tmpfile"
-	tailscale file cp "$tmpfile" "${target}:"
-	rm "$tmpfile"
-	echo "Sent clipboard to $target"
-}

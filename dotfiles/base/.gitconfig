@@ -6,5 +6,5 @@
 	gpgsign = true
 [tag]
 	gpgsign = true
-[gpg]
-	program = /Users/levontumanyan/.local/bin/gpg-touch-sound
+[include]
+	path = ~/.gitconfig.os

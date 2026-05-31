@@ -16,7 +16,7 @@ build-test: system-start
 
 .PHONY: test
 test: build-test
-	container run --rm -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./scripts/test.sh"
+	container run --rm -e IN_CONTAINER=1 -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./scripts/test.sh"
 
 .PHONY: dev
 dev: build-test

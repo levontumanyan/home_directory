@@ -11,7 +11,7 @@ A personal cross-platform (macOS + Linux) dotfiles and home directory configurat
 - **install.sh** — Entry point: detects or prompts for work/personal profile, backs up conflicting files, stows dotfiles/base (all machines) and dotfiles/work or dotfiles/personal, and installs Homebrew packages.
 - **setup_envs.sh** — Sourced by all scripts: defines and exports DOTFILES_DIR, BACKUP_DIR, MACHINE_TYPE, LOG_DIR, and LOG_FILE, and provides the `prompt` helper.
 - **setup.sh** — Post-installation tasks: one-time setup (git user config if not set), fzf setup, kubectl setup.
-- **scripts/test.sh** — End-to-end install tests: runs install.sh twice and asserts symlinks are correct.
+- **scripts/test.sh** — End-to-end install tests: runs install.sh twice and asserts symlinks are correct. Always run via `make test` — never run `scripts/test.sh` directly, as it must execute inside the container to avoid stowing into the real `$HOME`.
 - **scripts/dump_brewfile.sh** — Detects machine type and dumps the correct brewfile; runs as a pre-commit hook.
 - **dotfiles/** — Source of truth for dotfiles (symlinked to $HOME via stow).
 

@@ -55,6 +55,7 @@
     ],
     "deny": []
   },
+  "model": "haiku",
   "hooks": {
     "PreToolUse": [
       {
@@ -78,6 +79,5 @@
     "skill-creator@claude-plugins-official": true
   },
   "theme": "dark",
-  "skipAutoPermissionPrompt": true,
-  "model": "opusplan"
+  "skipAutoPermissionPrompt": true
 }
