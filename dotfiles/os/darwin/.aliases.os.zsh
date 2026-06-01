@@ -1,4 +1,3 @@
-# shellcheck shell=bash
 
 # iTerm2 project setups
 alias eq='open "iterm2://runscript?name=equiquant.py"'

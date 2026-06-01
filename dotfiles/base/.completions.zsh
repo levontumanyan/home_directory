@@ -1,5 +1,3 @@
-# shellcheck shell=bash
-# shellcheck disable=SC1090,SC2296,SC2206
 # Must come BEFORE compinit
 if command -v brew >/dev/null 2>&1; then
   FPATH="${HOME}/.zsh/completions:$(brew --prefix)/share/zsh/site-functions:${FPATH}"

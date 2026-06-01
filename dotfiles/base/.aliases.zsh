@@ -1,5 +1,3 @@
-# shellcheck shell=bash
-# shellcheck disable=SC2034,SC2207
 # Aliases (Best for Tab Completion)
 alias k='kubectl'
 alias kcd='kubectl config set-context --current --namespace'

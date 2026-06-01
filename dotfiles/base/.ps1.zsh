@@ -1,5 +1,3 @@
-# shellcheck shell=bash
-# shellcheck disable=SC2154,SC2034,SC2016
 autoload -Uz colors && colors
 setopt PROMPT_SUBST
 

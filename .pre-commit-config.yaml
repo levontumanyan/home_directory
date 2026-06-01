@@ -11,6 +11,15 @@ repos:
     rev: v0.10.0.1
     hooks:
     -   id: shellcheck
+        types: [shell]
+        files: \.sh$
+-   repo: local
+    hooks:
+    -   id: zsh-syntax-check
+        name: zsh syntax check
+        entry: zsh -n
+        language: system
+        files: \.zsh$
 -   repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.10.0-1
     hooks:

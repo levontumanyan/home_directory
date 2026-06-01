@@ -1,5 +1,3 @@
-# shellcheck shell=bash
-# shellcheck disable=SC1091
 # AWS Config Bootstrap - auto-clones repo and sources helpers
 _aws_config_bootstrap() {
 	local repo="${XDG_DATA_HOME:-$HOME/.local/share}/platform-cli-auth"
@@ -16,7 +14,7 @@ unset -f _aws_config_bootstrap
 
 opencode-auth-mcps() {
 	local mcps
-	mapfile -t mcps < <(jq -r '.mcp | keys[]' ~/.config/opencode/opencode.jsonc)
+	mcps=(${(f)"$(jq -r '.mcp | keys[]' ~/.config/opencode/opencode.jsonc)"})
 	for mcp in "${mcps[@]}"; do
 		opencode mcp auth "$mcp"
 	done
