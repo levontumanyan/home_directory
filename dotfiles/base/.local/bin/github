@@ -49,6 +49,7 @@ usage() {
 		    -D, --due         Open issues with a due date, grouped by day
 		    -i, --issues      Completed issues (last 30d or Status=Done) + in progress
 		    -c, --created     Open issues you created in ${REPO_OWNER}/${REPO_NAME}
+		    -u, --unassigned  Open issues you created with no assignee
 		    -p, --pr          Your open pull requests across elastic/*
 		    -m, --merged      Your last 25 merged/closed PRs across elastic/*
 		    -R, --reviews     PRs you reviewed in the last 3 days
@@ -71,6 +72,7 @@ while [[ $# -gt 0 ]]; do
 	-D | --due) MODE="due" ;;
 	-i | --issues) MODE="issues" ;;
 	-c | --created) MODE="created" ;;
+	-u | --unassigned) MODE="unassigned" ;;
 	-p | --pr) MODE="pr" ;;
 	-m | --merged) MODE="merged" ;;
 	-R | --reviews) MODE="reviews" ;;
@@ -168,6 +170,53 @@ if [[ $MODE == created ]]; then
 				[[ -n $assignees ]] && asgn="  ${DIM}→ ${assignees}${RST}"
 				echo -e "  ${CYN}●${RST} ${BOLD}#${num}${RST}  ${title}${lbl}"
 				echo -e "    ${DIM}created $(fmtdate "$created_at")${asgn}  ·  ${url}${RST}"
+			done
+	fi
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: unassigned  (exits early — author filter, no project GraphQL needed)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == unassigned ]]; then
+	echo ""
+	echo -e "${BOLD}GitHub  ·  Unassigned Issues I Created${RST}"
+	echo -e "${DIM}${REPO_OWNER}/${REPO_NAME}  ·  $(date '+%A, %B %d %Y')${RST}"
+	printf '\n%sFetching...%s' "$DIM" "$RST" >&2
+
+	ALL_CREATED=$(gh issue list \
+		--repo "${REPO_OWNER}/${REPO_NAME}" \
+		--author "@me" \
+		--state open \
+		--limit 100 \
+		--json number,title,url,labels,createdAt,assignees)
+
+	printf "\r\033[K" >&2
+
+	UNASSIGNED=$(echo "$ALL_CREATED" | jq '[.[] | select(.assignees | length == 0)]')
+	UC=$(echo "$UNASSIGNED" | jq 'length')
+	echo -e "${DIM}${UC} open, unassigned${RST}"
+
+	if [[ $UC -eq 0 ]]; then
+		echo -e "\n  ${DIM}No open unassigned issues created by you.${RST}"
+	else
+		echo ""
+		echo "$UNASSIGNED" | jq -r \
+			'sort_by(.createdAt) | .[] | [
+				(.number | tostring),
+				.title,
+				.url,
+				(.labels | map(.name) | join(", ")),
+				(.createdAt | split("T")[0])
+			] | join("")' |
+			while IFS=$'\x01' read -r num title url labels created_at; do
+				lbl=""
+				[[ -n $labels ]] && lbl="${DIM}  [${labels}]${RST}"
+				echo -e "  ${YLW}●${RST} ${BOLD}#${num}${RST}  ${title}${lbl}"
+				echo -e "    ${DIM}created $(fmtdate "$created_at")  ·  ${url}${RST}"
 			done
 	fi
 
