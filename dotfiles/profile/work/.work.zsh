@@ -12,6 +12,8 @@ _aws_config_bootstrap() {
 _aws_config_bootstrap
 unset -f _aws_config_bootstrap
 
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
+
 opencode-auth-mcps() {
 	local mcps
 	mcps=(${(f)"$(jq -r '.mcp | keys[]' ~/.config/opencode/opencode.jsonc)"})
