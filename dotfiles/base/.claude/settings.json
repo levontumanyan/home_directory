@@ -55,7 +55,7 @@
     ],
     "deny": []
   },
-  "model": "haiku",
+  "model": "sonnet[1m]",
   "hooks": {
     "PreToolUse": [
       {

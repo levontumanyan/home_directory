@@ -45,6 +45,12 @@ done
 
 OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 
+setup_linuxbrew_path() {
+	test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+	test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+	return 0
+}
+
 if [ "$MINIMAL" = "0" ]; then
 	if [ -z "$MACHINE_TYPE" ]; then
 		# Auto-recognition
@@ -93,8 +99,7 @@ echo "=== install started: $(date) ==="
 
 # on Linux, ensure linuxbrew is in PATH before using brew
 if [ "$OS_TYPE" = "linux" ]; then
-	test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
-	test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+	setup_linuxbrew_path
 fi
 
 # install Homebrew if missing
@@ -107,8 +112,7 @@ fi
 
 # ensure brew is in PATH after a fresh Linux install (the pre-install eval above was a no-op)
 if [ "$OS_TYPE" = "linux" ] && ! command -v brew >/dev/null 2>&1; then
-	test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
-	test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+	setup_linuxbrew_path
 fi
 
 # always install essential packages
@@ -130,22 +134,21 @@ elif [ "$MINIMAL" = "0" ]; then
 	brew bundle --verbose --file="$DOTFILES_DIR/brewfile_essentials"
 fi
 
-# install Tailscale natively on Linux
-if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ] && [ "$OS_TYPE" = "linux" ] && ! command -v tailscale >/dev/null 2>&1; then
-	echo "Installing Tailscale natively..."
-	curl -fsSL https://tailscale.com/install.sh | sh
-fi
-
-# install Antigravity CLI natively on Linux
-if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ] && [ "$OS_TYPE" = "linux" ] && ! command -v agy >/dev/null 2>&1; then
-	echo "Installing Antigravity CLI..."
-	curl -fsSL https://antigravity.google/cli/install.sh | bash
-fi
-
-# install pinentry-tty on Linux for GPG passphrase entry over SSH/terminal
-if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ] && [ "$OS_TYPE" = "linux" ] && ! command -v pinentry-tty >/dev/null 2>&1; then
-	echo "Installing pinentry-tty..."
-	sudo apt-get install -y pinentry-tty
+# Linux-only native installs (skipped in test/minimal mode)
+if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ] && [ "$OS_TYPE" = "linux" ]; then
+	if ! command -v tailscale >/dev/null 2>&1; then
+		echo "Installing Tailscale natively..."
+		curl -fsSL https://tailscale.com/install.sh | sh
+	fi
+	if ! command -v agy >/dev/null 2>&1; then
+		echo "Installing Antigravity CLI..."
+		curl -fsSL https://antigravity.google/cli/install.sh | bash
+	fi
+	# pinentry-tty: GPG passphrase entry over SSH/terminal
+	if ! command -v pinentry-tty >/dev/null 2>&1; then
+		echo "Installing pinentry-tty..."
+		sudo apt-get install -y pinentry-tty
+	fi
 fi
 
 # install profile-specific packages
