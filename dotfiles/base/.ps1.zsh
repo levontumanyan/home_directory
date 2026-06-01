@@ -62,5 +62,5 @@ set_iterm_title() {
 precmd_functions+=(set_iterm_title)
 
 # ── prompt ────────────────────────────────────────────────────────────────────
-PROMPT='%{${fg_bold[red]}%}➜%{${reset_color}%} %{${fg_bold[yellow]}%}%~%{${reset_color}%}${_git_ps1}
+PROMPT='%{${fg_bold[green]}%}[%m]%{${reset_color}%} %{${fg_bold[red]}%}➜%{${reset_color}%} %{${fg_bold[yellow]}%}%~%{${reset_color}%}${_git_ps1}
 ${_kube_ps1:+${_kube_ps1} }$ '
