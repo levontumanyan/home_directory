@@ -21,3 +21,28 @@ opencode-auth-mcps() {
 		opencode mcp auth "$mcp"
 	done
 }
+
+eck-workspace() {
+	local worktree="${1:?Usage: eck-workspace <worktree-name>}"
+	local base="$HOME/eck.code-workspace"
+	local out="$HOME/eck-${worktree}.code-workspace"
+	sed "s|/pst/|/${worktree}/|g" "$base" > "$out"
+	echo "Created: $out"
+	code "$out"
+}
+
+_eck-workspace() {
+	local -a worktrees
+	local pst_dir="$HOME/repos/platform-security-terraform/pst"
+	local wt_path wt_branch wt_name
+	while IFS= read -r line; do
+		wt_path="${line%% *}"
+		wt_branch="${line##*\[}"
+		wt_branch="${wt_branch%%]*}"
+		wt_name="${wt_path##*/}"
+		[[ "$wt_name" == "pst" ]] && continue
+		worktrees+=("${wt_name}:${wt_branch}")
+	done < <(git -C "$pst_dir" worktree list 2>/dev/null)
+	_describe 'worktree' worktrees
+}
+compdef _eck-workspace eck-workspace
