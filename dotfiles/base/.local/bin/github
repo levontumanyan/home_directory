@@ -13,7 +13,9 @@ REPO_NAME="platform-security-team"
 TF_REPO="elastic/platform-security-terraform"
 TEAM_REPO="elastic/platform-security-team"
 PROJECT_NUMBER=2289
+PROJECT_ID="PVT_kwDOAGc3Zs4BSCW-"
 SPRINT_FIELD_ID="PVTIF_lADOAGc3Zs4BSCW-zg_sDTE"
+POINTS_FIELD_ID="PVTF_lADOAGc3Zs4BSCW-zg_sDTA"
 ME="levontumanyan"
 KARMA_TEAM=(
 	# add team members below
@@ -55,6 +57,7 @@ usage() {
 		    -R, --reviews     PRs you reviewed in the last 3 days
 		    -k, --karma [USER] PR approval karma score; omit USER for full team
 		    -s, --sprints     Sprint calendar for project #${PROJECT_NUMBER}
+		    -x, --triage     Interactively assign sprint / set story points for your gaps
 		    -t, --transfer    Transfer your open issues from ${TF_REPO}
 		                      to ${TEAM_REPO}
 		    -h, --help        Show this help
@@ -82,6 +85,7 @@ while [[ $# -gt 0 ]]; do
 		[[ -n ${2:-} ]] && shift
 		;;
 	-s | --sprints) MODE="sprints" ;;
+	-x | --triage) MODE="triage" ;;
 	-t | --transfer) MODE="transfer" ;;
 	-h | --help)
 		usage
@@ -628,6 +632,184 @@ if [[ $MODE == karma ]]; then
 		echo -e "${DIM}──────────────────────────────────────────────────${RST}"
 		echo -e "${DIM}window: ${TEN_DAYS_AGO}..${TODAY}  ·  date filter uses updated-at${RST}"
 	fi
+	exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: triage  (exits early — runs its own queries + mutations)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == triage ]]; then
+	echo ""
+	echo -e "${BOLD}GitHub  ·  Triage${RST}"
+	echo -e "${DIM}Project #${PROJECT_NUMBER}  ·  $(date '+%A, %B %d %Y')${RST}"
+	printf '\n%sFetching your issues...%s' "$DIM" "$RST" >&2
+
+	TRIAGE_DATA=$(gh api graphql --field query='
+	{
+	  repository(owner: "'"$REPO_OWNER"'", name: "'"$REPO_NAME"'") {
+	    issues(first: 100, filterBy: {assignee: "'"$ME"'", states: [OPEN]}) {
+	      nodes {
+	        number title url
+	        projectItems(first: 5) {
+	          nodes {
+	            id
+	            project { number }
+	            fieldValues(first: 15) {
+	              nodes {
+	                __typename
+	                ... on ProjectV2ItemFieldIterationValue {
+	                  title startDate duration
+	                  field { ... on ProjectV2IterationField { name } }
+	                }
+	                ... on ProjectV2ItemFieldNumberValue {
+	                  number
+	                  field { ... on ProjectV2Field { name } }
+	                }
+	              }
+	            }
+	          }
+	        }
+	      }
+	    }
+	  }
+	}')
+
+	printf "\r\033[K" >&2
+
+	TRIAGE_ISSUES=$(echo "$TRIAGE_DATA" | jq --argjson proj "$PROJECT_NUMBER" '
+	  .data.repository.issues.nodes | map(
+	    . as $issue |
+	    (.projectItems.nodes | map(select(.project.number == $proj)) | .[0]) as $item |
+	    ($item.fieldValues.nodes // []) as $fvals |
+	    {
+	      number:       $issue.number,
+	      title:        $issue.title,
+	      url:          $issue.url,
+	      itemId:       ($item.id // null),
+	      sprintTitle:  ($fvals | map(select(.__typename == "ProjectV2ItemFieldIterationValue" and .field.name == "Sprint") | .title) | .[0] // null),
+	      points:       ($fvals | map(select(.__typename == "ProjectV2ItemFieldNumberValue" and .field.name == "Story Points") | .number) | .[0] // null)
+	    }
+	  ) | map(select(.itemId != null and (.sprintTitle == null or .points == null)))
+	')
+
+	TRIAGE_COUNT=$(echo "$TRIAGE_ISSUES" | jq 'length')
+
+	if [[ $TRIAGE_COUNT -eq 0 ]]; then
+		echo -e "\n  ${GRN}Nothing to triage — all issues have a sprint and story points.${RST}"
+		echo ""
+		echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+		echo -e "${DIM}https://github.com/orgs/elastic/projects/${PROJECT_NUMBER}${RST}"
+		exit 0
+	fi
+
+	echo -e "${DIM}${TRIAGE_COUNT} issue(s) with gaps (missing sprint or story points)${RST}"
+
+	# fetch available iterations for the sprint picker
+	printf '\n%sFetching sprints...%s' "$DIM" "$RST" >&2
+	SPRINT_RAW=$(gh api graphql --field query='
+	{
+	  node(id: "'"$SPRINT_FIELD_ID"'") {
+	    ... on ProjectV2IterationField {
+	      configuration {
+	        iterations { id title startDate duration }
+	      }
+	    }
+	  }
+	}')
+	printf "\r\033[K" >&2
+
+	ITERATIONS=$(echo "$SPRINT_RAW" | jq '.data.node.configuration.iterations')
+	ITER_COUNT=$(echo "$ITERATIONS" | jq 'length')
+
+	# collect issues into a bash array so the interactive loop can read /dev/tty
+	mapfile -t ISSUE_ROWS < <(echo "$TRIAGE_ISSUES" | jq -r \
+		'.[] | [(.number|tostring), .title, .url, (.itemId // ""), (.sprintTitle // ""), (.points // "" | tostring)] | join("")')
+
+	for row in "${ISSUE_ROWS[@]}"; do
+		IFS=$'\x01' read -r num title url item_id sprint_title points_val <<<"$row"
+
+		missing=""
+		[[ -z $sprint_title ]] && missing="${missing}sprint "
+		[[ -z $points_val || $points_val == "null" ]] && missing="${missing}points"
+		missing="${missing%% }" # trim trailing space
+
+		echo ""
+		echo -e "  ${BOLD}#${num}${RST}  ${title}"
+		echo -e "  ${DIM}${url}${RST}"
+		echo -e "  ${YLW}missing: ${missing}${RST}"
+
+		# ── sprint picker ────────────────────────────────────────────────────────
+		if [[ -z $sprint_title ]]; then
+
+			echo -e "  ${BOLD}Available sprints:${RST}"
+			idx=1
+			while IFS= read -r iter_line; do
+				IFS=$'\x01' read -r iter_id iter_title iter_start iter_dur <<<"$iter_line"
+				iter_end=$(add_days "$iter_start" "$iter_dur")
+				days_start=$(days_until "$iter_start")
+				days_end=$(days_until "$iter_end")
+				if [[ $days_start -le 0 && $days_end -gt 0 ]]; then
+					marker="${GRN}◉${RST}"
+					label="${BOLD}${iter_title}${RST}  ${DIM}$(fmtdate "$iter_start") – $(fmtdate "$iter_end")  (${days_end}d left — current)${RST}"
+				else
+					marker="${CYN}○${RST}"
+					label="${iter_title}  ${DIM}$(fmtdate "$iter_start") – $(fmtdate "$iter_end")  (starts in ${days_start}d)${RST}"
+				fi
+				echo -e "    ${BOLD}${idx})${RST}  ${marker}  ${label}"
+				idx=$((idx + 1))
+			done < <(echo "$ITERATIONS" | jq -r '.[] | [.id, .title, .startDate, (.duration|tostring)] | join("")')
+
+			read -r sprint_choice </dev/tty
+			if [[ -n $sprint_choice && $sprint_choice =~ ^[0-9]+$ && $sprint_choice -ge 1 && $sprint_choice -le $ITER_COUNT ]]; then
+				chosen_iter=$(echo "$ITERATIONS" | jq -r --argjson i "$((sprint_choice - 1))" '.[$i] | [.id, .title] | join("")')
+				IFS=$'\x01' read -r chosen_id chosen_title <<<"$chosen_iter"
+				printf '  Assigning sprint "%s"...' "$chosen_title" >/dev/tty
+				if gh api graphql --silent -f query='
+				mutation {
+				  updateProjectV2ItemFieldValue(input: {
+				    projectId: "'"$PROJECT_ID"'",
+				    itemId: "'"$item_id"'",
+				    fieldId: "'"$SPRINT_FIELD_ID"'",
+				    value: { iterationId: "'"$chosen_id"'" }
+				  }) { projectV2Item { id } }
+				}' 2>/dev/null; then
+					echo -e "  ${GRN}done${RST}"
+				else
+					echo -e "  ${RED}failed${RST}"
+				fi
+			else
+				echo -e "  ${DIM}skipped${RST}"
+			fi
+		fi
+
+		# ── points prompt ────────────────────────────────────────────────────────
+		if [[ -z $points_val || $points_val == "null" ]]; then
+			printf '  %sStory points [number, Enter to skip]: %s' "$CYN" "$RST" >/dev/tty
+			read -r pts_input </dev/tty
+			if [[ -n $pts_input && $pts_input =~ ^[0-9]+$ ]]; then
+				printf '  Setting story points to %s...' "$pts_input" >/dev/tty
+				if gh api graphql --silent -f query='
+				mutation {
+				  updateProjectV2ItemFieldValue(input: {
+				    projectId: "'"$PROJECT_ID"'",
+				    itemId: "'"$item_id"'",
+				    fieldId: "'"$POINTS_FIELD_ID"'",
+				    value: { number: '"$pts_input"' }
+				  }) { projectV2Item { id } }
+				}' 2>/dev/null; then
+					echo -e "  ${GRN}done${RST}"
+				else
+					echo -e "  ${RED}failed${RST}"
+				fi
+			else
+				echo -e "  ${DIM}skipped${RST}"
+			fi
+		fi
+	done
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	echo -e "${DIM}https://github.com/orgs/elastic/projects/${PROJECT_NUMBER}${RST}"
 	exit 0
 fi
 

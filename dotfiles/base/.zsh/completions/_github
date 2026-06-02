@@ -12,6 +12,7 @@ _github() {
 		'(-R --reviews)'{-R,--reviews}'[show PRs you reviewed in the last 3 days]'
 		'(-k --karma)'{-k,--karma}'[show PR approval karma score for a GitHub user]:username: '
 		'(-s --sprints)'{-s,--sprints}'[show sprint calendar for project #2289]'
+		'(-x --triage)'{-x,--triage}'[interactively assign sprint / set story points for issues with gaps]'
 		'(-t --transfer)'{-t,--transfer}'[transfer open issues from platform-security-terraform to platform-security-team]'
 		'(-h --help)'{-h,--help}'[show help]'
 	)
