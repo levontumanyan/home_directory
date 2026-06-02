@@ -55,6 +55,7 @@
     ],
     "deny": []
   },
+  "model": "sonnet[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -78,6 +79,5 @@
     "skill-creator@claude-plugins-official": true
   },
   "theme": "dark",
-  "skipAutoPermissionPrompt": true,
-  "model": "sonnet[1m]"
+  "skipAutoPermissionPrompt": true
 }

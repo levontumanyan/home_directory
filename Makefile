@@ -14,9 +14,14 @@ system-start:
 build-test: system-start
 	container build -t $(IMAGE_NAME) -f .devcontainer/Containerfile .devcontainer/
 
+.PHONY: system-stop
+system-stop:
+	container system stop
+
 .PHONY: test
 test: build-test
-	container run --rm -e IN_CONTAINER=1 -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./scripts/test.sh"
+	container run --rm -e IN_CONTAINER=1 -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./scripts/test.sh"; \
+	EXIT=$$?; container system stop; exit $$EXIT
 
 .PHONY: dev
 dev: build-test
