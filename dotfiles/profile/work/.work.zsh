@@ -25,7 +25,9 @@ opencode-auth-mcps() {
 eck-workspace() {
 	local worktree="${1:?Usage: eck-workspace <worktree-name>}"
 	local base="$HOME/eck.code-workspace"
-	local out="$HOME/eck-${worktree}.code-workspace"
+	local out_dir="$HOME/.local/share/workspaces"
+	local out="${out_dir}/eck-${worktree}.code-workspace"
+	mkdir -p "$out_dir"
 	sed "s|/pst/|/${worktree}/|g" "$base" > "$out"
 	echo "Created: $out"
 	code "$out"
