@@ -635,9 +635,9 @@ if [[ $MODE == karma ]]; then
 	exit 0
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ═════════════════════════════════════════════════════════════════════════════
 # MODE: triage  (exits early — runs its own queries + mutations)
-# ══════════════════════════════════════════════════════════════════════════════
+# ═════════════════════════════════════════════════════════════════════════════
 if [[ $MODE == triage ]]; then
 	echo ""
 	echo -e "${BOLD}GitHub  ·  Triage${RST}"
@@ -697,14 +697,14 @@ if [[ $MODE == triage ]]; then
 	if [[ $TRIAGE_COUNT -eq 0 ]]; then
 		echo -e "\n  ${GRN}Nothing to triage — all issues have a sprint and story points.${RST}"
 		echo ""
-		echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+		echo -e "${DIM}──────────────────────────────────────────────────${RST}"
 		echo -e "${DIM}https://github.com/orgs/elastic/projects/${PROJECT_NUMBER}${RST}"
 		exit 0
 	fi
 
 	echo -e "${DIM}${TRIAGE_COUNT} issue(s) with gaps (missing sprint or story points)${RST}"
 
-	# fetch available iterations for the sprint picker
+	# fetch available iterations for the sprint picker (one API call, reused per issue)
 	printf '\n%sFetching sprints...%s' "$DIM" "$RST" >&2
 	SPRINT_RAW=$(gh api graphql --field query='
 	{
@@ -720,6 +720,25 @@ if [[ $MODE == triage ]]; then
 
 	ITERATIONS=$(echo "$SPRINT_RAW" | jq '.data.node.configuration.iterations')
 	ITER_COUNT=$(echo "$ITERATIONS" | jq 'length')
+
+	# pre-render sprint menu once — date math runs only once regardless of issue count
+	SPRINT_MENU=""
+	idx=1
+	while IFS= read -r iter_line; do
+		IFS=$'\x01' read -r iter_id iter_title iter_start iter_dur <<<"$iter_line"
+		iter_end=$(add_days "$iter_start" "$iter_dur")
+		days_start=$(days_until "$iter_start")
+		days_end=$(days_until "$iter_end")
+		if [[ $days_start -le 0 && $days_end -gt 0 ]]; then
+			marker="${GRN}◉${RST}"
+			label="${BOLD}${iter_title}${RST}  ${DIM}$(fmtdate "$iter_start") – $(fmtdate "$iter_end")  (${days_end}d left — current)${RST}"
+		else
+			marker="${CYN}○${RST}"
+			label="${iter_title}  ${DIM}$(fmtdate "$iter_start") – $(fmtdate "$iter_end")  (starts in ${days_start}d)${RST}"
+		fi
+		SPRINT_MENU+="$(echo -e "    ${BOLD}${idx})${RST}  ${marker}  ${label}")"$'\n'
+		idx=$((idx + 1))
+	done < <(echo "$ITERATIONS" | jq -r '.[] | [.id, .title, .startDate, (.duration|tostring)] | join("")')
 
 	# collect issues into a bash array so the interactive loop can read /dev/tty
 	mapfile -t ISSUE_ROWS < <(echo "$TRIAGE_ISSUES" | jq -r \
@@ -740,25 +759,11 @@ if [[ $MODE == triage ]]; then
 
 		# ── sprint picker ────────────────────────────────────────────────────────
 		if [[ -z $sprint_title ]]; then
-
+			echo ""
 			echo -e "  ${BOLD}Available sprints:${RST}"
-			idx=1
-			while IFS= read -r iter_line; do
-				IFS=$'\x01' read -r iter_id iter_title iter_start iter_dur <<<"$iter_line"
-				iter_end=$(add_days "$iter_start" "$iter_dur")
-				days_start=$(days_until "$iter_start")
-				days_end=$(days_until "$iter_end")
-				if [[ $days_start -le 0 && $days_end -gt 0 ]]; then
-					marker="${GRN}◉${RST}"
-					label="${BOLD}${iter_title}${RST}  ${DIM}$(fmtdate "$iter_start") – $(fmtdate "$iter_end")  (${days_end}d left — current)${RST}"
-				else
-					marker="${CYN}○${RST}"
-					label="${iter_title}  ${DIM}$(fmtdate "$iter_start") – $(fmtdate "$iter_end")  (starts in ${days_start}d)${RST}"
-				fi
-				echo -e "    ${BOLD}${idx})${RST}  ${marker}  ${label}"
-				idx=$((idx + 1))
-			done < <(echo "$ITERATIONS" | jq -r '.[] | [.id, .title, .startDate, (.duration|tostring)] | join("")')
+			printf '%s' "$SPRINT_MENU"
 
+			printf '  %sPick a sprint [1-%s, Enter to skip]: %s' "$CYN" "$ITER_COUNT" "$RST" >/dev/tty
 			read -r sprint_choice </dev/tty
 			if [[ -n $sprint_choice && $sprint_choice =~ ^[0-9]+$ && $sprint_choice -ge 1 && $sprint_choice -le $ITER_COUNT ]]; then
 				chosen_iter=$(echo "$ITERATIONS" | jq -r --argjson i "$((sprint_choice - 1))" '.[$i] | [.id, .title] | join("")')
@@ -808,7 +813,7 @@ if [[ $MODE == triage ]]; then
 	done
 
 	echo ""
-	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	echo -e "${DIM}──────────────────────────────────────────────────${RST}"
 	echo -e "${DIM}https://github.com/orgs/elastic/projects/${PROJECT_NUMBER}${RST}"
 	exit 0
 fi

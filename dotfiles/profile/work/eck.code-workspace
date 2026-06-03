@@ -2,15 +2,15 @@
 	"folders": [
 		{
 			"name": "eck/frh",
-			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/terraform/workspaces/aws/govcloud/gov-frh-uge1-security/global/elastic/eck"
+			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/terraform/workspaces/aws/govcloud/gov-frh-uge1-security/global/"
 		},
 		{
 			"name": "eck/frm",
-			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/terraform/workspaces/aws/govcloud/gov-frm-uge1-security/global/elastic/eck"
+			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/terraform/workspaces/aws/govcloud/gov-frm-uge1-security/global/"
 		},
 		{
 			"name": "eck/stg",
-			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/terraform/workspaces/aws/govcloud/gov-stg-uge1-security/global/elastic/eck"
+			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/terraform/workspaces/aws/govcloud/gov-stg-uge1-security/global/"
 		},
 		{
 			"name": "python/eck",
