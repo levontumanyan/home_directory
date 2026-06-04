@@ -70,7 +70,7 @@ mkdir -p "$HOME/.gemini/antigravity-cli"
 echo "pre-existing-file" >"$HOME/.gemini/antigravity-cli/settings.json"
 echo "pre-existing-zshrc" >"$HOME/.zshrc"
 
-./install.sh -m personal -t -v
+./install.sh -m personal -t
 
 # Verify backups were created
 BACKUP_BASE="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/backups"
@@ -112,7 +112,7 @@ fi
 
 # 4. Test Idempotency
 echo "--- Testing Idempotency ---"
-./install.sh -m personal -t -v
+./install.sh -m personal -t
 echo -e "${GREEN}✓ Second run completed successfully${NC}"
 assert_symlink "$HOME/.zshrc" "dotfiles/base/.zshrc"
 assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/profile/personal/.claude/CLAUDE.md"
@@ -141,7 +141,7 @@ stow -D --dir="dotfiles/os" --target="$HOME" linux
 
 # 7. Test Work Profile
 echo "--- Testing WORK profile ---"
-./install.sh -m work -t -v
+./install.sh -m work -t
 assert_file_exists "$HOME/.work.zsh"
 if grep -q "WORK" "$HOME/AGENTS.md"; then
 	echo -e "${GREEN}✓ ~/AGENTS.md switched to WORK content${NC}"
