@@ -1,5 +1,5 @@
 IMAGE_NAME := dotfiles-test
-SCRIPTS := install.sh setup.sh setup_envs.sh scripts/dump_brewfile.sh scripts/test.sh
+SCRIPTS := install.sh setup.sh setup_envs.sh scripts/dump_brewfile.sh scripts/test_lib.sh scripts/test_personal.sh scripts/test_work.sh
 
 .PHONY: lint
 lint:
@@ -20,8 +20,11 @@ system-stop:
 
 .PHONY: test
 test: build-test
-	container run --rm -e IN_CONTAINER=1 -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./scripts/test.sh"; \
-	EXIT=$$?; container system stop; exit $$EXIT
+	EXIT=0; \
+	container run --rm -e IN_CONTAINER=1 -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./scripts/test_personal.sh" || EXIT=1; \
+	container run --rm -e IN_CONTAINER=1 -v $(shell pwd):/workspace $(IMAGE_NAME) zsh -c "cd /workspace && ./scripts/test_work.sh" || EXIT=1; \
+	container system stop; \
+	exit $$EXIT
 
 .PHONY: dev
 dev: build-test
