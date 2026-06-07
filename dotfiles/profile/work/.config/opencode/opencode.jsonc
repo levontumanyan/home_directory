@@ -78,6 +78,10 @@
 				"qwen3.5:35b-a3b": {
 					"name": "qwen3.5:35b-a3b",
 					"tools": true
+				},
+				"gemma4:12b-mlx": {
+					"name": "Gemma 4 12B (MLX)",
+					"tools": true
 				}
 			}
 		},

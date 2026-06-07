@@ -19,6 +19,16 @@ if [ -d "$HOME/.local/bin" ] ; then
 	PATH="$HOME/.local/bin:$PATH"
 fi
 
+# Rust/Cargo (rustup sets ~/.cargo/env; brew install only creates the bin dir)
+if [ -f "$HOME/.cargo/env" ]; then
+	source "$HOME/.cargo/env"
+elif [ -d "$HOME/.cargo/bin" ]; then
+	PATH="$HOME/.cargo/bin:$PATH"
+fi
+
+# Java (openjdk is keg-only, not auto-linked by brew)
+[ -d "/opt/homebrew/opt/openjdk/bin" ] && PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+
 # Podman as Docker drop-in
 if [[ "$(uname)" == "Darwin" ]] && command -v podman >/dev/null 2>&1; then
 	DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
