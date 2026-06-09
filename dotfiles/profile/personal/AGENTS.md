@@ -14,6 +14,7 @@ Always write issue and PR bodies to a temp file first, then pass it via `--body-
 - **Indentation**: Use one tab per hierarchy level for all code. Never use spaces, except for YAML files.
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
 - **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
+- **Permissions**: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x` or specific octal modes like `755`/`700`).
 
 ## Knowledge Repository
 

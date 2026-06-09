@@ -23,6 +23,7 @@ Always run tests via `make test` — never run `scripts/test.sh` directly, as it
 - Reproduce Issues: Before fixing bugs, run `./install.sh -t -n` to test truly e2e.
 - Idempotency: Scripts are idempotent — stow uses --restow, all optional tools are guarded, re-installs skip backup/conflict steps. Keep them that way.
 - Shell Scripting Standards: Use `set -eu`. Prefer sh or zsh as used in existing scripts.
+- Permissions: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x` or specific octal modes like `755`/`700`).
 - Tailscale: On Linux, installed natively via `curl | sh` if not already present; this runs after brew bundle so it only fires on a truly fresh machine.
 - Sudo Usage: Prefer not to use sudo as much as possible.
 - Git Signing: Only import the GPG key after install on a new machine — no git config changes needed.

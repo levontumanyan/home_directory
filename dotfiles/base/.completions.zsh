@@ -37,6 +37,13 @@ command -v opencode >/dev/null 2>&1 && {
 	source <(opencode completion zsh)
 }
 
+# source gcloud completions
+if command -v brew >/dev/null 2>&1; then
+	[ -f "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc" ] && {
+		source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
+	}
+fi
+
 # Custom make completion to display descriptions parsed from 'target: ## description'
 _make_with_desc() {
 	if [[ -f Makefile || -f makefile ]]; then
