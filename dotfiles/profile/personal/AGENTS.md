@@ -9,12 +9,14 @@
 Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or
 `gh pr create` — backticks and nested quotes corrupt the markdown.
 
-## Code Style & Standards
+# Code Style & Standards
 
 - **Indentation**: Use one tab per hierarchy level for all code. Never use spaces, except for YAML files.
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
 - **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
 - **Permissions**: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x` or specific octal modes like `755`/`700`).
+- Use tabs for indentation in all files — shell scripts, Makefiles, config files, etc. The only exception is YAML, which requires spaces by spec.
+- In Markdown files, never use ASCII/text-based borders, cards, or custom section headers (e.g. `===` or `---` frames). Use simple standard Markdown headers (`#`, `##`, etc.) instead.
 
 ## Knowledge Repository
 

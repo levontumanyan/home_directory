@@ -31,5 +31,7 @@ fi
 
 # Podman as Docker drop-in
 if [[ "$(uname)" == "Darwin" ]] && command -v podman >/dev/null 2>&1; then
-	DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+	if podman machine inspect >/dev/null 2>&1; then
+		DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+	fi
 fi

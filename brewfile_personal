@@ -2,70 +2,140 @@ tap "homebrew/cask"
 tap "homebrew/core"
 tap "manaflow-ai/cmux"
 tap "wpscanteam/tap"
+# Mozilla CA certificate store
 brew "ca-certificates"
+# Microsoft Azure CLI 2.0
 brew "azure-cli"
+# GNU internationalization (i18n) and localization (l10n) library
 brew "gettext"
+# Bourne-Again SHell, a UNIX command interpreter
 brew "bash"
+# Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
+# C unit testing framework
 brew "check"
+# Console Matrix
 brew "cmatrix"
+# GNU multiple precision arithmetic library
 brew "gmp"
+# GNU File, Shell, and Text utilities
 brew "coreutils"
+# Apjanke's fork of the classic cowsay project
 brew "cowsay"
+# Modern diagram scripting language that turns text to diagrams
 brew "d2"
+# Simple, fast and user-friendly alternative to find
 brew "fd"
+# Infamous electronic fortune-cookie generator
 brew "fortune"
+# Command-line fuzzy finder written in Go
 brew "fzf"
+# GitHub command-line tool
 brew "gh"
+# GNU implementation of the famous stream editor
 brew "gnu-sed"
+# GNU Privacy Guard (OpenPGP)
 brew "gnupg"
+# Kubernetes package manager
 brew "helm"
+# View and edit files in hexadecimal or ASCII
 brew "hexedit"
+# Improved top (interactive process viewer)
 brew "htop"
+# GNU utilities for networking
 brew "inetutils"
+# Lightweight and flexible command-line JSON processor
 brew "jq"
+# Convert ebooks from epub to kepub
 brew "kepubify"
+# Asynchronous event library
 brew "libevent"
+# Run a Kubernetes cluster locally
 brew "minikube"
+# Open source relational database management system
 brew "mysql"
+# Utility for managing network connections
 brew "netcat"
+# Port scanning utility for large networks
 brew "nmap"
+# Oracle Cloud Infrastructure CLI
+brew "oci-cli"
+# Create, run, and share large language models (LLMs)
 brew "ollama"
+# Shell command parallelization utility
 brew "parallel"
+# Pinentry for GPG on Mac
 brew "pinentry-mac"
+# Tool for managing OCI containers and pods
 brew "podman"
+# PDF rendering library (based on the xpdf-3.0 code base)
 brew "poppler"
+# Framework for managing multi-language pre-commit hooks
 brew "pre-commit"
+# Interpreted, interactive, object-oriented programming language
 brew "python@3.12"
+# Python interface to Tcl/Tk
 brew "python-tk@3.12"
+# Interpreted, interactive, object-oriented programming language
 brew "python@3.10"
+# Interpreted, interactive, object-oriented programming language
 brew "python@3.11"
+# Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# CLI proxy to minimize LLM token consumption
 brew "rtk"
+# Smart session manager for the terminal
 brew "sesh"
+# Static analysis and lint tool, for (ba)sh scripts
 brew "shellcheck"
+# Autoformat shell script source code
 brew "shfmt"
+# Organize software neatly under a single directory tree (e.g. /usr/local)
 brew "stow"
+# Easiest, most secure way to use WireGuard and 2FA
 brew "tailscale", restart_service: :changed
+# Powerful free data recovery utility
 brew "testdisk"
+# Official tldr client written in Rust
 brew "tlrc"
+# Clean C library for processing UTF-8 Unicode data
 brew "utf8proc"
+# Terminal multiplexer
 brew "tmux"
+# Display directories as trees (with optional color/HTML output)
 brew "tree"
+# Extremely fast Python package installer and resolver, written in Rust
 brew "uv"
+# Command-line hypervisor using Apple's Virtualization Framework
 brew "vfkit"
+# Executes a program periodically, showing output fullscreen
 brew "watch"
+# Internet file retriever
 brew "wget"
+# Linter for YAML files
 brew "yamllint"
+# Tool for managing your YubiKey configuration
 brew "ykman"
+# Shell extension to navigate your filesystem faster
 brew "zoxide"
+# Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
+# Terminal interface for Antigravity agents
 cask "antigravity-cli"
+# Web browser focusing on privacy
 cask "brave-browser"
+# Terminal-based AI coding assistant
 cask "claude-code@latest"
 cask "font-jetbrains-mono-nerd-font"
+# Set of tools to manage resources and applications hosted on Google Cloud
+cask "gcloud-cli"
+# Provides updates to various Microsoft products
 cask "microsoft-auto-update"
+# Email client
 cask "microsoft-outlook"
+# Minimal installer for conda
 cask "miniconda"
+# App wrapper for music.youtube.com
 cask "yt-music"
+# Video communication and virtual meeting platform
 cask "zoom"

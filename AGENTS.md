@@ -32,10 +32,6 @@ Always run tests via `make test` — never run `scripts/test.sh` directly, as it
 
 install.sh redirects stdout/stderr to a log file. Use `say()` for informational output to the terminal, `prompt` for interactive input — both write to `/dev/tty` directly and bypass log redirection. Never use plain `echo + read`.
 
-# Code Style
-
-Use tabs for indentation in all files — shell scripts, Makefiles, config files, etc. The only exception is YAML, which requires spaces by spec.
-
 # Guarding Rules
 
 All commands that may not be present on every machine must be guarded:
@@ -50,3 +46,4 @@ Before staging and committing, always run `make lint` first. Only proceed if lin
 # Known Issues
 
 - Log files (`~/.local/state/dotfiles/logs/`) and backup dirs (`~/.local/state/dotfiles/backups/`) accumulate with no cleanup or retention logic. Old entries must be pruned manually.
+- If `container build` fails with `runc-overlayfs` filesystem errors ("structure needs cleaning") or hostname conflicts, the container environment's builder cache or network state has become corrupted. To resolve this, stop the container system: `container system stop`, kill any lingering system processes (`pkill -f container-network-vmnet` and `pkill -f container-apiserver`), delete the builder instance (`container builder delete`), and then start the container system again (`container system start`).

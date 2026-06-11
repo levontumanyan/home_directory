@@ -61,6 +61,11 @@
       "command(d2)"
     ]
   },
+  "statusLine": {
+    "type": "",
+    "command": "",
+    "enabled": true
+  },
   "trustedWorkspaces": [
     "/Users/levontumanyan/repos/home_directory",
     "/Users/levontumanyan/repos/equiquant/equiquant",
