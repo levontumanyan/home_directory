@@ -35,6 +35,8 @@ HISTSIZE=1000000
 SAVEHIST=1000000
 
 command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
+
 
 export EDITOR="code --wait"
 export VISUAL="code --wait"

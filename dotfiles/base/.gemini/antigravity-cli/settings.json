@@ -62,9 +62,14 @@
     ]
   },
   "statusLine": {
-    "type": "",
-    "command": "",
+    "type": "command",
+    "command": "~/.gemini/antigravity-cli/statusline.sh",
     "enabled": true
+  },
+  "status_line": {
+    "format": "[%model%] %status% | %artifact% ... %tip%",
+    "truncate_strategy": "ellipsis",
+    "refresh_interval_ms": 250
   },
   "trustedWorkspaces": [
     "/Users/levontumanyan/repos/home_directory",
