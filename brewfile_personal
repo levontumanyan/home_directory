@@ -62,6 +62,8 @@ brew "mysql"
 brew "netcat"
 # Port scanning utility for large networks
 brew "nmap"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
 # Oracle Cloud Infrastructure CLI
 brew "oci-cli"
 # Create, run, and share large language models (LLMs)
@@ -124,8 +126,6 @@ brew "ykman"
 brew "zoxide"
 # Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
-# Terminal interface for Antigravity agents
-cask "antigravity-cli"
 # Web browser focusing on privacy
 cask "brave-browser"
 # Terminal-based AI coding assistant
@@ -143,3 +143,6 @@ cask "miniconda"
 cask "yt-music"
 # Video communication and virtual meeting platform
 cask "zoom"
+uv "mcp-ical"
+npm "@marlinjai/email-mcp"
+npm "pnpm"

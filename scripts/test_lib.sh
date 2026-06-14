@@ -119,6 +119,7 @@ assert_base_symlinks() {
 	assert_symlink "$HOME/.claude/hooks/buildkite-guard.py" "dotfiles/base/.claude/hooks/buildkite-guard.py"
 	assert_symlink "$HOME/.gemini/antigravity-cli/settings.json" "dotfiles/base/.gemini/antigravity-cli/settings.json"
 	assert_symlink "$HOME/.gemini/antigravity-cli/keybindings.json" "dotfiles/base/.gemini/antigravity-cli/keybindings.json"
+	assert_symlink "$HOME/.gemini/antigravity-cli/mcp_config.json" "dotfiles/base/.gemini/antigravity-cli/mcp_config.json"
 	assert_symlink "$HOME/.gnupg/common.conf" "dotfiles/base/.gnupg/common.conf"
 	assert_symlink "$HOME/.local/bin/github" "dotfiles/base/.local/bin/github"
 	assert_symlink "$HOME/.zsh/completions/_github" "dotfiles/base/.zsh/completions/_github"

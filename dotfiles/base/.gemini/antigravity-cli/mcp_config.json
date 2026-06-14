@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "email": {
+      "command": "email-mcp"
+    },
+    "macos-calendar": {
+      "command": "mcp-ical"
+    }
+  }
+}
