@@ -1,6 +1,6 @@
 {
   "allowNonWorkspaceAccess": true,
-  "colorScheme": "dark",
+  "colorScheme": "colorblind-friendly dark",
   "enableTelemetry": false,
   "model": "Claude Sonnet 4.6 (Thinking)",
   "permissions": {
