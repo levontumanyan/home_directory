@@ -1,6 +1,6 @@
 {
   "allowNonWorkspaceAccess": true,
-  "colorScheme": "dark",
+  "colorScheme": "colorblind-friendly dark",
   "enableTelemetry": false,
   "model": "Claude Sonnet 4.6 (Thinking)",
   "permissions": {
@@ -79,6 +79,8 @@
     "/Users/levontumanyan/repos/cloud-lab",
     "/Users/levontumanyan/repos/ragging-my-brain",
     "/Users/levontumanyan/repos/inbox-pipeline",
-    "/Users/levontumanyan/repos/shoebox"
+    "/Users/levontumanyan/repos/shoebox",
+    "/home/ubuntu/repos/cloud-lab",
+    "/home/ubuntu/repos/home_directory"
   ]
 }
