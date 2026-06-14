@@ -140,15 +140,17 @@ if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ] && [ "$OS_TYPE" = "linux
 		echo "Installing Tailscale natively..."
 		curl -fsSL https://tailscale.com/install.sh | sh
 	fi
-	if ! command -v agy >/dev/null 2>&1; then
-		echo "Installing Antigravity CLI..."
-		curl -fsSL https://antigravity.google/cli/install.sh | bash
-	fi
 	# pinentry-tty: GPG passphrase entry over SSH/terminal
 	if ! command -v pinentry-tty >/dev/null 2>&1; then
 		echo "Installing pinentry-tty..."
 		sudo apt-get install -y pinentry-tty
 	fi
+fi
+
+# install Antigravity CLI natively
+if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ] && ! command -v agy >/dev/null 2>&1; then
+	echo "Installing Antigravity CLI..."
+	curl -fsSL https://antigravity.google/cli/install.sh | bash
 fi
 
 # install profile-specific packages

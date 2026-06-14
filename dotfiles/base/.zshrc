@@ -55,3 +55,7 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 # Added by Antigravity CLI installer
 export PATH="/home/ubuntu/.local/bin:$PATH"
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/levontumanyan/.local/bin:$PATH"

@@ -58,7 +58,8 @@
       "command(echo)",
       "command(date)",
       "command(make lint)",
-      "command(d2)"
+      "command(d2)",
+      "mcp(apple-calendar/*)"
     ]
   },
   "statusLine": {
