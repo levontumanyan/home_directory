@@ -18,6 +18,7 @@
 # tools
 
 - When you need to check buildkite pipeline, use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.
+- I am using `podman`! No `docker`.
 
 ## MCP Priority Order (Elastic questions)
 
