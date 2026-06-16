@@ -15,6 +15,12 @@
 - Always run `gh pr update-branch <PR_NUMBER> && gh pr comment <PR_NUMBER> --body "buildkite plan this"` — never trigger a plan without updating first in the same command. Also run that after everytime you commit new changes to a pr. If it reports conflicts, resolve them via rebase before proceeding.
 - Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or `gh pr create` — backticks and nested quotes corrupt the markdown.
 
+# buildkite
+
+- to check what terraform resources is the buildkite pipeline going to change/destroy/modify, run this: `bk job log <job-id> -p elastic/platform-security-terraform -b <build> --no-timestamps --no-pager 2>&1 | strings`.
+
+`bk job log 019ed047-70e8-431d-9c12-635ce7c4fc37 -p elastic/platform-security-terraform -b 12439 --no-timestamps --no-pager 2>&1 | strings`
+
 # tools
 
 - When you need to check buildkite pipeline, use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.

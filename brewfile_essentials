@@ -19,6 +19,7 @@ brew "zoxide"
 brew "fd"
 brew "bat"
 brew "ripgrep"
+brew "tokei"
 brew "zsh-autosuggestions"
 if OS.mac?
 	brew "tailscale"
