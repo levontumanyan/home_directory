@@ -46,3 +46,8 @@ _eck-workspace() {
 	_describe 'worktree' worktrees
 }
 compdef _eck-workspace eck-workspace
+
+[ -f "$HOME/repos/cloud/tools/vault-helper" ] && source "$HOME/repos/cloud/tools/vault-helper"
+
+# elastic CLI completions
+eval "$(elastic completion zsh)"

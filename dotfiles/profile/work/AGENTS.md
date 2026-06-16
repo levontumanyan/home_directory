@@ -62,7 +62,7 @@ When I ask you to "document this", "create a doc for this issue", or "create a f
 
 # Environment Access
 
-I do not have access to `govcloud high` or `frh`. Do not attempt to connect to it, suggest commands that require it, or ask me to verify things against it. I do modify and work on it but through pipelines. I do not have direct access to it.
+I do not have access to `govcloud high` or `frh`. The changes there are some done through pipelines and ECK helm/kubectl commands are run manually by my US based coworkers. So from my workstation it is not possible to access things that are behind the FRH vpn. FRS/FRM i do have full access, through VPN the things that are gated behind a VPN.
 
 # File Naming Conventions
 

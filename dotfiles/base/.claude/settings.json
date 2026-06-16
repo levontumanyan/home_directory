@@ -55,6 +55,7 @@
     ],
     "deny": []
   },
+  "model": "opusplan",
   "hooks": {
     "PreToolUse": [
       {

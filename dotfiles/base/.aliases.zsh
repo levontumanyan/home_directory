@@ -127,3 +127,8 @@ bindkey '^f' ff_buffer
 # Tailscale / Taildrop
 alias tsend="tailscale file cp"
 alias tget="tailscale file get"
+
+# mkcd - make directory and cd into it
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}

@@ -2,55 +2,107 @@ tap "anomalyco/tap"
 tap "buildkite/buildkite"
 tap "hashicorp/tap"
 tap "manaflow-ai/cmux"
+# AI pair programming in your terminal
 brew "aider"
+# Official Amazon AWS command-line interface
 brew "awscli"
+# Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
+# Create and run Linux containers using lightweight virtual machines
 brew "container"
+# Tool for interacting with remote images and registries
 brew "crane"
+# Modern diagram scripting language that turns text to diagrams
 brew "d2"
+# Load/unload environment variables based on $PWD
+brew "direnv"
+# Secure your credentials in environment variables
 brew "envchain"
+# Simple, fast and user-friendly alternative to find
 brew "fd"
+# Command-line fuzzy finder written in Go
 brew "fzf"
+# Interact with Google Gemini AI models from the command-line
 brew "gemini-cli"
+# GitHub command-line tool
 brew "gh"
+# GNU Privacy Guard (OpenPGP)
 brew "gnupg"
+# Open source programming language to build simple/reliable/efficient software
 brew "go"
+# Kubernetes package manager
 brew "helm"
+# Lightweight and flexible command-line JSON processor
 brew "jq"
+# Little helper to run CNCF's k3s in Docker
 brew "k3d"
+# Run local Kubernetes cluster in Docker
 brew "kind"
+# Kubernetes command-line interface
 brew "kubernetes-cli"
+# Okta federated identity for AWS CLI
 brew "okta-aws-cli"
+# Create, run, and share large language models (LLMs)
 brew "ollama", restart_service: :changed
+# Development kit for the Java programming language
 brew "openjdk"
+# Pinentry for GPG on Mac
 brew "pinentry-mac"
+# Tool for managing OCI containers and pods
 brew "podman"
+# Alternative to docker-compose using podman
 brew "podman-compose"
+# Python package management tool
 brew "poetry"
+# Framework for managing multi-language pre-commit hooks
 brew "pre-commit"
+# Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# Safe, concurrent, practical language
 brew "rust"
+# Smart session manager for the terminal
 brew "sesh"
+# Static analysis and lint tool, for (ba)sh scripts
 brew "shellcheck"
+# Autoformat shell script source code
 brew "shfmt"
+# Organize software neatly under a single directory tree (e.g. /usr/local)
 brew "stow"
+# Easiest, most secure way to use WireGuard and 2FA
 brew "tailscale", restart_service: :changed
+# Terraform version manager inspired by rbenv
 brew "tfenv"
+# Terminal multiplexer
 brew "tmux"
+# Display directories as trees (with optional color/HTML output)
 brew "tree"
+# Extremely fast Python package installer and resolver, written in Rust
 brew "uv"
+# Executes a program periodically, showing output fullscreen
 brew "watch"
+# Tool for managing your YubiKey configuration
 brew "ykman"
+# Process YAML, JSON, XML, CSV and properties documents from the CLI
 brew "yq"
+# Shell extension to navigate your filesystem faster
 brew "zoxide"
+# Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
-brew "anomalyco/tap/opencode"
-brew "buildkite/buildkite/bk@3"
-brew "hashicorp/tap/vault"
+# Enable Windows-like alt-tab
 cask "alt-tab"
+# Terminal-based AI coding assistant
 cask "claude-code@latest"
+# Ghostty-based terminal with vertical tabs and notifications for AI coding agents
 cask "cmux"
 cask "font-jetbrains-mono-nerd-font"
+# End-to-end encryption software
 cask "keybase"
 cargo "cargo-about"
 cargo "esdiag"
+uv "-"
+uv "-"
+uv "-"
+uv "rapid-mlx"
+npm "@earendil-works/pi-coding-agent"
+npm "@elastic/cli"
+npm "@mariozechner/pi-coding-agent"
