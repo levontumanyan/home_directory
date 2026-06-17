@@ -21,6 +21,10 @@
 			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/python/tests/eck"
 		},
 		{
+			"name": ".claude",
+			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/.claude/"
+		},
+		{
 			"path": "repos/platform-security-terraform/pst/helm"
 		}
 	]
