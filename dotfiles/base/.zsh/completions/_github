@@ -8,6 +8,7 @@ _github() {
 		'(-c --created)'{-c,--created}'[show open issues you created]'
 		'(-u --unassigned)'{-u,--unassigned}'[show open issues you created with no assignee]'
 		'(-p --pr)'{-p,--pr}'[show open pull requests across elastic/*]'
+		'(-I --inbox)'{-I,--inbox}'[show PRs awaiting your review (review-requested)]'
 		'(-m --merged)'{-m,--merged}'[show your last 25 merged/closed PRs across elastic/*]'
 		'(-R --reviews)'{-R,--reviews}'[show PRs you reviewed in the last 3 days]'
 		'(-k --karma)'{-k,--karma}'[show PR approval karma score for a GitHub user]:username: '

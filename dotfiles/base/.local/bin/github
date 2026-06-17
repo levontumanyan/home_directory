@@ -53,6 +53,7 @@ usage() {
 		    -c, --created     Open issues you created in ${REPO_OWNER}/${REPO_NAME}
 		    -u, --unassigned  Open issues you created with no assignee
 		    -p, --pr          Your open pull requests across elastic/*
+		    -I, --inbox       PRs awaiting your review (review-requested)
 		    -m, --merged      Your last 25 merged/closed PRs across elastic/*
 		    -R, --reviews     PRs you reviewed in the last 3 days
 		    -k, --karma [USER] PR approval karma score; omit USER for full team
@@ -77,6 +78,7 @@ while [[ $# -gt 0 ]]; do
 	-c | --created) MODE="created" ;;
 	-u | --unassigned) MODE="unassigned" ;;
 	-p | --pr) MODE="pr" ;;
+	-I | --inbox) MODE="inbox" ;;
 	-m | --merged) MODE="merged" ;;
 	-R | --reviews) MODE="reviews" ;;
 	-k | --karma)
@@ -132,6 +134,32 @@ add_days() {
 }
 
 TODAY=$(date -u +%Y-%m-%d)
+
+# Print a JSON PR array grouped by repo. Args: json [color [label]]
+print_pr_list() {
+	local prs="$1" sc="${2:-$GRN}" lbl="${3:-open}"
+	echo "$prs" | jq -r '[.[].repository.nameWithOwner] | unique | .[]' |
+		while IFS= read -r repo; do
+			local repo_prs rpc
+			repo_prs=$(echo "$prs" | jq --arg r "$repo" '[.[] | select(.repository.nameWithOwner == $r)]')
+			rpc=$(echo "$repo_prs" | jq 'length')
+			echo ""
+			echo -e "${CYN}${BOLD}${repo}${RST}  ${DIM}(${rpc})${RST}"
+			echo "$repo_prs" | jq -r \
+				'.[] | [(.number|tostring), .title, .url, (.isDraft|tostring), (.updatedAt | split("T")[0])] | join("")' |
+				while IFS=$'\x01' read -r num title url is_draft updated; do
+					if [[ $is_draft == "true" ]]; then
+						pc="$DIM"
+						state="draft"
+					else
+						pc="$sc"
+						state="$lbl"
+					fi
+					echo -e "  ${pc}●${RST} ${BOLD}#${num}${RST}  ${title}"
+					echo -e "    ${DIM}${pc}${state}${RST}${DIM}  ·  updated $(fmtdate "$updated")  ·  ${url}${RST}"
+				done
+		done
+}
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MODE: created  (exits early — author filter, no project GraphQL needed)
@@ -305,7 +333,7 @@ fi
 if [[ $MODE == pr ]]; then
 	echo ""
 	echo -e "${BOLD}GitHub  ·  Pull Requests${RST}"
-	echo -e "${DIM}$(date '+%A, %B %d %Y')${RST}"
+	echo -e "${DIM}elastic/*  ·  $(date '+%A, %B %d %Y')${RST}"
 	printf '\n%sFetching your open PRs...%s' "$DIM" "$RST" >&2
 
 	PRS=$(gh search prs \
@@ -323,31 +351,44 @@ if [[ $MODE == pr ]]; then
 	if [[ $PR_COUNT -eq 0 ]]; then
 		echo -e "\n  ${DIM}No open pull requests.${RST}"
 	else
-		# group by repo
-		echo "$PRS" | jq -r '[.[].repository.nameWithOwner] | unique | .[]' |
-			while IFS= read -r repo; do
-				REPO_PRS=$(echo "$PRS" | jq --arg r "$repo" '[.[] | select(.repository.nameWithOwner == $r)]')
-				RPC=$(echo "$REPO_PRS" | jq 'length')
-				echo ""
-				echo -e "${CYN}${BOLD}${repo}${RST}  ${DIM}(${RPC})${RST}"
-				echo "$REPO_PRS" | jq -r \
-					'.[] | [(.number|tostring), .title, .url, (.isDraft|tostring), (.updatedAt | split("T")[0])] | join("\u0001")' |
-					while IFS=$'\x01' read -r num title url is_draft updated; do
-						if [[ $is_draft == "true" ]]; then
-							pc="$DIM"
-							state_label="draft"
-						else
-							pc="$GRN"
-							state_label="open"
-						fi
-						echo -e "  ${pc}●${RST} ${BOLD}#${num}${RST}  ${title}"
-						echo -e "    ${DIM}${pc}${state_label}${RST}${DIM}  ·  updated $(fmtdate "$updated")  ·  ${url}${RST}"
-					done
-			done
+		print_pr_list "$PRS"
 	fi
 
 	echo ""
 	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	echo -e "${DIM}https://github.com/pulls/authored${RST}"
+	exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: inbox  (exits early — review-requested PRs, no project GraphQL needed)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ $MODE == inbox ]]; then
+	echo ""
+	echo -e "${BOLD}GitHub  ·  PR Inbox${RST}"
+	echo -e "${DIM}review requested  ·  $(date '+%A, %B %d %Y')${RST}"
+	printf '\n%sFetching review requests...%s' "$DIM" "$RST" >&2
+
+	PRS=$(gh search prs \
+		--review-requested "@me" \
+		--state open \
+		--limit 50 \
+		--json number,title,url,repository,isDraft,updatedAt)
+
+	printf "\r\033[K" >&2
+
+	PR_COUNT=$(echo "$PRS" | jq 'length')
+	echo -e "${DIM}${PR_COUNT} awaiting review${RST}"
+
+	if [[ $PR_COUNT -eq 0 ]]; then
+		echo -e "\n  ${DIM}No PRs awaiting your review.${RST}"
+	else
+		print_pr_list "$PRS" "$YLW" "review requested"
+	fi
+
+	echo ""
+	echo -e "${DIM}────────────────────────────────────────────────────${RST}"
+	echo -e "${DIM}https://github.com/pulls/inbox${RST}"
 	exit 0
 fi
 
