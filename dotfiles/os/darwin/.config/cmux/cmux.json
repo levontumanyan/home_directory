@@ -18,7 +18,7 @@
   "shortcuts": {
     "bindings": {
       "selectSurfaceByNumber": "cmd+1",
-      "selectWorkspaceByNumber": "ctrl+1",
+      "selectWorkspaceByNumber": "ctrl+shift+1",
       "nextSidebarTab": "cmd+[",
       "prevSidebarTab": "cmd+]",
       "browserBack": null,
