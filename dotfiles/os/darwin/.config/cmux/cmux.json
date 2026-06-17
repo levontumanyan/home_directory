@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux-settings.schema.json",
+  "schemaVersion": 1,
+
+  "app": {
+    "sendAnonymousTelemetry": false,
+    "reorderOnNotification": false
+  },
+
+  "notifications": {
+    "showInMenuBar": false
+  },
+
+  "sidebarAppearance": {
+    "matchTerminalBackground": true
+  },
+
+  "shortcuts": {
+    "bindings": {
+      "selectSurfaceByNumber": "cmd+1",
+      "selectWorkspaceByNumber": "ctrl+1",
+      "nextSidebarTab": "cmd+[",
+      "prevSidebarTab": "cmd+]",
+      "browserBack": null,
+      "browserForward": null
+    }
+  }
+}

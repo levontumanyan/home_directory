@@ -1,0 +1,59 @@
+# ── font ──────────────────────────────────────────────────────────────────────
+font-family = JetBrainsMonoNL Nerd Font Mono
+font-size = 20
+bold-is-bright = true
+
+# ── colors (ported from iTerm2 dark mode profile) ─────────────────────────────
+background = #15191f
+foreground = #dcdcdc
+
+# normal
+palette = 0=#14191e
+palette = 1=#b43c2a
+palette = 2=#00c200
+palette = 3=#c7c400
+palette = 4=#2744c7
+palette = 5=#c040be
+palette = 6=#00c5c7
+palette = 7=#c7c7c7
+
+# bright
+palette = 8=#686868
+palette = 9=#dd7975
+palette = 10=#58e790
+palette = 11=#ece100
+palette = 12=#a7abf2
+palette = 13=#e17ee1
+palette = 14=#60fdff
+palette = 15=#ffffff
+
+cursor-color = #ffffff
+cursor-text = #000000
+cursor-style = block
+cursor-style-blink = false
+
+selection-background = #b3d7ff
+selection-foreground = #000000
+
+# ── window ────────────────────────────────────────────────────────────────────
+background-opacity = 0.84
+background-blur-radius = 5
+
+window-padding-x = 6
+window-padding-y = 10
+
+# ── terminal ──────────────────────────────────────────────────────────────────
+scrollback-limit = 10000
+mouse-scroll-multiplier = 3
+
+# left option acts as alt/meta for readline (matches iTerm2 "Option Key Sends: Meta")
+macos-option-as-alt = left
+
+# ── readline keybindings (ported from iTerm2 keyboard map) ────────────────────
+keybind = alt+backspace=text:\x17
+keybind = super+backspace=text:\x15
+keybind = super+left=text:\x01
+keybind = super+right=text:\x05
+keybind = alt+left=text:\x1bb
+keybind = alt+right=text:\x1bf
+keybind = alt+delete=text:\x1bd
