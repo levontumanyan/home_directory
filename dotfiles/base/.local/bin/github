@@ -17,8 +17,8 @@ PROJECT_ID="PVT_kwDOAGc3Zs4BSCW-"
 SPRINT_FIELD_ID="PVTIF_lADOAGc3Zs4BSCW-zg_sDTE"
 POINTS_FIELD_ID="PVTF_lADOAGc3Zs4BSCW-zg_sDTA"
 ME="levontumanyan"
-KARMA_TEAM=(
-	# add team members below
+KARMA_GITHUB_TEAM="platform-security"
+KARMA_TEAM_FALLBACK=(
 	levontumanyan
 	fin09pcap
 	robinverduijn
@@ -28,6 +28,18 @@ KARMA_TEAM=(
 	bushju
 	lindsaysandall
 )
+
+# Fetch team members dynamically; fall back to hardcoded list on error
+_karma_team_members() {
+	local members
+	members=$(gh api "orgs/${REPO_OWNER}/teams/${KARMA_GITHUB_TEAM}/members" \
+		--jq '.[].login' 2>/dev/null)
+	if [[ -n $members ]]; then
+		mapfile -t KARMA_TEAM <<<"$members"
+	else
+		KARMA_TEAM=("${KARMA_TEAM_FALLBACK[@]}")
+	fi
+}
 
 # ── colors ────────────────────────────────────────────────────────────────────
 RED=$'\033[0;31m'
@@ -649,6 +661,9 @@ if [[ $MODE == karma ]]; then
 		echo -e "${BOLD}GitHub  ·  Team Karma Scores${RST}"
 		echo -e "${DIM}last 10 days  ·  $(date '+%A, %B %d %Y')${RST}"
 		echo ""
+		printf '%sFetching team members from @%s/%s...%s' "$DIM" "$REPO_OWNER" "$KARMA_GITHUB_TEAM" "$RST" >&2
+		_karma_team_members
+		printf "\r\033[K" >&2
 
 		RESULTS=()
 		for u in "${KARMA_TEAM[@]}"; do
