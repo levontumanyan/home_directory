@@ -1,4 +1,5 @@
 tap "anomalyco/tap"
+tap "aws/tap"
 tap "buildkite/buildkite"
 tap "hashicorp/tap"
 tap "manaflow-ai/cmux"
@@ -90,6 +91,8 @@ brew "yq"
 brew "zoxide"
 # Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
+# The official CLI for Amazon EKS
+brew "aws/tap/eksctl", trusted: true
 # Enable Windows-like alt-tab
 cask "alt-tab"
 # Terminal-based AI coding assistant

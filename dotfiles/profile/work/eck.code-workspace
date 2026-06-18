@@ -25,7 +25,8 @@
 			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/.claude/"
 		},
 		{
-			"path": "repos/platform-security-terraform/pst/helm"
+			"name": "helm",
+			"path": "/Users/levontumanyan/repos/platform-security-terraform/pst/helm"
 		}
 	]
 }
