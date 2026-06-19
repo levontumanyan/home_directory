@@ -651,7 +651,6 @@ if [[ $MODE == karma ]]; then
 		echo -e "${BOLD}@${KARMA_USER}${RST}"
 		echo ""
 		echo -e "  ${GRN}${BOLD}${APPROVED_COUNT}${RST}  PRs approved"
-		echo -e "  ${CYN}${BOLD}${TOTAL_REVIEWED}${RST}  total PRs reviewed (excl. own)"
 		echo ""
 		echo -e "${DIM}──────────────────────────────────────────────────${RST}"
 		echo -e "${DIM}window: ${TEN_DAYS_AGO}..${TODAY}  ·  date filter uses updated-at${RST}"
