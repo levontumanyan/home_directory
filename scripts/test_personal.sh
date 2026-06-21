@@ -65,7 +65,19 @@ assert_content "$HOME/.claude/CLAUDE.md" "System Instruction"
 
 # ── 5. Idempotency ───────────────────────────────────────────────────────────
 section "5. Idempotency (second run)"
+# Simulate a newly added file to the dotfiles repo that conflicts with a real file in HOME
+mkdir -p "./dotfiles/base/.test-new-conflict"
+echo "repo-file" >"./dotfiles/base/.test-new-conflict/file.txt"
+mkdir -p "$HOME/.test-new-conflict"
+echo "local-file" >"$HOME/.test-new-conflict/file.txt"
+
 run_install -m personal -t
+
+assert_symlink "$HOME/.test-new-conflict/file.txt" "dotfiles/base/.test-new-conflict/file.txt"
+# Clean up test files
+rm -rf "./dotfiles/base/.test-new-conflict"
+rm -rf "$HOME/.test-new-conflict"
+
 assert_symlink "$HOME/.zshrc" "dotfiles/base/.zshrc"
 assert_symlink "$HOME/.claude/CLAUDE.md" "dotfiles/profile/personal/.claude/CLAUDE.md"
 assert_realpath "$HOME/.claude/CLAUDE.md" "dotfiles/profile/personal/AGENTS.md"

@@ -196,14 +196,14 @@ backup_conflicts() {
 # stow base dotfiles (all machines)
 if [ ! -f "$HOME/.work.zsh" ] && [ ! -f "$HOME/.personal.zsh" ]; then
 	say "First install: backing up any conflicting files to $BACKUP_DIR"
-	backup_conflicts base
-	if [ "$MINIMAL" = "0" ]; then
-		backup_conflicts "os/$OS_TYPE"
-		if [ "$MACHINE_TYPE" = "work" ]; then
-			backup_conflicts "profile/work"
-		else
-			backup_conflicts "profile/personal"
-		fi
+fi
+backup_conflicts base
+if [ "$MINIMAL" = "0" ]; then
+	backup_conflicts "os/$OS_TYPE"
+	if [ "$MACHINE_TYPE" = "work" ]; then
+		backup_conflicts "profile/work"
+	else
+		backup_conflicts "profile/personal"
 	fi
 fi
 stow --no-folding --dir="$DOTFILES_DIR/dotfiles" --target="$HOME" --restow base
