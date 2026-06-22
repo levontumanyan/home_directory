@@ -95,6 +95,8 @@ brew "yq"
 brew "zoxide"
 # Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
+# The AI coding agent built for the terminal.
+brew "anomalyco/tap/opencode", trusted: true
 # The official CLI for Amazon EKS
 brew "aws/tap/eksctl", trusted: true
 # Packer
