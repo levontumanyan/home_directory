@@ -1,4 +1,4 @@
-# Agent Instructions (WORK)
+# Agent Instructions
 
 # Code Style & Standards
 
@@ -18,9 +18,9 @@
 
 # tools
 
-- When you need to check buildkite pipeline, use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.
-- I am using `podman`! No `docker`.
 - For `buildkite`, `bk` stuff use the MCP.
+- When you need to check buildkite pipeline, if the mcp didn't work. use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.
+- I am using `podman`! No `docker`.
 
 ## MCP Priority Order (Elastic questions)
 
@@ -50,18 +50,11 @@ Use `gh issue` commands instead. The Atlassian MCP tools are still valid for non
 
 # Knowledge Repository
 
-My personal knowledge base is located at: `~repos/knowledge-base`
+My personal knowledge base is located at: `~repos/knowledge-base`. Elastic stuff goes under `~repos/knowledge-base/elastic`
 
-When I ask you to "document this", "create a doc for this issue", or "create a file with the branch name", do the following:
-1. Get the current branch name: `git branch --show-current`
-2. Use that as the filename (e.g., `feat/PROJ-123-add-auth` → `PROJ-123-add-auth.md`)
-3. Create a new markdown file in `~repos/knowledge-base/elastic/`
-4. Populate it with:
-   - Branch name / issue reference
-   - Current repo and path
-   - What the issue/feature is about (ask me if unclear)
-   - Key decisions or notes
-5. When I ask you to create a subissue i want you to use:
+# github
+
+When asked to create subissues, always create distinct child issue objects instead of adding comments or text mentions to the parent. Ensure a strict database-level hierarchy by explicitly passing the parent ID in the creation mutation.
 
 # Environment Access
 
@@ -72,3 +65,7 @@ I do not have access to `govcloud high` or `frh`. The changes there are some don
 - **Unified Instructions**: If a repository contains `GEMINI.md` or `CLAUDE.md`, unify them into a single `AGENTS.md` file and symlink the original filenames back to it. `AGENTS.md` is the primary source of truth for all AI instructions.
 
 - **Markdown headings**: Personal docs use multiple `#` for top-level sections. Team repos (`elastic/platform-security-team`, `elastic/platform-security-terraform`) follow the single H1 standard: one `#` title, `##` for sections.
+
+# kubectl
+
+- logging: When it makes sense suggest `k logs -f statefulsets/<name>` instead of directly logging a pod.

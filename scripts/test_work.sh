@@ -43,7 +43,7 @@ section "4. Work Profile Content"
 assert_file_exists "$HOME/.work.zsh"
 assert_file_absent "$HOME/.personal.zsh"
 assert_not_symlink "$HOME/.personal.zsh"
-assert_content "$HOME/AGENTS.md" "WORK"
+assert_content "$HOME/AGENTS.md" "buildkite"
 assert_no_content "$HOME/AGENTS.md" "System Instruction"
 
 summary

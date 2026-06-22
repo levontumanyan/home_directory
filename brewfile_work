@@ -1,10 +1,12 @@
 tap "anomalyco/tap"
 tap "aws/tap"
 tap "buildkite/buildkite"
-tap "hashicorp/tap"
+tap "hashicorp/tap", trusted: true
 tap "manaflow-ai/cmux"
 # AI pair programming in your terminal
 brew "aider"
+# Get stuff done with container-native workflows for Kubernetes
+brew "argo"
 # Official Amazon AWS command-line interface
 brew "awscli"
 # Clone of cat(1) with syntax highlighting and Git integration
@@ -41,6 +43,8 @@ brew "k3d"
 brew "kind"
 # Kubernetes command-line interface
 brew "kubernetes-cli"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node@22"
 # Okta federated identity for AWS CLI
 brew "okta-aws-cli"
 # Create, run, and share large language models (LLMs)
@@ -93,6 +97,10 @@ brew "zoxide"
 brew "zsh-autosuggestions"
 # The official CLI for Amazon EKS
 brew "aws/tap/eksctl", trusted: true
+# Packer
+brew "hashicorp/tap/packer"
+# Vault
+brew "hashicorp/tap/vault"
 # Enable Windows-like alt-tab
 cask "alt-tab"
 # Terminal-based AI coding assistant
@@ -108,6 +116,7 @@ uv "-"
 uv "-"
 uv "-"
 uv "rapid-mlx"
+npm "@devcontainers/cli"
 npm "@earendil-works/pi-coding-agent"
 npm "@elastic/cli"
 npm "@mariozechner/pi-coding-agent"

@@ -100,6 +100,7 @@
     ],
     "deny": []
   },
+  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -122,7 +123,7 @@
     "frontend-design@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true
   },
+  "skipWorkflowUsageWarning": true,
   "theme": "dark",
-  "skipAutoPermissionPrompt": true,
-  "model": "opus[1m]"
+  "skipAutoPermissionPrompt": true
 }
