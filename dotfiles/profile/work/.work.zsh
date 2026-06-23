@@ -51,3 +51,5 @@ compdef _eck-workspace eck-workspace
 
 # elastic CLI completions
 eval "$(elastic completion zsh)"
+
+export ARGO_CONFIGFILE=~/.config/argo/config
