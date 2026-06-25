@@ -43,7 +43,8 @@ The **only** relevant GitHub Project for PSEC work is [Platform Security Team (#
 | Story Points field ID | `PVTF_lADOAGc3Zs4BSCW-zg_sDTA` |
 | Status field ID | `PVTSSF_lADOAGc3Zs4BSCW-zg_sCpA` |
 
-When creating PSEC issues, always add them to this project. Use the `/github-cli` skill for full Sprint/iteration management workflows and GraphQL mutation patterns.
+- When creating PSEC issues, always add them to this project
+- When creating GitHub issues in elastic/platform-security-team, always assign a sprint: use Incoming Requests (ca8d553f) for backlog/future work, or the appropriate active sprint (Sprint 8: 9c78472b, etc) if the work is planned soon — never leave the Sprint field unset
 
 ## PSEC Does NOT Use Jira
 
@@ -70,3 +71,9 @@ I do not have access to `govcloud high` or `frh`. The changes there are some don
 # kubectl
 
 - logging: When it makes sense suggest `k logs -f statefulsets/<name>` instead of directly logging a pod.
+
+# slack
+
+Keep this list small and high-signal. Add stable team/workflow channels here when agents should know where to search, read, or draft messages without rediscovering the purpose each time.
+
+- `#platform-security-eng` - my team's engineering channel. When i ask you to post in psec channel for review it is here!
