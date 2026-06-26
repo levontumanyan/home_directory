@@ -53,3 +53,5 @@ compdef _eck-workspace eck-workspace
 eval "$(elastic completion zsh)"
 
 export ARGO_CONFIGFILE=~/.config/argo/config
+
+alias pi='nono run --profile pi -- pi'

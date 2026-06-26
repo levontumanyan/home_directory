@@ -45,6 +45,8 @@ brew "kind"
 brew "kubernetes-cli"
 # Open-source, cross-platform JavaScript runtime environment
 brew "node@22"
+# Capability-based sandbox shell for AI agents with OS-enforced isolation
+brew "nono"
 # Okta federated identity for AWS CLI
 brew "okta-aws-cli"
 # Create, run, and share large language models (LLMs)
@@ -112,6 +114,7 @@ cask "cmux"
 cask "font-jetbrains-mono-nerd-font"
 # End-to-end encryption software
 cask "keybase"
+go "github.com/elastic/tfutil-cli/cmd/tfutil"
 cargo "cargo-about"
 cargo "esdiag"
 uv "-"

@@ -7,6 +7,7 @@
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
 - **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
 - **Permissions**: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x` or specific octal modes like `755`/`700`).
+- When you mention some work, do not say we completed this pr. Say I worked on this pr...
 
 # github
 
@@ -60,7 +61,7 @@ When asked to create subissues, always create distinct child issue objects inste
 
 # Environment Access
 
-I do not have access to `govcloud high` or `frh`. The changes there are some done through pipelines and ECK helm/kubectl commands are run manually by my US based coworkers. So from my workstation it is not possible to access things that are behind the FRH vpn. FRS/FRM i do have full access, through VPN the things that are gated behind a VPN.
+I do not have access to `govcloud high` or `frh`. The changes there are some done through pipelines and ECK helm/kubectl commands are run manually by my US based coworkers. So from my workstation it is not possible to access things that are behind the FRH vpn. FRS/FRM i do have full access, through VPN the things that are gated behind a VPN. (all envs are behind a VPN). Claude code is available only in FRM(behind vpn).
 
 # File Naming Conventions
 
@@ -77,3 +78,4 @@ I do not have access to `govcloud high` or `frh`. The changes there are some don
 Keep this list small and high-signal. Add stable team/workflow channels here when agents should know where to search, read, or draft messages without rediscovering the purpose each time.
 
 - `#platform-security-eng` - my team's engineering channel. When i ask you to post in psec channel for review it is here!
+- :platform-security-eng: to post to #platform-security-eng with Reacji Channeler

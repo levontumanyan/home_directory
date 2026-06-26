@@ -51,6 +51,7 @@
       "Bash(jq *)",
       "Bash(curl -s *)",
       "Bash(curl --silent *)",
+      "Bash(argo get *)",
       "WebSearch",
       "mcp__buildkite-ro__*",
       "mcp__elastic-docs__*",
@@ -123,8 +124,8 @@
     "frontend-design@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true
   },
+  "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
-  "skipAutoPermissionPrompt": true,
-  "tui": "fullscreen"
+  "skipAutoPermissionPrompt": true
 }
