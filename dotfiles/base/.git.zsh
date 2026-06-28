@@ -15,3 +15,14 @@ _auto_git_pull() {
 }
 
 add-zsh-hook chpwd _auto_git_pull
+
+gwt() {
+	git rev-parse --is-inside-work-tree &>/dev/null || { print "Not in a git repo"; return 1; }
+
+	local selected
+	selected=$(git worktree list | fzf --prompt="worktree> " \
+		--preview='git -C {1} log --oneline --color=always -10' \
+		--preview-window=right:60% | awk '{print $1}')
+
+	[[ -n "$selected" ]] && cd "$selected"
+}
