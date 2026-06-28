@@ -22,6 +22,7 @@
 
 - For `buildkite`, `bk` stuff use the MCP.
 - When you need to check buildkite pipeline, if the mcp didn't work. use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.
+- After running `buildkite apply this` if there are resources to apply the pipiline will be blocked, waiting for manual approval at the apply step. I will need you to pull the plan output to verify what it's proposing and tell me if all are good to apply or not. And if there are any resources that need to be applied/modified/deleted that are not from our changes flag immediately!
 - I am using `podman`! No `docker`.
 
 ## MCP Priority Order (Elastic questions)
@@ -75,7 +76,8 @@ I do not have access to `govcloud high` or `frh`. The changes there are some don
 
 # slack
 
-Keep this list small and high-signal. Add stable team/workflow channels here when agents should know where to search, read, or draft messages without rediscovering the purpose each time.
-
-- `#platform-security-eng` - my team's engineering channel. When i ask you to post in psec channel for review it is here!
+- `#platform-security-eng` - my team's engineering channel. When i ask you to post in psec channel for review it is here
+- `#platform-security` - my team's channel where we get requests from users
 - :platform-security-eng: to post to #platform-security-eng with Reacji Channeler
+
+- When making technical decisions, do not give much weight to development cost. Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.

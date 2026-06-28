@@ -13,6 +13,7 @@ zstyle ':completion:*' menu select
 
 source "$HOME/.completions.zsh"
 source "$HOME/.aliases.zsh"
+source "$HOME/.git.zsh"
 
 # source the prompt
 [ -f "$HOME/.ps1.zsh" ] && source "$HOME/.ps1.zsh"
