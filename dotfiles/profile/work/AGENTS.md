@@ -15,7 +15,7 @@
 - also when you create an issue in the psteam repo ask about the number of points and add it to the issue
 - **PR and issue references**: Whenever you mention a PR or GitHub issue by number, always format it as a markdown hyperlink so it is clickable. For example: [PR #2407](https://github.com/elastic/platform-security-terraform/pull/2407) or [issue #901](https://github.com/elastic/platform-security-team/issues/901). Never reference a number alone without a link.
 - Always run `gh pr update-branch <PR_NUMBER> && gh pr comment <PR_NUMBER> --body "buildkite plan this"` — never trigger a plan without updating first in the same command. Also run that after everytime you commit new changes to a pr. If it reports conflicts, resolve them via rebase before proceeding.
-- Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or `gh pr create` — backticks and nested quotes corrupt the markdown.
+- Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or `gh pr create` — backticks and nested quotes corrupt the markdown. Also use `--body-file` for `gh pr comment` whenever the body contains code blocks or backticks.
 - When you are working on a PR, especially when closing it make sure that the PR is closing an issue. If there is no issue that related that is fine, but it doesn't hurt to ask the user if you cannot deduce the issue that the PR should close to confirm if there is an issue or not.
 
 # tools
@@ -63,6 +63,29 @@ When asked to create subissues, always create distinct child issue objects inste
 # Environment Access
 
 I do not have access to `govcloud high` or `frh`. The changes there are some done through pipelines and ECK helm/kubectl commands are run manually by my US based coworkers. So from my workstation it is not possible to access things that are behind the FRH vpn. FRS/FRM i do have full access, through VPN the things that are gated behind a VPN. (all envs are behind a VPN). Claude code is available only in FRM(behind vpn).
+
+## AWS CLI Profile Naming
+
+There are **two separate profile systems** — do not confuse them
+
+**1. Okta profiles** (in `~/.okta/okta.yaml`, used by `mfa-*` aliases and `okta-aws-cli`):
+
+Alias|Okta profile, `mfa`|`commercial`, `mfa-frm`|`govcloud-frm`, `mfa-frs`|`govcloud-frs`, `mfa-frh`|`govcloud-frh`
+
+**2. AWS CLI workspace profiles**
+
+| Env | `--profile` for security ops | `--profile` for ecsecurity IAM |
+|-----|------------------------------|--------------------------------|
+| Commercial | `ecsecurity` | `ecsecurity` |
+| FRM | `gov-frm-uge1-security` | `gov-frm-uge1-ecsecurity` |
+| FRS | `gov-stg-uge1-security` | `gov-stg-uge1-ecsecurity` |
+| FRH | `gov-frh-uge1-security` | `gov-frh-uge1-ecsecurity` |
+
+for FRS is `gov-stg-uge1-security` is the correct profile.
+
+**What is `ecsecurity`?** The IAM security bastion account in each org — holds cross-account audit roles and PSEC-owned security automation. For general AWS API calls (e.g. checking EBS encryption, querying EC2), use the `*-security` profile. The `*-ecsecurity` profile is for IAM/SAML role management in Terraform.
+
+**Region**: all GovCloud envs use `us-gov-east-1`.
 
 # File Naming Conventions
 
