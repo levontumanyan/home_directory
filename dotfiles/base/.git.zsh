@@ -19,10 +19,13 @@ add-zsh-hook chpwd _auto_git_pull
 gwt() {
 	git rev-parse --is-inside-work-tree &>/dev/null || { print "Not in a git repo"; return 1; }
 
-	local selected
-	selected=$(git worktree list | fzf --prompt="worktree> " \
-		--preview='git -C {1} log --oneline --color=always -10' \
-		--preview-window=right:60% | awk '{print $1}')
+	local root name
+	root=$(git worktree list | awk 'NR==1{print $1}' | xargs dirname)
 
-	[[ -n "$selected" ]] && cd "$selected"
+	name=$(git worktree list | sed "s|^$root/||" | \
+		fzf --prompt="worktree> " \
+			--preview="git -C $root/{1} log --oneline --color=always -10" \
+			--preview-window=right:60% | awk '{print $1}')
+
+	[[ -n "$name" ]] && cd "$root/$name"
 }
