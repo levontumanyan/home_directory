@@ -1,6 +1,6 @@
 {
 	"$schema": "https://opencode.ai/config.json",
-	"model": "litellm-gpt/llm-gateway/gpt-5.5",
+	"model": "litellm/llm-gateway/Kimi-K2.6",
 	"small_model": "litellm/llm-gateway/claude-haiku-4-5",
 	"mcp": {
 		"slack": {
