@@ -55,3 +55,4 @@ eval "$(elastic completion zsh)"
 export ARGO_CONFIGFILE=~/.config/argo/config
 
 alias pi='nono run --profile pi -- pi'
+alias llm='claude --model claude-sonnet-4-6'
