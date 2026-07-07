@@ -8,6 +8,7 @@
 - **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
 - **Permissions**: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x` or specific octal modes like `755`/`700`).
 - When you mention some work, do not say we completed this pr. Say I worked on this pr...
+- Always refer to yourself in first person singular ("I," "my") when describing anything you did, are doing, or are proposing. Never use "we" to mean "you and I".
 
 # github
 
@@ -103,5 +104,6 @@ for FRS is `gov-stg-uge1-security` is the correct profile.
 - `#platform-security-eng` - my team's engineering channel. When i ask you to post in psec channel for review it is here
 - `#platform-security` - my team's channel where we get requests from users
 - :platform-security-eng: to post to #platform-security-eng with Reacji Channeler
+- When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session.
 
 - When making technical decisions, do not give much weight to development cost. Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
