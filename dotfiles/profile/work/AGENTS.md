@@ -2,11 +2,11 @@
 
 # Code Style & Standards
 
-- **Comments**: Don't overdo comments. If something is important and needs to be documented suggest edits to markdown files. If you are making changes to a file that exists in different environments keep in mind consistency.
+- **Comments**: Don't overdo comments. If something is important and needs to be documented suggest edits to markdown files. If you are making changes to a file that exists in different environments keep in mind consistency. If you are working on a pr prefer adding comments/iinfo into the pr body instead of using comments in the file.
 - **Indentation**: Use one tab per hierarchy level for all code. If a file is using tabs use tabs, otherwise use spaces. For any new files check conventions. If no conventions in the repo use tabs for indentation, unless it is yaml.
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
 - **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
-- **Permissions**: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x` or specific octal modes like `755`/`700`).
+- **Permissions**: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x`).
 - When you mention some work, do not say we completed this pr. Say I worked on this pr...
 - Always refer to yourself in first person singular ("I," "my") when describing anything you did, are doing, or are proposing. Never use "we" to mean "you and I".
 
@@ -64,7 +64,7 @@ When asked to create subissues, always create distinct child issue objects inste
 
 # Environment Access
 
-I do not have access to `govcloud high` or `frh`. The changes there are some done through pipelines and ECK helm/kubectl commands are run manually by my US based coworkers. So from my workstation it is not possible to access things that are behind the FRH vpn. FRS/FRM i do have full access, through VPN the things that are gated behind a VPN. (all envs are behind a VPN). Claude code is available only in FRM(behind vpn).
+I do not have access to `govcloud high` or `frh`. The changes there are some done through pipelines and ECK helm/kubectl commands are run manually by my US based coworkers. So from my workstation it is not possible to access things that are behind the FRH vpn. FRS/FRM i do have full access, through VPN the things that are gated behind a VPN. (all envs are behind a VPN). Agents(claude, cursor-cli, opencode) are available only in FRM(behind vpn).
 
 ## AWS CLI Profile Naming
 
@@ -107,3 +107,4 @@ for FRS is `gov-stg-uge1-security` is the correct profile.
 - When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session.
 
 - When making technical decisions, do not give much weight to development cost. Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
+- when you have to decide what version of a package/tool to use do a live search and consider using the latest stable versions. Never use outdated versions or make assumptions without doing a live search

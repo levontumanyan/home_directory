@@ -21,7 +21,9 @@ opencode-auth-mcps() {
 }
 
 eck-workspace() {
-	local worktree="${1:?Usage: eck-workspace <worktree-name>}"
+	local worktree="${1:?Usage: eck-workspace <worktree-name|.>}"
+	# Resolve '.' to the actual directory name so sed produces a valid path
+	[[ "$worktree" == "." ]] && worktree="$(basename "$(pwd)")"
 	local base="$HOME/eck.code-workspace"
 	local out_dir="$HOME/.local/share/workspaces"
 	local out="${out_dir}/eck-${worktree}.code-workspace"
@@ -40,7 +42,6 @@ _eck-workspace() {
 		wt_branch="${line##*\[}"
 		wt_branch="${wt_branch%%]*}"
 		wt_name="${wt_path##*/}"
-		[[ "$wt_name" == "pst" ]] && continue
 		worktrees+=("${wt_name}:${wt_branch}")
 	done < <(git -C "$pst_dir" worktree list 2>/dev/null)
 	_describe 'worktree' worktrees
@@ -50,7 +51,7 @@ compdef _eck-workspace eck-workspace
 [ -f "$HOME/repos/cloud/tools/vault-helper" ] && source "$HOME/repos/cloud/tools/vault-helper"
 
 # elastic CLI completions
-eval "$(elastic completion zsh)"
+_cache_completion elastic elastic completion zsh
 
 export ARGO_CONFIGFILE=~/.config/argo/config
 

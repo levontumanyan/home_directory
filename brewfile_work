@@ -3,6 +3,7 @@ tap "aws/tap"
 tap "buildkite/buildkite"
 tap "hashicorp/tap", trusted: true
 tap "manaflow-ai/cmux"
+tap "raine/claude-history"
 # AI pair programming in your terminal
 brew "aider"
 # Get stuff done with container-native workflows for Kubernetes
@@ -105,6 +106,8 @@ brew "aws/tap/eksctl", trusted: true
 brew "hashicorp/tap/packer"
 # Vault
 brew "hashicorp/tap/vault"
+# Fuzzy-search Claude Code conversation history from the terminal
+brew "raine/claude-history/claude-history", trusted: true
 # Enable Windows-like alt-tab
 cask "alt-tab"
 # Terminal-based AI coding assistant

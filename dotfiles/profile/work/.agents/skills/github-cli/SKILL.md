@@ -1406,71 +1406,6 @@ Never stack bare `**Label:** value` lines without blank lines between them.
 
 Slack messages use **mrkdwn**, which is different — single newlines *do* break lines there. Don't carry Slack formatting habits into GitHub Markdown.
 
-## Mermaid Diagrams in GitHub Markdown
-
-GitHub renders Mermaid diagrams natively in any markdown context — PR descriptions, issue bodies, PR comments, issue comments, and `.md` files. **Always prefer Mermaid over ASCII art** for diagrams on GitHub.
-
-### Why Mermaid over ASCII
-
-- **Renders inline** — GitHub converts ` ```mermaid ` blocks into SVG diagrams automatically
-- **ASCII art breaks** — monospace alignment is fragile across fonts, browsers, and GitHub's rendering pipeline
-- **Maintainable** — Mermaid source is semantic; ASCII art requires manual re-drawing for any change
-
-### Supported Diagram Types
-
-| Type | Use For |
-|------|---------|
-| `flowchart TD` | Architecture, decision trees, data flow |
-| `sequenceDiagram` | API call flows, auth handshakes |
-| `gantt` | Timelines, project phases |
-| `stateDiagram-v2` | State machines, lifecycle |
-| `classDiagram` | Object relationships |
-| `erDiagram` | Database schemas |
-
-### Usage in `gh` Commands
-
-**PR description:**
-```bash
-gh pr create --title "Title" --body "$(cat <<'EOF'
-## Summary
-Changes here
-
-## Architecture
-
-```mermaid
-flowchart TD
-    A[Service A] --> B[Service B]
-    B --> C[Database]
-```
-
-EOF
-)"
-```
-
-**PR/issue comment:**
-```bash
-gh pr comment 123 --body "$(cat <<'EOF'
-## Auth Flow
-
-```mermaid
-sequenceDiagram
-    User->>Okta: Login
-    Okta->>App: SAML assertion
-    App->>User: Session token
-```
-
-EOF
-)"
-```
-
-### Tips
-
-- **Line breaks in node labels: use `<br/>`, NOT `\n`** — Mermaid renders `\n` literally as the text `\n`
-- Keep diagrams simple — GitHub's renderer handles most Mermaid syntax but complex styling may not render
-- Use `style` directives sparingly for color-coding nodes
-- Test rendering by previewing in a draft PR or issue before posting the final version
-- For very complex diagrams, consider linking to a dedicated `.md` file in the repo instead of inlining
-
 ## GitHub Projects V2: Sprint / Iteration Field Management
 
 GitHub Projects V2 uses **iteration fields** for sprints. All operations require GraphQL node IDs (not human names or numbers). The workflow is: discover IDs → read current values → set/clear values.
@@ -1675,8 +1610,6 @@ gh project item-edit \
 ### Bulk Sprint Assignment
 
 ```bash
-# Assign multiple issues to Sprint 2
-# First, collect item IDs for all issues
 for ISSUE in 127 838 874 784; do
   ITEM_ID=$(gh api graphql -f query="
   {
@@ -1702,7 +1635,6 @@ done
 ### List All Sprints (Current + Completed)
 
 ```bash
-# Get all iterations for a project's Sprint field
 gh api graphql -f query='
 {
   node(id: "PVTF_...") {
@@ -1793,7 +1725,6 @@ FIELD_ID="PVTIF_lADOAGc3Zs4BSCW-zg_sDTE"
 SPRINT_ID="<iteration-id>"  # from Step 1
 
 for ISSUE in 798 800 843; do
-  # Get item ID (add to project if needed)
   ITEM_ID=$(gh api graphql -f query="
   {
     repository(owner: \"elastic\", name: \"platform-security-team\") {

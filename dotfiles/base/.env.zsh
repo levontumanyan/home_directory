@@ -29,9 +29,9 @@ fi
 # Java (openjdk is keg-only, not auto-linked by brew)
 [ -d "/opt/homebrew/opt/openjdk/bin" ] && PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
-# Podman as Docker drop-in
-if [[ "$(uname)" == "Darwin" ]] && command -v podman >/dev/null 2>&1; then
-	if podman machine inspect >/dev/null 2>&1; then
-		DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
-	fi
+# Podman as Docker drop-in — check socket existence instead of spawning podman machine inspect
+if [[ "$OSTYPE" == darwin* ]]; then
+	_pdm_sock="${TMPDIR%/}/podman/podman-machine-default-api.sock"
+	[[ -S "$_pdm_sock" ]] && export DOCKER_HOST="unix://$_pdm_sock"
+	unset _pdm_sock
 fi
