@@ -20,6 +20,14 @@ opencode-auth-mcps() {
 	done
 }
 
+mimo-auth-mcps() {
+	local mcps
+	mcps=(${(f)"$(jq -r '.mcpServers | keys[]' ~/.claude.json)"})
+	for mcp in "${mcps[@]}"; do
+		mimo mcp auth "$mcp"
+	done
+}
+
 eck-workspace() {
 	local worktree="${1:?Usage: eck-workspace <worktree-name|.>}"
 	# Resolve '.' to the actual directory name so sed produces a valid path

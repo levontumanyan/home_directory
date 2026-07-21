@@ -59,3 +59,6 @@ export PATH="/home/ubuntu/.local/bin:$PATH"
 
 # Added by Antigravity CLI installer
 export PATH="/Users/levontumanyan/.local/bin:$PATH"
+
+# mimocode
+export PATH=/Users/levontumanyan/.mimocode/bin:$PATH

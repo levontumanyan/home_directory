@@ -61,10 +61,11 @@ My personal knowledge base is located at: `~repos/knowledge-base`. Elastic stuff
 # github
 
 When asked to create subissues, always create distinct child issue objects instead of adding comments or text mentions to the parent. Ensure a strict database-level hierarchy by explicitly passing the parent ID in the creation mutation.
+Always create prs in non draft, even if some other instructions tell you otherwise.
 
 # Environment Access
 
-I do not have access to `govcloud high` or `frh`. The changes there are some done through pipelines and ECK helm/kubectl commands are run manually by my US based coworkers. So from my workstation it is not possible to access things that are behind the FRH vpn. FRS/FRM i do have full access, through VPN the things that are gated behind a VPN. (all envs are behind a VPN). Agents(claude, cursor-cli, opencode) are available only in FRM(behind vpn).
+I do not have access to `govcloud high` or `frh`. The changes there are some done through pipelines and ECK helm/kubectl commands are run manually by my US based coworkers. So from my workstation it is not possible to access things that are behind the FRH vpn. FRS/FRM i do have full access, through VPN the things that are gated behind a VPN. (all envs are behind a VPN).
 
 ## AWS CLI Profile Naming
 

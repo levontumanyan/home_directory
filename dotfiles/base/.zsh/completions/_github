@@ -4,6 +4,7 @@ _github() {
 	local -a opts
 	opts=(
 		'(-D --due)'{-D,--due}'[show open issues with a due date, grouped by day]'
+		'(-N --nodue)'{-N,--nodue}'[show open issues assigned to you with no due date, grouped by sprint]'
 		'(-i --issues)'{-i,--issues}'[show completed issues (closed last 30d or Status=Done) + in progress]'
 		'(-c --created)'{-c,--created}'[show open issues you created]'
 		'(-u --unassigned)'{-u,--unassigned}'[show open issues you created with no assignee]'

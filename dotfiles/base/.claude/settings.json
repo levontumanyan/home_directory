@@ -101,7 +101,7 @@
     ],
     "deny": []
   },
-  "model": "haiku",
+  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -125,6 +125,7 @@
     "skill-creator@claude-plugins-official": true
   },
   "tui": "fullscreen",
+  "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
   "skipAutoPermissionPrompt": true

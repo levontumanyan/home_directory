@@ -61,6 +61,7 @@ usage() {
 		${BOLD}FLAGS${RST}
 		    (none)           Sprint view: current sprint, next sprint, backlog
 		    -D, --due         Open issues with a due date, grouped by day
+		    -N, --nodue       Open issues assigned to you with no due date, grouped by sprint
 		    -i, --issues      Completed issues (last 30d or Status=Done) + in progress
 		    -c, --created     Open issues you created in ${REPO_OWNER}/${REPO_NAME}
 		    -u, --unassigned  Open issues you created with no assignee
@@ -86,6 +87,7 @@ MODE="sprint"
 while [[ $# -gt 0 ]]; do
 	case "$1" in
 	-D | --due) MODE="due" ;;
+	-N | --nodue) MODE="nodue" ;;
 	-i | --issues) MODE="issues" ;;
 	-c | --created) MODE="created" ;;
 	-u | --unassigned) MODE="unassigned" ;;
@@ -1123,6 +1125,69 @@ elif [[ $MODE == due ]]; then
 				fi
 				print_issues "$DAY_ISSUES"
 			done
+	fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: nodue
+# ══════════════════════════════════════════════════════════════════════════════
+elif [[ $MODE == nodue ]]; then
+	NODUE_ISSUES=$(echo "$ISSUES" | jq '[.[] | select(.due == null)]')
+	NDC=$(echo "$NODUE_ISSUES" | jq 'length')
+	echo -e "${DIM}${NDC} issues without a due date${RST}"
+
+	if [[ $NDC -eq 0 ]]; then
+		echo -e "\n  ${DIM}All your issues have a due date set.${RST}"
+	else
+		ND_CURRENT_SPRINT=$(echo "$NODUE_ISSUES" | jq -r --arg today "$TODAY" '
+			[.[] | select(.sprint != null) | .sprint] |
+			unique_by(.title) |
+			map(select(.startDate <= $today)) |
+			sort_by(.startDate) | last | .title // ""')
+
+		ND_IN_SPRINT=$(echo "$NODUE_ISSUES" | jq --arg s "$ND_CURRENT_SPRINT" \
+			'[.[] | select(.sprint.title == $s and $s != "")]')
+		ND_NEXT_SPRINT=$(echo "$NODUE_ISSUES" | jq --arg s "$ND_CURRENT_SPRINT" --arg today "$TODAY" \
+			'[.[] | select(.sprint != null and .sprint.title != $s and .sprint.startDate > $today)] | sort_by(.sprint.startDate)')
+		ND_NO_SPRINT=$(echo "$NODUE_ISSUES" | jq --arg s "$ND_CURRENT_SPRINT" --arg today "$TODAY" \
+			'[.[] | select(.sprint == null or (.sprint.title != $s and .sprint.startDate <= $today))]')
+
+		SC=$(echo "$ND_IN_SPRINT" | jq 'length')
+		if [[ $SC -gt 0 ]]; then
+			SPRINT_START=$(echo "$ND_IN_SPRINT" | jq -r '.[0].sprint.startDate // ""')
+			SPRINT_DUR=$(echo "$ND_IN_SPRINT" | jq -r '.[0].sprint.duration // 14')
+			SPRINT_END=""
+			[[ -n $SPRINT_START ]] && SPRINT_END=$(add_days "$SPRINT_START" "$SPRINT_DUR")
+			if [[ -n $SPRINT_END ]]; then
+				DAYS=$(days_until "$SPRINT_END")
+				FMT=$(fmtdate "$SPRINT_END")
+				if [[ $DAYS -le 3 ]]; then DC=$RED; elif [[ $DAYS -le 7 ]]; then DC=$YLW; else DC=$GRN; fi
+				sprint_meta="${DIM}ends ${DC}${FMT}${RST}${DIM} (${DAYS}d)  ·  ${SC} issues${RST}"
+			else
+				sprint_meta="${DIM}${SC} issues${RST}"
+			fi
+			echo ""
+			echo -e "${GRN}${BOLD}◉  ${ND_CURRENT_SPRINT:-CURRENT SPRINT}${RST}  ${sprint_meta}"
+			print_issues "$ND_IN_SPRINT"
+		fi
+
+		NC=$(echo "$ND_NEXT_SPRINT" | jq 'length')
+		if [[ $NC -gt 0 ]]; then
+			while IFS= read -r sprint_name; do
+				SPRINT_ITEMS=$(echo "$ND_NEXT_SPRINT" | jq --arg s "$sprint_name" '[.[] | select(.sprint.title == $s)]')
+				SIC=$(echo "$SPRINT_ITEMS" | jq 'length')
+				SP_START=$(echo "$SPRINT_ITEMS" | jq -r '.[0].sprint.startDate // ""')
+				echo ""
+				echo -e "${CYN}${BOLD}○  ${sprint_name}${RST}  ${DIM}starts $(fmtdate "$SP_START")  ·  ${SIC} issues${RST}"
+				print_issues "$SPRINT_ITEMS"
+			done < <(echo "$ND_NEXT_SPRINT" | jq -r '[.[].sprint.title] | unique | .[]')
+		fi
+
+		BC=$(echo "$ND_NO_SPRINT" | jq 'length')
+		if [[ $BC -gt 0 ]]; then
+			echo ""
+			echo -e "${DIM}${BOLD}·  NO SPRINT  (${BC})${RST}"
+			print_issues "$ND_NO_SPRINT"
+		fi
 	fi
 fi
 
