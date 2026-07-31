@@ -30,6 +30,8 @@ brew "d2"
 brew "direnv"
 # Simple, fast and user-friendly alternative to find
 brew "fd"
+# Play, record, convert, and stream select audio and video codecs
+brew "ffmpeg"
 # Infamous electronic fortune-cookie generator
 brew "fortune"
 # Command-line fuzzy finder written in Go
@@ -56,6 +58,10 @@ brew "kepubify"
 brew "libevent"
 # Run a Kubernetes cluster locally
 brew "minikube"
+# Feature-rich command-line audio/video downloader
+brew "yt-dlp"
+# Media player based on MPlayer and mplayer2
+brew "mpv"
 # Open source relational database management system
 brew "mysql"
 # Utility for managing network connections
@@ -143,6 +149,6 @@ cask "miniconda"
 cask "yt-music"
 # Video communication and virtual meeting platform
 cask "zoom"
-uv "mcp-ical"
+uv "mcp-ical", source: "git+https://github.com/Omar-V2/mcp-ical"
 npm "@marlinjai/email-mcp"
 npm "pnpm"

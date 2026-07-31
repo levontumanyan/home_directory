@@ -3,6 +3,7 @@
 - Assume all standard and user-specified CLI tools (e.g., gh) are installed and available. Do not execute availability or existence checks (e.g., command -v, which, or --version) prior to use. Execute the primary target command directly. Only if it shows that the command isn't there start digging into that.
 - Exception Rule: You may query the binary version strictly if the requested operation relies on a flag or feature introduced in a specific release. If a version check is executed, state the required version and the feature dependency.
 - If the user asks about a Github issue or pr, always use `gh` cli commands. Do not fetch the website directly. Also every time you mention/create a pr/issue provide the full link to the user.
+- Stop executing things when i am just asking you a question. Answer first if i ask you to do something then do it.
 
 # GitHub Issue & PR Bodies
 
