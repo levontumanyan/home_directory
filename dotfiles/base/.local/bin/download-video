@@ -123,37 +123,61 @@ def extract_frames(video_path, num_frames=5):
 				os.remove(tmp_fp)
 	return temp_files
 
-def run_ocr_on_video(video_path):
+def run_ocr_and_classify_on_video(video_path):
 	try:
 		import Vision
 		from Foundation import NSURL
 	except ImportError:
-		print("\033[1;33m[download-video] Warning: pyobjc-framework-Vision not available. Skipping OCR.\033[0m")
-		return []
+		print("\033[1;33m[download-video] Warning: pyobjc-framework-Vision not available. Skipping OCR and Classification.\033[0m")
+		return [], []
 
 	frames = extract_frames(video_path)
 	all_texts = []
+	all_tags = {}
+
+	ignored_tags = {
+		"root", "animal", "mammal", "vertebrate", "organism", "living_thing",
+		"fabric", "material", "structure", "matter", "object", "clothing",
+		"person", "people", "adult", "feline", "carnivore"
+	}
+
 	for frame in frames:
 		url = NSURL.fileURLWithPath_(frame)
-		handler = Vision.VNImageRequestHandler.alloc().initWithURL_options_(url, None)
 
-		results = []
-		def completion_handler(request, error):
+		ocr_results = []
+		def ocr_handler(request, error):
 			if error:
 				return
-			observations = request.results()
-			if observations:
-				for obs in observations:
-					candidates = obs.topCandidates_(1)
+			obs = request.results()
+			if obs:
+				for o in obs:
+					candidates = o.topCandidates_(1)
 					if candidates:
-						results.append(candidates[0].string())
+						ocr_results.append(candidates[0].string())
 
-		request = Vision.VNRecognizeTextRequest.alloc().initWithCompletionHandler_(completion_handler)
-		request.setRecognitionLevel_(Vision.VNRequestTextRecognitionLevelAccurate)
+		ocr_req = Vision.VNRecognizeTextRequest.alloc().initWithCompletionHandler_(ocr_handler)
+		ocr_req.setRecognitionLevel_(Vision.VNRequestTextRecognitionLevelAccurate)
 
-		success, error = handler.performRequests_error_([request], None)
+		class_results = []
+		def class_handler(request, error):
+			if error:
+				return
+			obs = request.results()
+			if obs:
+				for o in obs:
+					if o.confidence() > 0.5:
+						class_results.append((o.identifier(), o.confidence()))
+
+		class_req = Vision.VNClassifyImageRequest.alloc().initWithCompletionHandler_(class_handler)
+
+		handler = Vision.VNImageRequestHandler.alloc().initWithURL_options_(url, None)
+		success, error = handler.performRequests_error_([ocr_req, class_req], None)
 		if success:
-			all_texts.extend(results)
+			all_texts.extend(ocr_results)
+			for tag, conf in class_results:
+				tag_clean = tag.strip().lower()
+				if tag_clean not in ignored_tags:
+					all_tags[tag_clean] = max(all_tags.get(tag_clean, 0), conf)
 		os.remove(frame)
 
 	seen = set()
@@ -163,7 +187,15 @@ def run_ocr_on_video(video_path):
 		if t_clean and t_clean.lower() not in seen:
 			seen.add(t_clean.lower())
 			unique_texts.append(t_clean)
-	return unique_texts
+
+	sorted_tags = sorted(all_tags.items(), key=lambda x: x[1], reverse=True)
+	hashtags = []
+	for tag, _ in sorted_tags[:5]:
+		hashtag = "#" + re.sub(r'[\s_]+', '', tag)
+		hashtags.append(hashtag)
+
+	return unique_texts, hashtags
+
 
 def make_filename_slug(ocr_texts):
 	if not ocr_texts:
@@ -375,20 +407,28 @@ def main():
 				raise subprocess.CalledProcessError(res.returncode, cmd)
 
 			ocr_texts = []
+			hashtags = []
 			if got_files and dl_file and not args.audio_only and dl_file.lower().endswith((".mp4", ".mkv", ".webm")):
 				if args.note is None or not args.name:
-					print("\033[1;34m[download-video]\033[0m Running Apple Vision OCR on video frames...")
-					ocr_texts = run_ocr_on_video(dl_file)
+					print("\033[1;34m[download-video]\033[0m Running Apple Vision OCR and image classification on video frames...")
+					ocr_texts, hashtags = run_ocr_and_classify_on_video(dl_file)
 
 			personal_note = ""
 			if args.note is not None:
 				personal_note = args.note
 			else:
 				suggested_note = ", ".join(ocr_texts) if ocr_texts else ""
+				if hashtags:
+					tag_str = " ".join(hashtags)
+					if suggested_note:
+						suggested_note += " " + tag_str
+					else:
+						suggested_note = tag_str
 				personal_note = input_with_default(
 					"Personal note (Enter to accept/skip, or edit directly): ",
 					suggested_note
 				)
+
 
 			custom_name = ""
 			if args.name:
