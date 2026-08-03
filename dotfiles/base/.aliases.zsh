@@ -132,3 +132,6 @@ alias tget="tailscale file get"
 mkcd() {
   mkdir -p "$1" && cd "$1"
 }
+
+# Prevent Zsh from globbing URLs when downloading
+alias download-video="noglob download-video"

@@ -36,6 +36,10 @@ brew "ffmpeg"
 brew "fortune"
 # Command-line fuzzy finder written in Go
 brew "fzf"
+# Feature-rich command-line audio/video downloader
+brew "yt-dlp"
+# Command-line downloader for image-hosting site galleries and collections
+brew "gallery-dl"
 # GitHub command-line tool
 brew "gh"
 # GNU implementation of the famous stream editor
@@ -58,8 +62,6 @@ brew "kepubify"
 brew "libevent"
 # Run a Kubernetes cluster locally
 brew "minikube"
-# Feature-rich command-line audio/video downloader
-brew "yt-dlp"
 # Media player based on MPlayer and mplayer2
 brew "mpv"
 # Open source relational database management system
