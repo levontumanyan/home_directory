@@ -301,6 +301,37 @@ def delete_file_and_archive_entry(target_name, output_dir, archive_file):
 
 	return True
 
+def show_video_metadata(target_name, output_dir):
+	import glob
+	import json
+	pattern1 = os.path.join(output_dir, f"*{target_name}*")
+	matched_files = glob.glob(pattern1)
+
+	if not matched_files:
+		alt_name = target_name.replace("_", "-")
+		if alt_name != target_name:
+			matched_files = glob.glob(os.path.join(output_dir, f"*{alt_name}*"))
+
+	matched_files = [f for f in matched_files if os.path.isfile(f) and os.path.basename(f) not in (".yt-dlp-archive", ".DS_Store")]
+
+	if not matched_files:
+		print(f"\033[1;31m[download-video] No files found matching: {target_name}\033[0m")
+		return False
+
+	for fp in matched_files:
+		print(f"\n\033[1;34m=== Metadata for {os.path.basename(fp)} ===\033[0m")
+		cmd = ["ffprobe", "-v", "quiet", "-show_format", "-show_streams", "-print_format", "json", fp]
+		res = subprocess.run(cmd, capture_output=True, text=True)
+		if res.returncode == 0:
+			try:
+				data = json.loads(res.stdout)
+				print(json.dumps(data, indent=2))
+			except Exception:
+				print(res.stdout)
+		else:
+			print(f"\033[1;31mError running ffprobe for {fp}\033[0m")
+	return True
+
 def main():
 	parser = argparse.ArgumentParser(
 		description="Download videos with rich metadata. Instagram → H.264/AAC MP4 (WhatsApp-native). Others → AV1/VP9 MKV."
@@ -311,6 +342,7 @@ def main():
 	parser.add_argument("--note", default=None, help="Personal NOTE metadata (non-interactive).")
 	parser.add_argument("-a", "--audio-only", action="store_true", help="Download audio only (MP3).")
 	parser.add_argument("-d", "--delete", default=None, help="Delete a video file by name and remove it from the yt-dlp archive.")
+	parser.add_argument("-m", "--metadata", default=None, help="Show all container and stream metadata for a video file.")
 	parser.add_argument("-c", "--cookies", default=None, help="Path to cookies file passed to yt-dlp.")
 	parser.add_argument("--cookies-from-browser", default=None, help="Browser to extract cookies from (e.g. chrome, safari, firefox).")
 	args = parser.parse_args()
@@ -322,6 +354,11 @@ def main():
 	if args.delete:
 		success = delete_file_and_archive_entry(args.delete, output_dir, archive_file)
 		sys.exit(0 if success else 1)
+
+	if args.metadata:
+		success = show_video_metadata(args.metadata, output_dir)
+		sys.exit(0 if success else 1)
+
 
 
 	urls = args.urls
