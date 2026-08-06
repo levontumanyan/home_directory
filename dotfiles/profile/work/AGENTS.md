@@ -2,7 +2,7 @@
 
 # Code Style & Standards
 
-- **Comments**: Don't overdo comments. If something is important and needs to be documented suggest edits to markdown files. If you are making changes to a file that exists in different environments keep in mind consistency. If you are working on a pr prefer adding comments/iinfo into the pr body instead of using comments in the file.
+- **Comments**: Don't overdo comments. If something is important and needs to be documented suggest edits to markdown files. If you are making changes to a file that exists in different environments keep in mind consistency. If you are working on a pr prefer adding comments/info into the pr body instead of using comments in the file. Stop overusing hashtag comments(for example in .tf files)
 - **Indentation**: Use one tab per hierarchy level for all code. If a file is using tabs use tabs, otherwise use spaces. For any new files check conventions. If no conventions in the repo use tabs for indentation, unless it is yaml.
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
 - **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
@@ -19,6 +19,7 @@
 - Always run `gh pr update-branch <PR_NUMBER> && gh pr comment <PR_NUMBER> --body "buildkite plan this"` — never trigger a plan without updating first in the same command. Also run that after everytime you commit new changes to a pr. If it reports conflicts, resolve them via rebase before proceeding.
 - Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or `gh pr create` — backticks and nested quotes corrupt the markdown. Also use `--body-file` for `gh pr comment` whenever the body contains code blocks or backticks.
 - When you are working on a PR, especially when closing it make sure that the PR is closing an issue. If there is no issue that related that is fine, but it doesn't hurt to ask the user if you cannot deduce the issue that the PR should close to confirm if there is an issue or not.
+- When creating a PR that resolves an issue, use a GitHub-recognized closing keyword (Closes/Resolves/Fixes) with the full cross-repo reference (e.g., Closes elastic/platform-security-team#2191) as the first line of the PR body. Do not use Part of — it's informational only and won't populate the issue's Development panel or auto-close on merge.
 
 # tools
 
@@ -102,8 +103,10 @@ for FRS is `gov-stg-uge1-security` is the correct profile.
 
 # slack
 
-- `#platform-security-eng` - my team's engineering channel. When i ask you to post in psec channel for review it is here
-- `#platform-security` - my team's channel where we get requests from users
+Use these channel IDs directly with Slack MCP tools — do not spend a turn searching for them.
+
+- `#platform-security-eng` (`C09F3MZQM9S`) - my team's engineering channel. When i ask you to post in psec channel for review it is here
+- `#platform-security` (`C64AY13FF`) - my team's channel where we get requests from users
 - :platform-security-eng: to post to #platform-security-eng with Reacji Channeler
 - When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session.
 
