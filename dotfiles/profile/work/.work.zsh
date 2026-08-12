@@ -1,10 +1,13 @@
 # AWS Config Bootstrap - auto-clones repo and sources helpers
 _aws_config_bootstrap() {
-	local repo="${XDG_DATA_HOME:-$HOME/.local/share}/platform-cli-auth"
+	local repo="$HOME/repos/platform-cli-auth"
 	if [[ ! -d "$repo" ]]; then
-		echo "Setting up AWS config helpers..." >&2
-		git clone --quiet https://github.com/elastic/platform-cli-auth.git "$repo" >&2 || return 1
-		echo "Done! Run 'aws-config set <role>' to configure your AWS profiles." >&2
+		repo="${XDG_DATA_HOME:-$HOME/.local/share}/platform-cli-auth"
+		if [[ ! -d "$repo" ]]; then
+			echo "Setting up AWS config helpers..." >&2
+			git clone --quiet https://github.com/elastic/platform-cli-auth.git "$repo" >&2 || return 1
+			echo "Done! Run 'aws-config set <role>' to configure your AWS profiles." >&2
+		fi
 	fi
 	source "$repo/aws-config/shell-helper.sh" 2>/dev/null
 	source "$repo/aws-config/mfa" 2>/dev/null
@@ -22,7 +25,10 @@ opencode-auth-mcps() {
 
 mimo-auth-mcps() {
 	local mcps
-	mcps=(${(f)"$(jq -r '.mcpServers | keys[]' ~/.claude.json)"})
+	mcps=(${(f)"$(
+		{ jq -r '.mcpServers | keys[]' ~/.claude.json 2>/dev/null; \
+		  jq -r '.mcp | keys[]' ~/.config/mimocode/mimocode.jsonc 2>/dev/null; } | sort -u
+	)"})
 	for mcp in "${mcps[@]}"; do
 		mimo mcp auth "$mcp"
 	done
@@ -56,7 +62,7 @@ _eck-workspace() {
 }
 compdef _eck-workspace eck-workspace
 
-[ -f "$HOME/repos/cloud/tools/vault-helper" ] && source "$HOME/repos/cloud/tools/vault-helper"
+[ -f "$HOME/repos/platform-cli-auth/vault-helper/vault-helper.sh" ] && source "$HOME/repos/platform-cli-auth/vault-helper/vault-helper.sh"
 
 # elastic CLI completions
 _cache_completion elastic elastic completion zsh

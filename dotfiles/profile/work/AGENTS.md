@@ -23,10 +23,24 @@
 
 # tools
 
+- if you are creating a terraform file that needs to be generated with harp-terraformer always do that. And make sure the specs exist and generate the file from the specs. Never manually create those files.
 - For `buildkite`, `bk` stuff use the MCP.
 - When you need to check buildkite pipeline, if the mcp didn't work. use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.
 - After running `buildkite apply this` if there are resources to apply the pipiline will be blocked, waiting for manual approval at the apply step. I will need you to pull the plan output to verify what it's proposing and tell me if all are good to apply or not. And if there are any resources that need to be applied/modified/deleted that are not from our changes flag immediately!
 - I am using `podman`! No `docker`.
+
+## Vault CLI
+
+**Always use `vault_select` to authenticate to Vault. Never use raw `vault login`.**
+
+Each bash call is a fresh process — env vars don't persist across calls. `vault_select` checks `envchain` (macOS keychain) for a cached token first and only triggers the OIDC browser flow when the token is actually expired. Raw `vault login` bypasses this caching and re-authenticates every time.
+
+Pattern for any Vault command — all in one bash call:
+```bash
+source ~/repos/platform-cli-auth/vault-helper/vault-helper.sh && vault_select <cluster> && vault kv get secret/foo
+```
+
+Common cluster aliases: `infra-prod` (secrets.elastic.co), `infra-staging` (vault-acc.elastic.co), `cloud-gov` (GovCloud moderate), `dod-dstg` (DSTG), `dod-dil5` (DIL5). Run `vault_select` with no args for the full interactive list.
 
 ## MCP Priority Order (Elastic questions)
 
@@ -108,7 +122,7 @@ Use these channel IDs directly with Slack MCP tools — do not spend a turn sear
 - `#platform-security-eng` (`C09F3MZQM9S`) - my team's engineering channel. When i ask you to post in psec channel for review it is here
 - `#platform-security` (`C64AY13FF`) - my team's channel where we get requests from users
 - :platform-security-eng: to post to #platform-security-eng with Reacji Channeler
-- When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session.
+- When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session. Never directly send a message unless i explicitly request. Always draft a message then i will send it.
 
 - When making technical decisions, do not give much weight to development cost. Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
 - when you have to decide what version of a package/tool to use do a live search and consider using the latest stable versions. Never use outdated versions or make assumptions without doing a live search

@@ -1,0 +1,262 @@
+#!/usr/bin/env python3
+"""
+Syncs ~/.config/ai-tools/allowed-commands.txt to all AI tool configs.
+
+Sections in the canonical file:
+  [bash]      - shell commands
+  [websearch] - enable web search
+  [webfetch]  - enable web fetch / allowed domains
+  [mcp]       - MCP server permissions
+
+Supported tools:
+  - Claude Code  (~/.claude/settings.json)
+  - Antigravity  (~/.gemini/antigravity-cli/settings.json)
+  - opencode     (~/.config/opencode/opencode.jsonc)
+
+Usage: sync-ai-permissions
+"""
+import json
+import re
+import sys
+from pathlib import Path
+
+COMMANDS_FILE = Path.home() / ".config/ai-tools/allowed-commands.txt"
+CLAUDE_SETTINGS = Path.home() / ".claude/settings.json"
+AGENT_SETTINGS = Path.home() / ".gemini/antigravity-cli/settings.json"
+OPENCODE_CONFIG = Path.home() / ".config/opencode/opencode.jsonc"
+
+# Bash commands that need no wildcard suffix in Claude format
+NO_WILDCARD = {"git status", "git stash list", "gh pr status"}
+
+# Read-only tools per MCP server — used when mcp:<server>:read is specified.
+# Claude uses mcp__<server-key>__<tool> naming; keys below match the server name
+# as it appears in Claude's MCP config (the part after mcp__).
+MCP_READ_TOOLS = {
+	"slack": [
+		"mcp__claude_ai_Slack__slack_get_reactions",
+		"mcp__claude_ai_Slack__slack_list_channel_members",
+		"mcp__claude_ai_Slack__slack_read_canvas",
+		"mcp__claude_ai_Slack__slack_read_channel",
+		"mcp__claude_ai_Slack__slack_read_file",
+		"mcp__claude_ai_Slack__slack_read_thread",
+		"mcp__claude_ai_Slack__slack_read_user_profile",
+		"mcp__claude_ai_Slack__slack_search_channels",
+		"mcp__claude_ai_Slack__slack_search_emojis",
+		"mcp__claude_ai_Slack__slack_search_public",
+		"mcp__claude_ai_Slack__slack_search_public_and_private",
+		"mcp__claude_ai_Slack__slack_search_users",
+	],
+	"atlassian": [
+		"mcp__claude_ai_Atlassian__atlassianUserInfo",
+		"mcp__claude_ai_Atlassian__fetch",
+		"mcp__claude_ai_Atlassian__getAccessibleAtlassianResources",
+		"mcp__claude_ai_Atlassian__getConfluenceCommentChildren",
+		"mcp__claude_ai_Atlassian__getConfluencePage",
+		"mcp__claude_ai_Atlassian__getConfluencePageDescendants",
+		"mcp__claude_ai_Atlassian__getConfluencePageFooterComments",
+		"mcp__claude_ai_Atlassian__getConfluencePageInlineComments",
+		"mcp__claude_ai_Atlassian__getConfluenceSpaces",
+		"mcp__claude_ai_Atlassian__getIssueLinkTypes",
+		"mcp__claude_ai_Atlassian__getJiraIssue",
+		"mcp__claude_ai_Atlassian__getJiraIssueRemoteIssueLinks",
+		"mcp__claude_ai_Atlassian__getJiraIssueTypeMetaWithFields",
+		"mcp__claude_ai_Atlassian__getJiraProjectIssueTypesMetadata",
+		"mcp__claude_ai_Atlassian__getPagesInConfluenceSpace",
+		"mcp__claude_ai_Atlassian__getTransitionsForJiraIssue",
+		"mcp__claude_ai_Atlassian__getVisibleJiraProjects",
+		"mcp__claude_ai_Atlassian__lookupJiraAccountId",
+		"mcp__claude_ai_Atlassian__search",
+		"mcp__claude_ai_Atlassian__searchConfluenceUsingCql",
+		"mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql",
+	],
+	"google-calendar": [
+		"mcp__claude_ai_Google_Calendar__get_event",
+		"mcp__claude_ai_Google_Calendar__list_calendars",
+		"mcp__claude_ai_Google_Calendar__list_events",
+	],
+	"google-drive": [
+		"mcp__claude_ai_Google_Drive__download_file_content",
+		"mcp__claude_ai_Google_Drive__get_file_metadata",
+		"mcp__claude_ai_Google_Drive__get_file_permissions",
+		"mcp__claude_ai_Google_Drive__list_recent_files",
+		"mcp__claude_ai_Google_Drive__read_file_content",
+		"mcp__claude_ai_Google_Drive__search_files",
+	],
+}
+
+
+def parse_canonical(path):
+	"""Parse the canonical file into sections."""
+	sections = {"bash": [], "websearch": [], "webfetch": [], "mcp": []}
+	current = "bash"
+	for raw in path.read_text().splitlines():
+		line = raw.strip()
+		if not line or line.startswith("#"):
+			continue
+		m = re.match(r"^\[(\w+)\]$", line)
+		if m:
+			current = m.group(1)
+			continue
+		sections.setdefault(current, []).append(line)
+	return sections
+
+
+def strip_jsonc_comments(text):
+	"""Strip // line comments from JSONC, skipping occurrences inside strings."""
+	result = []
+	in_string = False
+	i = 0
+	while i < len(text):
+		c = text[i]
+		if c == "\\" and in_string:
+			result.append(c)
+			result.append(text[i + 1])
+			i += 2
+			continue
+		if c == '"':
+			in_string = not in_string
+		if not in_string and c == "/" and i + 1 < len(text) and text[i + 1] == "/":
+			while i < len(text) and text[i] != "\n":
+				i += 1
+			continue
+		result.append(c)
+		i += 1
+	return "".join(result)
+
+
+# ---------------------------------------------------------------------------
+# Claude Code
+# ---------------------------------------------------------------------------
+
+def _claude_mcp_entries(mcp_lines):
+	entries = []
+	for line in mcp_lines:
+		parts = line.split(":")  # mcp:<server> or mcp:<server>:read
+		if len(parts) < 2:
+			continue
+		server = parts[1]
+		mode = parts[2] if len(parts) > 2 else "wildcard"
+		if mode == "read" and server in MCP_READ_TOOLS:
+			entries.extend(MCP_READ_TOOLS[server])
+		else:
+			# Wildcard: allow all tools from this server
+			entries.append(f"mcp__{server}__*")
+	return sorted(entries)
+
+
+def sync_claude(sections):
+	with open(CLAUDE_SETTINGS) as f:
+		settings = json.load(f)
+
+	allow = settings.setdefault("permissions", {}).setdefault("allow", [])
+
+	# Drop everything we manage; preserve the rest (Edit, Read, Write, Skill, etc.)
+	managed_prefixes = ("Bash(", "WebSearch", "WebFetch(", "mcp__")
+	keep = [e for e in allow if not any(e.startswith(p) for p in managed_prefixes)]
+
+	new_entries = list(keep)
+
+	# Bash
+	for cmd in sections["bash"]:
+		if cmd in NO_WILDCARD:
+			new_entries.append(f"Bash({cmd})")
+		else:
+			new_entries.append(f"Bash({cmd} *)")
+
+	# WebSearch
+	if "websearch" in [l.lower() for l in sections["websearch"]]:
+		new_entries.append("WebSearch")
+
+	# WebFetch domains
+	for domain in sections["webfetch"]:
+		new_entries.append(f"WebFetch(domain:{domain})")
+
+	# MCP
+	new_entries.extend(_claude_mcp_entries(sections["mcp"]))
+
+	settings["permissions"]["allow"] = sorted(keep) + sorted(
+		e for e in new_entries if e not in keep
+	)
+
+	with open(CLAUDE_SETTINGS, "w") as f:
+		json.dump(settings, f, indent=2)
+	print(f"✓ Claude:      {CLAUDE_SETTINGS}")
+
+
+# ---------------------------------------------------------------------------
+# Antigravity (Gemini CLI)
+# ---------------------------------------------------------------------------
+
+def sync_agent(sections):
+	with open(AGENT_SETTINGS) as f:
+		settings = json.load(f)
+
+	allow = settings.setdefault("permissions", {}).setdefault("allow", [])
+
+	# Only manage command(...) entries; preserve mcp(...) and anything else
+	keep = [e for e in allow if not e.startswith("command(")]
+
+	cmd_entries = [f"command({cmd})" for cmd in sections["bash"]]
+
+	settings["permissions"]["allow"] = sorted(keep) + sorted(cmd_entries)
+
+	with open(AGENT_SETTINGS, "w") as f:
+		json.dump(settings, f, indent=2)
+	print(f"✓ Antigravity: {AGENT_SETTINGS}")
+
+
+# ---------------------------------------------------------------------------
+# opencode
+# ---------------------------------------------------------------------------
+
+def sync_opencode(sections):
+	text = OPENCODE_CONFIG.read_text()
+	clean = strip_jsonc_comments(text)
+	config = json.loads(clean)
+
+	perm = config.setdefault("permission", {})
+
+	# Bash
+	perm["bash"] = {cmd: "allow" for cmd in sorted(sections["bash"])}
+
+	# WebFetch — opencode supports a global toggle, not per-domain
+	if sections["webfetch"]:
+		perm["webfetch"] = "allow"
+	else:
+		perm.pop("webfetch", None)
+
+	# opencode auto-allows all configured MCP servers; no explicit entries needed.
+	# Edit is allowed by default in opencode; no permission entry required.
+
+	config["permission"] = perm
+
+	OPENCODE_CONFIG.write_text(json.dumps(config, indent="\t") + "\n")
+	print(f"✓ opencode:    {OPENCODE_CONFIG}")
+
+
+# ---------------------------------------------------------------------------
+
+def main():
+	if not COMMANDS_FILE.exists():
+		print(f"Error: {COMMANDS_FILE} not found", file=sys.stderr)
+		sys.exit(1)
+
+	sections = parse_canonical(COMMANDS_FILE)
+	bash_count = len(sections["bash"])
+	mcp_count = len(sections["mcp"])
+	webfetch_count = len(sections["webfetch"])
+	print(
+		f"Loaded: {bash_count} bash commands, "
+		f"{mcp_count} MCP entries, "
+		f"{webfetch_count} webfetch domains\n"
+	)
+
+	sync_claude(sections)
+	sync_agent(sections)
+	sync_opencode(sections)
+
+	print("\nDone! All tool configs are in sync.")
+
+
+if __name__ == "__main__":
+	main()

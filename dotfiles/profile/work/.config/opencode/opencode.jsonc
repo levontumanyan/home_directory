@@ -1,7 +1,7 @@
 {
 	"$schema": "https://opencode.ai/config.json",
-	"model": "litellm/llm-gateway/Kimi-K2.6",
-	"small_model": "litellm/llm-gateway/claude-haiku-4-5",
+	"model": "openrouter/z-ai/glm-5.2",
+	"small_model": "openrouter/anthropic/claude-haiku-4.5",
 	"mcp": {
 		"slack": {
 			"type": "remote",
@@ -11,6 +11,10 @@
 				"redirectUri": "http://localhost:3118/callback"
 			}
 		},
+		"buildkite-ro": {
+			"type": "remote",
+			"url": "https://mcp.buildkite.com/mcp/readonly"
+		},
 		"elastic-docs": {
 			"type": "remote",
 			"url": "https://www.elastic.co/docs/_mcp/"
@@ -18,73 +22,24 @@
 		"elastic-team-internal-docs": {
 			"type": "remote",
 			"url": "https://codex.elastic.dev/mcp"
+		},
+		"backstage": {
+			"type": "local",
+			"command": ["bash", "-c", "exec env BACKSTAGE_API_TOKEN=$(security find-generic-password -s backstage-api-proxy-token -a backstage -w) /Users/levontumanyan/repos/mcp-server-backstage/backstage-mcp"],
+			"enabled": true,
+			"environment": {
+				"BACKSTAGE_BASE_URL": "https://api.backstage.elastic.dev"
+			},
+			"timeout": 10000
 		}
 	},
 	"provider": {
-		"litellm": {
+		"openrouter": {
+			"name": "OpenRouter",
 			"npm": "@ai-sdk/openai-compatible",
-			"name": "LiteLLM",
 			"options": {
-				"baseURL": "https://elastic.litellm-prod.ai",
-				"setCacheKey": true
-			},
-			"models": {
-				"llm-gateway/claude-fable-5": { "name": "Claude Fable 5" },
-				"llm-gateway/claude-sonnet-5": { "name": "Claude Sonnet 5" },
-				"llm-gateway/claude-opus-4-8": { "name": "Claude Opus 4.8" },
-				"llm-gateway/claude-opus-4-7": { "name": "Claude Opus 4.7" },
-				"llm-gateway/claude-opus-4-6": { "name": "Claude Opus 4.6" },
-				"llm-gateway/claude-opus-4-5": { "name": "Claude Opus 4.5" },
-				"llm-gateway/claude-opus-4-1": { "name": "Claude Opus 4.1" },
-				"llm-gateway/claude-sonnet-4-6": { "name": "Claude Sonnet 4.6", "limit": { "context": 1000000, "output": 64000 }, "cost": { "input": 3.00, "output": 15.00, "cache": { "read": 0.30, "write": 3.75 } } },
-				"llm-gateway/claude-sonnet-4-5": { "name": "Claude Sonnet 4.5" },
-				"llm-gateway/claude-haiku-4-5": { "name": "Claude Haiku 4.5", "limit": { "context": 200000, "output": 64000 }, "cost": { "input": 1.00, "output": 5.00, "cache": { "read": 0.10, "write": 1.25 } } },
-				"llm-gateway/gemini-3.5-flash": { "name": "Gemini 3.5 Flash" },
-				"llm-gateway/gemini-3.1-pro-preview": { "name": "Gemini 3.1 Pro (Preview)" },
-				"llm-gateway/gemini-3.1-pro-preview-customtools": { "name": "Gemini 3.1 Pro Custom Tools (Preview)" },
-				"llm-gateway/gemini-3.1-flash-image-preview": { "name": "Gemini 3.1 Flash Image (Preview)" },
-				"llm-gateway/gemini-3-pro-preview": { "name": "Gemini 3 Pro (Preview)" },
-				"llm-gateway/gemini-3-flash-preview": { "name": "Gemini 3 Flash (Preview)" },
-				"llm-gateway/gemini-2.5-pro": { "name": "Gemini 2.5 Pro" },
-				"llm-gateway/gemini-2.5-flash": { "name": "Gemini 2.5 Flash" },
-				"llm-gateway/gemini-2.5-flash-lite": { "name": "Gemini 2.5 Flash Lite" },
-				"llm-gateway/gemma3n": { "name": "Gemma 3N" },
-				"llm-gateway/Kimi-K2.6": { "name": "Kimi K2.6" },
-				"llm-gateway/Kimi-K2.5": { "name": "Kimi K2.5" },
-				"llm-gateway/Kimi-K2-Thinking": { "name": "Kimi K2 Thinking" },
-				"llm-gateway/DeepSeek-V4-Flash": { "name": "DeepSeek V4 Flash" },
-				"llm-gateway/Mistral-Large-3": { "name": "Mistral Large 3" },
-				"llm-gateway/Ministral-3B": { "name": "Ministral 3B" },
-				"llm-gateway/Codestral-2501": { "name": "Codestral 2501" }
-			}
-		},
-		"litellm-gpt": {
-			"npm": "@ai-sdk/openai",
-			"name": "LiteLLM GPT",
-			"options": {
-				"baseURL": "https://elastic.litellm-prod.ai",
-				"compatibility": "compatible"
-			},
-			"models": {
-				"llm-gateway/gpt-5.6-luna": { "name": "GPT-5.6 Luna" },
-				"llm-gateway/gpt-5.6-sol": { "name": "GPT-5.6 Sol" },
-				"llm-gateway/gpt-5.6-terra": { "name": "GPT-5.6 Terra" },
-				"llm-gateway/gpt-5.5": { "name": "GPT-5.5" },
-				"llm-gateway/gpt-5.4-pro": { "name": "GPT-5.4 Pro" },
-				"llm-gateway/gpt-5.4": { "name": "GPT-5.4" },
-				"llm-gateway/gpt-5.4-mini": { "name": "GPT-5.4 Mini" },
-				"llm-gateway/gpt-5.4-nano": { "name": "GPT-5.4 Nano" },
-				"llm-gateway/gpt-5.3-chat": { "name": "GPT-5.3 Chat" },
-				"llm-gateway/gpt-5.3-codex": { "name": "GPT-5.3 Codex" },
-				"llm-gateway/gpt-5.2": { "name": "GPT-5.2" },
-				"llm-gateway/gpt-5.2-codex": { "name": "GPT-5.2 Codex" },
-				"llm-gateway/gpt-5.1": { "name": "GPT-5.1" },
-				"llm-gateway/gpt-5.1-chat": { "name": "GPT-5.1 Chat" },
-				"llm-gateway/gpt-5-mini": { "name": "GPT-5 Mini" },
-				"llm-gateway/gpt-5-nano": { "name": "GPT-5 Nano" },
-				"llm-gateway/gpt-4.1": { "name": "GPT-4.1" },
-				"llm-gateway/gpt-4.1-mini": { "name": "GPT-4.1 Mini" },
-				"llm-gateway/gpt-4.1-nano": { "name": "GPT-4.1 Nano" }
+				"baseURL": "https://openrouter.ai/api/v1",
+				"apiKey": "{env:OPENROUTER_API_KEY}"
 			}
 		},
 		"ollama": {
@@ -129,5 +84,80 @@
 				}
 			}
 		}
+	},
+	"permission": {
+		"read": {
+			"~/repos/**": "allow"
+		},
+		"glob": {
+			"~/repos/**": "allow"
+		},
+		"grep": {
+			"~/repos/**": "allow"
+		},
+		"external_directory": {
+			"~/repos/**": "allow"
+		},
+		"bash": {
+			"argo get": "allow",
+			"bk artifacts": "allow",
+			"bk build list": "allow",
+			"bk build view": "allow",
+			"bk pipeline view": "allow",
+			"cat": "allow",
+			"curl": "allow",
+			"curl --silent": "allow",
+			"curl -s": "allow",
+			"d2": "allow",
+			"date": "allow",
+			"diff": "allow",
+			"echo": "allow",
+			"find": "allow",
+			"gh api": "allow",
+			"gh issue": "allow",
+			"gh issue list": "allow",
+			"gh issue view": "allow",
+			"gh pr checks": "allow",
+			"gh pr diff": "allow",
+			"gh pr list": "allow",
+			"gh pr review": "allow",
+			"gh pr status": "allow",
+			"gh pr view": "allow",
+			"gh release list": "allow",
+			"gh release view": "allow",
+			"gh repo view": "allow",
+			"gh run list": "allow",
+			"gh run view": "allow",
+			"gh search": "allow",
+			"gh workflow list": "allow",
+			"gh workflow view": "allow",
+			"git blame": "allow",
+			"git branch": "allow",
+			"git diff": "allow",
+			"git fetch": "allow",
+			"git log": "allow",
+			"git remote": "allow",
+			"git shortlog": "allow",
+			"git show": "allow",
+			"git stash list": "allow",
+			"git status": "allow",
+			"git tag": "allow",
+			"git worktree": "allow",
+			"grep": "allow",
+			"grep -r": "allow",
+			"head": "allow",
+			"jq": "allow",
+			"kubectl describe": "allow",
+			"kubectl explain": "allow",
+			"kubectl get": "allow",
+			"kubectl logs": "allow",
+			"kubectl top": "allow",
+			"ls": "allow",
+			"make lint": "allow",
+			"rg": "allow",
+			"tail": "allow",
+			"wc": "allow"
+		},
+		"webfetch": "allow"
 	}
 }

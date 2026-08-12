@@ -55,6 +55,17 @@ else
 	alias llm='agy'
 fi
 
+# Claude Code via Amazon Bedrock in FRS GovCloud (requires FRS VPN).
+# Robin's exact env-var version.
+# See: https://github.com/elastic/platform-security-team/pull/2077
+alias claude_frs='CLAUDE_CODE_USE_BEDROCK=1 \
+	AWS_PROFILE=gov-stg-uge1-ecsecurity \
+	ANTHROPIC_DEFAULT_HAIKU_MODEL="us-gov.anthropic.claude-sonnet-4-5-20250929-v1:0" \
+	ANTHROPIC_DEFAULT_OPUS_MODEL="us-gov.anthropic.claude-opus-4-8[1m]" \
+	ANTHROPIC_DEFAULT_SONNET_MODEL="us-gov.anthropic.claude-sonnet-4-5-20250929-v1:0" \
+	CLAUDE_CODE_SUBAGENT_MODEL="us-gov.anthropic.claude-sonnet-4-5-20250929-v1:0" \
+	command claude --model "us-gov.anthropic.claude-opus-4-8[1m]"'
+
 # on machines that have only doas
 sudo() {
 	if command -v doas >/dev/null 2>&1; then

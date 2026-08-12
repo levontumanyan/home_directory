@@ -1,0 +1,126 @@
+# Canonical allowed permissions shared across AI tools.
+# Sync to all tool configs by running: sync-ai-permissions
+#
+# Sections:
+#   [bash]      - shell commands (all tools)
+#   [websearch] - enable web search (Claude only)
+#   [webfetch]  - enable web fetch (Claude: domain list, opencode: global allow)
+#   [mcp]       - MCP servers; wildcard or read-only per server (see sync script)
+#
+# Blank lines and lines starting with # are ignored within each section.
+
+# --- version control ---
+git status
+git log
+git diff
+git show
+git branch
+git remote
+git stash list
+git tag
+git blame
+git shortlog
+git fetch
+git worktree
+
+# --- github cli ---
+gh pr status
+gh pr view
+gh pr list
+gh pr diff
+gh pr checks
+gh pr review
+gh issue
+gh issue view
+gh issue list
+gh run view
+gh run list
+gh workflow view
+gh workflow list
+gh release view
+gh release list
+gh repo view
+gh api
+gh search
+
+# --- buildkite ---
+bk build view
+bk build list
+bk pipeline view
+bk artifacts
+
+# --- kubernetes ---
+kubectl logs
+kubectl get
+kubectl describe
+kubectl top
+kubectl explain
+
+# --- core utils ---
+cat
+ls
+find
+grep
+grep -r
+head
+tail
+wc
+diff
+echo
+date
+
+# --- search ---
+rg
+
+# --- data/api ---
+jq
+curl
+curl -s
+curl --silent
+
+# --- cloud/infra ---
+argo get
+d2
+
+# --- build ---
+make lint
+
+[websearch]
+# Claude: "WebSearch" entry in permissions.allow
+# Other tools: not yet supported
+websearch
+
+[webfetch]
+# Claude: "WebFetch(domain:X)" entries — list domains below
+# opencode: sets permission.webfetch = "allow" (domain list not supported)
+# Antigravity: not supported
+aws.amazon.com
+buildkite.com
+claude.ai
+codex.elastic.dev
+docs.cloud.google.com
+elastic.co
+github.com
+instances.vantage.sh
+raw.githubusercontent.com
+registry.terraform.io
+www.anthropic.com
+
+[mcp]
+# Format: mcp:<server>  — uses wildcard for all tools from that server
+# Format: mcp:<server>:read  — only read/get/list/search tools (no writes)
+#
+# Claude server name convention: mcp__<server>__<tool>
+# opencode: auto-allows all configured MCP servers (no explicit entry needed)
+# Antigravity: uses mcp(<server>/*) — only applies if server is configured there
+#
+# Wildcard servers (all tools trusted):
+mcp:buildkite-ro
+mcp:elastic-docs
+mcp:elastic-team-internal-docs
+#
+# Read-only servers (specific safe tools listed in sync script):
+mcp:slack:read
+mcp:atlassian:read
+mcp:google-calendar:read
+mcp:google-drive:read
