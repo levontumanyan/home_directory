@@ -29,6 +29,12 @@ fi
 # Java (openjdk is keg-only, not auto-linked by brew)
 [ -d "/opt/homebrew/opt/openjdk/bin" ] && PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
+# OpenRouter API key (from macOS keychain)
+if [[ "$OSTYPE" == darwin* ]]; then
+	_openrouter_key=$(security find-generic-password -s openrouter -a "$USER" -w 2>/dev/null) && export OPENROUTER_API_KEY="$_openrouter_key"
+	unset _openrouter_key
+fi
+
 # Podman as Docker drop-in — check socket existence instead of spawning podman machine inspect
 if [[ "$OSTYPE" == darwin* ]]; then
 	_pdm_sock="${TMPDIR%/}/podman/podman-machine-default-api.sock"
