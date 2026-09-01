@@ -43,7 +43,6 @@ window-padding-x = 6
 window-padding-y = 10
 
 # ── terminal ──────────────────────────────────────────────────────────────────
-scrollback-limit = 10000
 mouse-scroll-multiplier = 3
 
 # left option acts as alt/meta for readline (matches iTerm2 "Option Key Sends: Meta")

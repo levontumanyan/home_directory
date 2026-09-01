@@ -8,8 +8,12 @@ tap "raine/claude-history"
 brew "aider"
 # Get stuff done with container-native workflows for Kubernetes
 brew "argo"
+# GitOps Continuous Delivery for Kubernetes
+brew "argocd"
 # Official Amazon AWS command-line interface
 brew "awscli"
+# Microsoft Azure CLI 2.0
+brew "azure-cli"
 # Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
 # Create and run Linux containers using lightweight virtual machines
@@ -78,6 +82,8 @@ brew "shfmt"
 brew "stow"
 # Easiest, most secure way to use WireGuard and 2FA
 brew "tailscale", restart_service: :changed
+# Tool to generate documentation from Terraform modules
+brew "terraform-docs"
 # Terraform version manager inspired by rbenv
 brew "tfenv"
 # Terminal multiplexer
@@ -125,7 +131,9 @@ cargo "esdiag"
 uv "-"
 uv "-"
 uv "-"
+uv "open-webui", with: ["audioop-lts"]
 uv "rapid-mlx"
+uv "yamllint"
 npm "@devcontainers/cli"
 npm "@earendil-works/pi-coding-agent"
 npm "@elastic/cli"
