@@ -1,0 +1,277 @@
+#!/usr/bin/env swift
+
+import Foundation
+import EventKit
+
+// ============================================================================
+// cal-event: Fast CLI to add/query events via macOS EventKit
+// Default Target: iCloud -> Home (or specified --calendar / --account)
+// ============================================================================
+
+struct Config {
+	var summary: String = ""
+	var startDate: Date?
+	var endDate: Date?
+	var durationMinutes: Int = 30
+	var isAllDay: Bool = false
+	var calendarName: String = "Home"      // Default calendar name
+	var accountName: String = "iCloud"     // Default account/source name
+	var notes: String?
+	var url: URL?
+	var location: String?
+	var alarmMinutesBefore: [Int] = [0]    // Default alarm at start of event (0)
+	var listCalendars: Bool = false
+}
+
+func printUsage() {
+	let usage = """
+	Usage:
+	  cal-event add "<title>" [options]
+	  cal-event list-calendars
+
+	Target Defaults:
+	  Account:  iCloud
+	  Calendar: Home
+
+	Options:
+	  --start "<date/time>"     Start date (e.g., "2026-09-09 09:00", "2026-09-09", "2026-09-09T09:00:00")
+	  --end "<date/time>"       End date (optional)
+	  --duration <minutes>      Duration in minutes (default: 30)
+	  --all-day                 Mark event as all-day
+	  --calendar "<name>"       Target calendar (default: "Home")
+	  --account "<name>"        Target account/source (default: "iCloud")
+	  --notes "<text>"          Event notes / description
+	  --url "<url>"             Associated URL
+	  --location "<text>"       Location string
+	  --alarm <minutes>         Alarm minutes before event (e.g., 60, or 60,1440; use -1 for none)
+	  --list-calendars          List all available accounts & calendars
+
+	Examples:
+	  cal-event add "Doctor Appointment" --start "2026-09-15 14:00" --duration 60 --alarm 60,1440
+	  cal-event add "Customs Form" --start "2026-09-09 09:00" --calendar "Home" --account "iCloud" --url "https://..."
+	  cal-event add "Flight to Cuenca" --start "2026-09-12 08:30" --calendar "Calendar" --account "levon.tumanyan@outlook.com"
+	"""
+	print(usage)
+}
+
+func parseDate(_ str: String) -> Date? {
+	let formats = [
+		"yyyy-MM-dd HH:mm:ss",
+		"yyyy-MM-dd HH:mm",
+		"yyyy-MM-dd'T'HH:mm:ss",
+		"yyyy-MM-dd'T'HH:mm:ssZ",
+		"yyyy-MM-dd",
+		"MM/dd/yyyy HH:mm",
+		"MM/dd/yyyy",
+		"MMM d, yyyy h:mm a",
+		"MMM d, yyyy",
+		"h:mm a",
+		"ha"
+	]
+
+	let formatter = DateFormatter()
+	formatter.locale = Locale(identifier: "en_US_POSIX")
+	formatter.timeZone = TimeZone.current
+
+	for format in formats {
+		formatter.dateFormat = format
+		if let date = formatter.date(from: str) {
+			return date
+		}
+	}
+
+	let isoFormatter = ISO8601DateFormatter()
+	if let date = isoFormatter.date(from: str) {
+		return date
+	}
+
+	return nil
+}
+
+func main() {
+	var args = CommandLine.arguments
+	args.removeFirst()
+
+	if args.isEmpty || args.contains("-h") || args.contains("--help") {
+		printUsage()
+		exit(0)
+	}
+
+	var config = Config()
+
+	if args[0] == "list-calendars" || args.contains("--list-calendars") {
+		config.listCalendars = true
+	} else if args[0] == "add" {
+		args.removeFirst()
+		if args.isEmpty || args[0].hasPrefix("-") {
+			fputs("Error: Missing event title.\n", stderr)
+			exit(1)
+		}
+		config.summary = args.removeFirst()
+	} else if !args[0].hasPrefix("-") {
+		config.summary = args.removeFirst()
+	}
+
+	var idx = 0
+	while idx < args.count {
+		let arg = args[idx]
+		switch arg {
+		case "--start":
+			if idx + 1 < args.count {
+				idx += 1
+				guard let d = parseDate(args[idx]) else {
+					fputs("Error: Could not parse start date '\(args[idx])'.\n", stderr)
+					exit(1)
+				}
+				config.startDate = d
+			}
+		case "--end":
+			if idx + 1 < args.count {
+				idx += 1
+				guard let d = parseDate(args[idx]) else {
+					fputs("Error: Could not parse end date '\(args[idx])'.\n", stderr)
+					exit(1)
+				}
+				config.endDate = d
+			}
+		case "--duration":
+			if idx + 1 < args.count {
+				idx += 1
+				if let mins = Int(args[idx]) {
+					config.durationMinutes = mins
+				}
+			}
+		case "--all-day":
+			config.isAllDay = true
+		case "--calendar", "-c":
+			if idx + 1 < args.count {
+				idx += 1
+				config.calendarName = args[idx]
+			}
+		case "--account", "-a":
+			if idx + 1 < args.count {
+				idx += 1
+				config.accountName = args[idx]
+			}
+		case "--notes", "-n":
+			if idx + 1 < args.count {
+				idx += 1
+				config.notes = args[idx]
+			}
+		case "--url":
+			if idx + 1 < args.count {
+				idx += 1
+				config.url = URL(string: args[idx])
+			}
+		case "--location", "-l":
+			if idx + 1 < args.count {
+				idx += 1
+				config.location = args[idx]
+			}
+		case "--alarm":
+			if idx + 1 < args.count {
+				idx += 1
+				let rawAlarms = args[idx]
+				if rawAlarms == "-1" {
+					config.alarmMinutesBefore = []
+				} else {
+					let parts = rawAlarms.split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+					if !parts.isEmpty {
+						config.alarmMinutesBefore = parts.filter { $0 >= 0 }
+					}
+				}
+			}
+		default:
+			break
+		}
+		idx += 1
+	}
+
+	let store = EKEventStore()
+	let semaphore = DispatchSemaphore(value: 0)
+
+	store.requestFullAccessToEvents { granted, error in
+		defer { semaphore.signal() }
+
+		guard granted else {
+			fputs("Error: Calendar access not granted. Please check macOS Privacy & Security settings.\n", stderr)
+			exit(1)
+		}
+
+		let allCalendars = store.calendars(for: .event)
+
+		if config.listCalendars {
+			print("Available Calendars:")
+			for cal in allCalendars {
+				print("  • Account: [\(cal.source.title)] -> Calendar: [\(cal.title)]")
+			}
+			return
+		}
+
+		var matchedCal: EKCalendar? = allCalendars.first {
+			$0.title.caseInsensitiveCompare(config.calendarName) == .orderedSame &&
+			$0.source.title.caseInsensitiveCompare(config.accountName) == .orderedSame
+		}
+
+		if matchedCal == nil {
+			matchedCal = allCalendars.first {
+				$0.title.caseInsensitiveCompare(config.calendarName) == .orderedSame
+			}
+		}
+
+		guard let targetCalendar = matchedCal else {
+			fputs("Error: Calendar '\(config.calendarName)' (Account: '\(config.accountName)') not found.\n", stderr)
+			print("Run `cal-event list-calendars` to view available calendars.")
+			exit(1)
+		}
+
+		let start = config.startDate ?? Date()
+		let end = config.endDate ?? start.addingTimeInterval(TimeInterval(config.durationMinutes * 60))
+
+		let event = EKEvent(eventStore: store)
+		event.title = config.summary
+		event.startDate = start
+		event.endDate = end
+		event.isAllDay = config.isAllDay
+		event.calendar = targetCalendar
+		event.notes = config.notes
+		event.url = config.url
+		event.location = config.location
+
+		for alarmMins in config.alarmMinutesBefore {
+			let alarm = EKAlarm(relativeOffset: TimeInterval(-alarmMins * 60))
+			event.addAlarm(alarm)
+		}
+
+		do {
+			try store.save(event, span: .thisEvent)
+			let df = DateFormatter()
+			df.dateStyle = .medium
+			df.timeStyle = config.isAllDay ? .none : .short
+			print("✅ Event created successfully:")
+			print("   • Title:    \(event.title ?? "")")
+			print("   • When:     \(df.string(from: start)) - \(df.string(from: end))")
+			print("   • Calendar: [\(targetCalendar.source.title)] -> \(targetCalendar.title)")
+			if let loc = event.location, !loc.isEmpty {
+				print("   • Location: \(loc)")
+			}
+			if !config.alarmMinutesBefore.isEmpty {
+				let alarmStr = config.alarmMinutesBefore.map { "\($0)m before" }.joined(separator: ", ")
+				print("   • Alarms:   \(alarmStr)")
+			}
+			if let notes = event.notes, !notes.isEmpty {
+				print("   • Notes:    \(notes)")
+			}
+			if let url = event.url {
+				print("   • Link:     \(url.absoluteString)")
+			}
+		} catch {
+			fputs("Error saving event: \(error.localizedDescription)\n", stderr)
+			exit(1)
+		}
+	}
+
+	semaphore.wait()
+}
+
+main()
