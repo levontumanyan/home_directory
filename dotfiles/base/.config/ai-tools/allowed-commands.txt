@@ -22,6 +22,8 @@ git blame
 git shortlog
 git fetch
 git worktree
+git rev-parse
+git check-ignore
 
 # --- github cli ---
 gh pr status
@@ -68,6 +70,34 @@ wc
 diff
 echo
 date
+pwd
+which
+whereis
+basename
+dirname
+realpath
+readlink
+file
+stat
+sort
+uniq
+cut
+tr
+awk
+tree
+
+# --- system & process ---
+ps
+pgrep
+uptime
+whoami
+hostname
+uname
+df
+du
+env
+printenv
+lsof
 
 # --- search ---
 rg
