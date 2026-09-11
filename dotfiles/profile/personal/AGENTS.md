@@ -5,6 +5,8 @@
 - If the user asks about a Github issue or pr, always use `gh` cli commands. Do not fetch the website directly. Also every time you mention/create a pr/issue provide the full link to the user.
 - Stop executing things when i am just asking you a question. Answer first if i ask you to do something then do it.
 - **Calendar CLI**: Use `cal-event add "<title>" --start "<YYYY-MM-DD HH:MM>"` (defaults to iCloud -> Home; see `cal-event --help`).
+- **WhatsApp CLI**: Use `whatsapp chats` (list/recent), `whatsapp read "<contact/phone>"`, `whatsapp search "<query>"`, `whatsapp unread`, or `whatsapp draft --to "<contact/phone>" --message "<text>"` (see `whatsapp --help`).
+- **iMessage CLI**: Use `imessage -q "<query>"`, `imessage -c "<contact>"`, `imessage --show "<contact>"`, or `imessage -d <days>` (see `imessage --help`).
 
 # GitHub Issue & PR Bodies
 

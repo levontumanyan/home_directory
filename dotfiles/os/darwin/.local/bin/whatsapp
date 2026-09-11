@@ -1,0 +1,570 @@
+#!/usr/bin/env swift
+import Foundation
+import SQLite3
+import AppKit
+
+// MARK: - Constants & Helpers
+
+let dbPath = ("~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite" as NSString).expandingTildeInPath
+
+func getDB() -> OpaquePointer? {
+	var db: OpaquePointer?
+	if sqlite3_open_v2(dbPath, &db, SQLITE_OPEN_READONLY, nil) != SQLITE_OK {
+		let errMsg = db != nil ? String(cString: sqlite3_errmsg(db)) : "Unknown error"
+		fputs("Error opening WhatsApp database: \(errMsg)\n", stderr)
+		fputs("Path: \(dbPath)\n", stderr)
+		return nil
+	}
+	return db
+}
+
+func formatDate(_ referenceSeconds: Double) -> String {
+	let date = Date(timeIntervalSinceReferenceDate: referenceSeconds)
+	let formatter = DateFormatter()
+	formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+	return formatter.string(from: date)
+}
+
+func resolveContactPhone(db: OpaquePointer, contact: String) -> String? {
+	let digitsOnly = contact.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+	if digitsOnly.count >= 7 && !contact.contains(" ") && (contact.hasPrefix("+") || contact.first?.isNumber == true) {
+		return digitsOnly
+	}
+
+	let query = """
+	SELECT ZCONTACTJID, ZPARTNERNAME
+	FROM ZWACHATSESSION
+	WHERE ZPARTNERNAME LIKE ? AND ZCONTACTJID NOT LIKE '%@g.us' AND ZCONTACTJID NOT LIKE '%@status'
+	ORDER BY ZLASTMESSAGEDATE DESC
+	LIMIT 1;
+	"""
+
+	var stmt: OpaquePointer?
+	if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+		let pattern = "%\(contact)%"
+		sqlite3_bind_text(stmt, 1, (pattern as NSString).utf8String, -1, nil)
+		if sqlite3_step(stmt) == SQLITE_ROW {
+			if let jidPtr = sqlite3_column_text(stmt, 0) {
+				let jid = String(cString: jidPtr)
+				sqlite3_finalize(stmt)
+				let number = jid.components(separatedBy: "@").first ?? ""
+				return number.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+			}
+		}
+		sqlite3_finalize(stmt)
+	}
+	return nil
+}
+
+// MARK: - Subcommand: Chats
+
+func listChats(limit: Int, unreadOnly: Bool, search: String?) {
+	guard let db = getDB() else { return }
+	defer { sqlite3_close(db) }
+
+	var conditions = ["s.ZCONTACTJID NOT LIKE '%@status'"]
+	if unreadOnly {
+		conditions.append("s.ZUNREADCOUNT > 0")
+	}
+	if let search = search, !search.isEmpty {
+		conditions.append("s.ZPARTNERNAME LIKE ?")
+	}
+
+	let whereClause = conditions.joined(separator: " AND ")
+	let query = """
+	SELECT s.Z_PK, s.ZPARTNERNAME, s.ZCONTACTJID, s.ZUNREADCOUNT,
+	       s.ZLASTMESSAGEDATE, m.ZMESSAGEDATE, m.ZTEXT, m.ZMESSAGETYPE, m.ZISFROMME
+	FROM ZWACHATSESSION s
+	LEFT JOIN ZWAMESSAGE m ON m.Z_PK = s.ZLASTMESSAGE
+	WHERE \(whereClause)
+	ORDER BY s.ZLASTMESSAGEDATE DESC
+	LIMIT ?;
+	"""
+
+	var stmt: OpaquePointer?
+	if sqlite3_prepare_v2(db, query, -1, &stmt, nil) != SQLITE_OK {
+		fputs("Error preparing query: \(String(cString: sqlite3_errmsg(db)))\n", stderr)
+		return
+	}
+
+	var bindIndex: Int32 = 1
+	if let search = search, !search.isEmpty {
+		let pattern = "%\(search)%"
+		sqlite3_bind_text(stmt, bindIndex, (pattern as NSString).utf8String, -1, nil)
+		bindIndex += 1
+	}
+	sqlite3_bind_int(stmt, bindIndex, Int32(limit))
+
+	let col1 = "TIMESTAMP".padding(toLength: 22, withPad: " ", startingAt: 0)
+	let col2 = "CHAT / CONTACT".padding(toLength: 30, withPad: " ", startingAt: 0)
+	let col3 = "UNREAD".padding(toLength: 10, withPad: " ", startingAt: 0)
+	let col4 = "LAST MESSAGE"
+	print("\(col1)\(col2)\(col3)\(col4)")
+	print(String(repeating: "-", count: 95))
+
+	var count = 0
+	while sqlite3_step(stmt) == SQLITE_ROW {
+		let partner = sqlite3_column_text(stmt, 1).flatMap { String(cString: $0) } ?? "Unknown"
+		let unread = sqlite3_column_int(stmt, 3)
+		let sessionDateSec = sqlite3_column_double(stmt, 4)
+		let msgDateSec = sqlite3_column_double(stmt, 5)
+
+		let dateSec: Double
+		if sessionDateSec > 2000000000.0 {
+			dateSec = msgDateSec > 0 ? msgDateSec : sessionDateSec
+		} else {
+			dateSec = sessionDateSec > 0 ? sessionDateSec : msgDateSec
+		}
+
+		let dateStr = dateSec > 0 ? formatDate(dateSec) : "Never"
+		let rawText = sqlite3_column_text(stmt, 6).flatMap { String(cString: $0) }
+		let msgType = sqlite3_column_int(stmt, 7)
+		let isFromMe = sqlite3_column_int(stmt, 8) == 1
+
+		let content: String
+		if let text = rawText, !text.isEmpty {
+			content = text.replacingOccurrences(of: "\n", with: " ")
+		} else {
+			switch msgType {
+			case 1: content = "[Image]"
+			case 2: content = "[Video]"
+			case 3: content = "[Audio / Voice Note]"
+			case 5: content = "[Location]"
+			case 8: content = "[Document]"
+			case 14: content = "[Contact]"
+			case 15: content = "[Sticker]"
+			default: content = "[Media]"
+			}
+		}
+
+		let prefix = isFromMe ? "You: " : ""
+		let preview = "\(prefix)\(content)"
+		let truncatedPreview = preview.count > 45 ? "\(preview.prefix(42))..." : preview
+		let unreadDisplay = unread > 0 ? "*\(unread)*" : "0"
+
+		let displayPartner = partner.count > 28 ? "\(partner.prefix(25))..." : partner
+		let padDate = dateStr.padding(toLength: 22, withPad: " ", startingAt: 0)
+		let padPartner = displayPartner.padding(toLength: 30, withPad: " ", startingAt: 0)
+		let padUnread = unreadDisplay.padding(toLength: 10, withPad: " ", startingAt: 0)
+
+		print("\(padDate)\(padPartner)\(padUnread)\(truncatedPreview)")
+		count += 1
+	}
+	sqlite3_finalize(stmt)
+
+	if count == 0 {
+		print("No matching chats found.")
+	}
+}
+
+// MARK: - Subcommand: Read
+
+func readChat(target: String, limit: Int, full: Bool) {
+	guard let db = getDB() else { return }
+	defer { sqlite3_close(db) }
+
+	let sessionQuery = """
+	SELECT Z_PK, ZPARTNERNAME, ZCONTACTJID
+	FROM ZWACHATSESSION
+	WHERE (ZPARTNERNAME LIKE ? OR ZCONTACTJID LIKE ?)
+	ORDER BY ZLASTMESSAGEDATE DESC
+	LIMIT 1;
+	"""
+
+	var sessionStmt: OpaquePointer?
+	var sessionId: Int32 = -1
+	var partnerName = ""
+	var contactJID = ""
+
+	if sqlite3_prepare_v2(db, sessionQuery, -1, &sessionStmt, nil) == SQLITE_OK {
+		let pattern = "%\(target)%"
+		sqlite3_bind_text(sessionStmt, 1, (pattern as NSString).utf8String, -1, nil)
+		sqlite3_bind_text(sessionStmt, 2, (pattern as NSString).utf8String, -1, nil)
+		if sqlite3_step(sessionStmt) == SQLITE_ROW {
+			sessionId = sqlite3_column_int(sessionStmt, 0)
+			partnerName = sqlite3_column_text(sessionStmt, 1).flatMap { String(cString: $0) } ?? "Unknown"
+			contactJID = sqlite3_column_text(sessionStmt, 2).flatMap { String(cString: $0) } ?? ""
+		}
+		sqlite3_finalize(sessionStmt)
+	}
+
+	guard sessionId != -1 else {
+		print("Chat not found matching: '\(target)'")
+		return
+	}
+
+	let isGroup = contactJID.hasSuffix("@g.us")
+	print("Conversation: \(partnerName) [\(contactJID)] (showing up to \(limit) messages)")
+	print(String(repeating: "-", count: 80))
+
+	let msgQuery = """
+	SELECT m.ZMESSAGEDATE, m.ZISFROMME, m.ZTEXT, m.ZMESSAGETYPE,
+	       COALESCE(gm.ZCONTACTNAME, m.ZPUSHNAME) AS SENDERNAME
+	FROM ZWAMESSAGE m
+	LEFT JOIN ZWAGROUPMEMBER gm ON m.ZGROUPMEMBER = gm.Z_PK
+	WHERE m.ZCHATSESSION = ?
+	ORDER BY m.ZMESSAGEDATE DESC
+	LIMIT ?;
+	"""
+
+	var msgStmt: OpaquePointer?
+	if sqlite3_prepare_v2(db, msgQuery, -1, &msgStmt, nil) != SQLITE_OK {
+		fputs("Error querying messages: \(String(cString: sqlite3_errmsg(db)))\n", stderr)
+		return
+	}
+
+	sqlite3_bind_int(msgStmt, 1, sessionId)
+	sqlite3_bind_int(msgStmt, 2, Int32(limit))
+
+	struct MsgRow {
+		let date: String
+		let sender: String
+		let text: String
+	}
+
+	var rows: [MsgRow] = []
+
+	while sqlite3_step(msgStmt) == SQLITE_ROW {
+		let dateSec = sqlite3_column_double(msgStmt, 0)
+		let dateStr = formatDate(dateSec)
+		let isFromMe = sqlite3_column_int(msgStmt, 1) == 1
+		let rawText = sqlite3_column_text(msgStmt, 2).flatMap { String(cString: $0) }
+		let msgType = sqlite3_column_int(msgStmt, 3)
+		let senderName = sqlite3_column_text(msgStmt, 4).flatMap { String(cString: $0) }
+
+		let sender: String
+		if isFromMe {
+			sender = "You"
+		} else if isGroup {
+			if let sn = senderName, !sn.isEmpty && !sn.hasPrefix("IAB") && !sn.hasPrefix("CN") && !sn.hasPrefix("CL") && !sn.hasPrefix("CP") {
+				sender = sn
+			} else {
+				sender = "Member"
+			}
+		} else {
+			sender = partnerName
+		}
+
+		let body: String
+		if let t = rawText, !t.isEmpty {
+			body = t
+		} else {
+			switch msgType {
+			case 1: body = "[Image]"
+			case 2: body = "[Video]"
+			case 3: body = "[Audio / Voice Note]"
+			case 5: body = "[Location]"
+			case 8: body = "[Document]"
+			case 14: body = "[Contact]"
+			case 15: body = "[Sticker]"
+			default: body = "[Media]"
+			}
+		}
+
+		rows.append(MsgRow(date: dateStr, sender: sender, text: body))
+	}
+	sqlite3_finalize(msgStmt)
+
+	for row in rows.reversed() {
+		let lines = row.text.components(separatedBy: "\n")
+		if full || lines.count == 1 {
+			print("[\(row.date)] \(row.sender): \(row.text)")
+		} else {
+			print("[\(row.date)] \(row.sender): \(lines[0])")
+			for line in lines.dropFirst() {
+				print("    \(line)")
+			}
+		}
+	}
+
+	if rows.isEmpty {
+		print("No messages found in this conversation.")
+	}
+}
+
+// MARK: - Subcommand: Search
+
+func searchMessages(query: String, contact: String?, days: Int?, limit: Int) {
+	guard let db = getDB() else { return }
+	defer { sqlite3_close(db) }
+
+	var conditions = ["m.ZTEXT LIKE ?", "s.ZCONTACTJID NOT LIKE '%@status'"]
+
+	if contact != nil {
+		conditions.append("s.ZPARTNERNAME LIKE ?")
+	}
+
+	if let d = days, d > 0 {
+		let since = Date().addingTimeInterval(-Double(d * 86400)).timeIntervalSinceReferenceDate
+		conditions.append("m.ZMESSAGEDATE >= \(since)")
+	}
+
+	let whereClause = conditions.joined(separator: " AND ")
+	let sql = """
+	SELECT m.ZMESSAGEDATE, s.ZPARTNERNAME, m.ZISFROMME, m.ZTEXT, s.ZCONTACTJID
+	FROM ZWAMESSAGE m
+	JOIN ZWACHATSESSION s ON m.ZCHATSESSION = s.Z_PK
+	WHERE \(whereClause)
+	ORDER BY m.ZMESSAGEDATE DESC
+	LIMIT ?;
+	"""
+
+	var stmt: OpaquePointer?
+	if sqlite3_prepare_v2(db, sql, -1, &stmt, nil) != SQLITE_OK {
+		fputs("Error searching: \(String(cString: sqlite3_errmsg(db)))\n", stderr)
+		return
+	}
+
+	var bindIdx: Int32 = 1
+	let queryPattern = "%\(query)%"
+	sqlite3_bind_text(stmt, bindIdx, (queryPattern as NSString).utf8String, -1, nil)
+	bindIdx += 1
+
+	if let c = contact {
+		let contactPattern = "%\(c)%"
+		sqlite3_bind_text(stmt, bindIdx, (contactPattern as NSString).utf8String, -1, nil)
+		bindIdx += 1
+	}
+
+	sqlite3_bind_int(stmt, bindIdx, Int32(limit))
+
+	print("Search results for: '\(query)' (max \(limit))")
+	print(String(repeating: "-", count: 80))
+
+	var count = 0
+	while sqlite3_step(stmt) == SQLITE_ROW {
+		let dateSec = sqlite3_column_double(stmt, 0)
+		let dateStr = formatDate(dateSec)
+		let partner = sqlite3_column_text(stmt, 1).flatMap { String(cString: $0) } ?? "Unknown"
+		let isFromMe = sqlite3_column_int(stmt, 2) == 1
+		let text = sqlite3_column_text(stmt, 3).flatMap { String(cString: $0) } ?? ""
+		let sender = isFromMe ? "You" : partner
+
+		let singleLine = text.replacingOccurrences(of: "\n", with: " ")
+		let preview = singleLine.count > 100 ? "\(singleLine.prefix(97))..." : singleLine
+
+		print("[\(dateStr)] [\(partner)] \(sender): \(preview)")
+		count += 1
+	}
+	sqlite3_finalize(stmt)
+
+	if count == 0 {
+		print("No matching messages found.")
+	}
+}
+
+// MARK: - Subcommand: Draft
+
+func draftMessage(target: String, message: String) {
+	guard let db = getDB() else { return }
+	let resolvedPhone = resolveContactPhone(db: db, contact: target)
+	sqlite3_close(db)
+
+	guard let phone = resolvedPhone, !phone.isEmpty else {
+		fputs("Error: Could not resolve '\(target)' to a valid phone number.\n", stderr)
+		fputs("Tip: Provide the phone number in international digits (e.g. +1234567890) or an existing contact name.\n", stderr)
+		exit(1)
+	}
+
+	guard let encodedText = message.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+		fputs("Error: Failed to URL-encode message.\n", stderr)
+		exit(1)
+	}
+
+	let urlString = "whatsapp://send?phone=\(phone)&text=\(encodedText)"
+	guard let url = URL(string: urlString) else {
+		fputs("Error: Malformed URL: \(urlString)\n", stderr)
+		exit(1)
+	}
+
+	NSWorkspace.shared.open(url)
+	print("Opened WhatsApp with draft composed for \(target) (\(phone)).")
+	print("Review the draft in WhatsApp and press Enter to send.")
+}
+
+// MARK: - CLI Help & Usage
+
+func printUsage() {
+	let helpText = """
+	OVERVIEW: WhatsApp macOS CLI
+
+	A fast command-line tool to inspect, search, and draft WhatsApp messages on macOS.
+	Queries your local unencrypted SQLite database (~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite)
+	and interfaces directly with WhatsApp Desktop via the native URL scheme.
+
+	USAGE:
+		whatsapp <subcommand> [options]
+
+	COMMANDS:
+		chats      List recent chat conversations, unread badges, and preview snippets
+		read       Read conversation history from a specific contact or group chat
+		search     Search all messages across all chats for a keyword or phrase
+		unread     Quickly list only chats that have unread messages
+		draft      Open WhatsApp with a draft message pre-filled to a contact or phone number
+		help       Show this help message
+
+	SUBCOMMAND OPTIONS:
+
+	  chats:
+		whatsapp chats [--limit <N>] [--unread] [--search <term>]
+		  --limit <N>      Maximum number of chats to display (default: 20)
+		  --unread         Filter to only chats with unread messages > 0
+		  --search <term>  Filter chats by contact name or group title
+
+	  read:
+		whatsapp read <contact/phone> [--limit <N>] [--all]
+		  <contact/phone>  Contact name, group name, or phone number to read
+		  --limit <N>      Number of messages to retrieve (default: 25)
+		  --all            Display full multiline message content without truncating
+
+	  search:
+		whatsapp search <query> [--contact <name>] [--days <N>] [--limit <N>]
+		  <query>          Search term in message text
+		  --contact <name> Scope search to a specific contact or group name
+		  --days <N>       Only search messages from the past N days
+		  --limit <N>      Limit results (default: 25)
+
+	  unread:
+		whatsapp unread
+		  Shows up to 50 chats with pending unread messages.
+
+	  draft:
+		whatsapp draft --to <contact/phone> --message <text>
+		  --to <target>    Recipient phone number (e.g. +1234567890) or contact name.
+		                   Contact names are automatically resolved from your local chat history.
+		  --message <text> Message text to populate in the WhatsApp compose box.
+		  Note: This brings WhatsApp to the foreground with the chat opened and message pre-filled,
+		        allowing you to review before pressing Return to send.
+
+	EXAMPLES:
+		whatsapp chats --limit 10
+		whatsapp unread
+		whatsapp read "Erik Rusis" --limit 15
+		whatsapp read "Famiglia" --all
+		whatsapp search "dinner" --days 14
+		whatsapp draft --to "Aram Piruzyan" --message "Hey, are we still on for lunch?"
+		whatsapp draft --to "+1234567890" --message "Hello from my terminal!"
+	"""
+	print(helpText)
+}
+
+// MARK: - Main Entrypoint
+
+func main() {
+	let args = Array(CommandLine.arguments.dropFirst())
+	guard !args.isEmpty else {
+		printUsage()
+		return
+	}
+
+	let command = args[0].lowercased()
+
+	switch command {
+	case "chats":
+		var limit = 20
+		var unreadOnly = false
+		var search: String? = nil
+
+		var i = 1
+		while i < args.count {
+			if args[i] == "--limit", i + 1 < args.count {
+				limit = Int(args[i + 1]) ?? 20
+				i += 2
+			} else if args[i] == "--unread" {
+				unreadOnly = true
+				i += 1
+			} else if args[i] == "--search", i + 1 < args.count {
+				search = args[i + 1]
+				i += 2
+			} else {
+				i += 1
+			}
+		}
+		listChats(limit: limit, unreadOnly: unreadOnly, search: search)
+
+	case "unread":
+		listChats(limit: 50, unreadOnly: true, search: nil)
+
+	case "read":
+		guard args.count >= 2 else {
+			fputs("Usage: whatsapp read <contact/phone> [--limit <N>] [--all]\n", stderr)
+			return
+		}
+		let target = args[1]
+		var limit = 25
+		var full = false
+
+		var i = 2
+		while i < args.count {
+			if args[i] == "--limit", i + 1 < args.count {
+				limit = Int(args[i + 1]) ?? 25
+				i += 2
+			} else if args[i] == "--all" {
+				full = true
+				i += 1
+			} else {
+				i += 1
+			}
+		}
+		readChat(target: target, limit: limit, full: full)
+
+	case "search":
+		guard args.count >= 2 else {
+			fputs("Usage: whatsapp search <query> [--contact <name>] [--days <N>] [--limit <N>]\n", stderr)
+			return
+		}
+		let query = args[1]
+		var contact: String? = nil
+		var days: Int? = nil
+		var limit = 25
+
+		var i = 2
+		while i < args.count {
+			if args[i] == "--contact", i + 1 < args.count {
+				contact = args[i + 1]
+				i += 2
+			} else if args[i] == "--days", i + 1 < args.count {
+				days = Int(args[i + 1])
+				i += 2
+			} else if args[i] == "--limit", i + 1 < args.count {
+				limit = Int(args[i + 1]) ?? 25
+				i += 2
+			} else {
+				i += 1
+			}
+		}
+		searchMessages(query: query, contact: contact, days: days, limit: limit)
+
+	case "draft", "send":
+		var to: String? = nil
+		var message: String? = nil
+
+		var i = 1
+		while i < args.count {
+			if args[i] == "--to", i + 1 < args.count {
+				to = args[i + 1]
+				i += 2
+			} else if args[i] == "--message", i + 1 < args.count {
+				message = args[i + 1]
+				i += 2
+			} else {
+				i += 1
+			}
+		}
+
+		guard let target = to, let msg = message else {
+			fputs("Usage: whatsapp draft --to <contact/phone> --message <text>\n", stderr)
+			return
+		}
+		draftMessage(target: target, message: msg)
+
+	case "help", "-h", "--help":
+		printUsage()
+
+	default:
+		fputs("Unknown command: \(command)\n\n", stderr)
+		printUsage()
+	}
+}
+
+main()
