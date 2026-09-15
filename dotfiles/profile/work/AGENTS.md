@@ -73,6 +73,10 @@ Use `gh issue` commands instead. The Atlassian MCP tools are still valid for non
 
 My personal knowledge base is located at: `~repos/knowledge-base`. Elastic stuff goes under `~repos/knowledge-base/elastic`
 
+# AWS/Kubernetes Authentication
+
+For AWS access, use `platform-cli-auth`. In every Bash tool call, source and invoke the helper in the same shell: `source "$HOME/.local/share/platform-cli-auth/aws-config/mfa" && mfa-frm`. Never inspect `~/.okta` directly or invoke raw `okta-aws-cli`.
+
 # github
 
 When asked to create subissues, always create distinct child issue objects instead of adding comments or text mentions to the parent. Ensure a strict database-level hierarchy by explicitly passing the parent ID in the creation mutation.
@@ -122,7 +126,7 @@ Use these channel IDs directly with Slack MCP tools — do not spend a turn sear
 - `#platform-security-eng` (`C09F3MZQM9S`) - my team's engineering channel. When i ask you to post in psec channel for review it is here
 - `#platform-security` (`C64AY13FF`) - my team's channel where we get requests from users
 - :platform-security-eng: to post to #platform-security-eng with Reacji Channeler
-- When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session. Never directly send a message unless i explicitly request. Always draft a message then i will send it.
+- **Always draft first, no exceptions.** When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session. Never directly send a message unless i explicitly request. Always draft a message then i will send it. This applies even when i ask you to review something or "check" something — do NOT infer that as permission to send. The ONLY time you may send a message directly is if i say "send this" or "post this" or explicitly ask you to send it. If in doubt, draft. Never ever send a slack message without confirming with me first.
 
 - When making technical decisions, do not give much weight to development cost. Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
 - when you have to decide what version of a package/tool to use do a live search and consider using the latest stable versions. Never use outdated versions or make assumptions without doing a live search

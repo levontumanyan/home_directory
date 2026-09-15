@@ -63,6 +63,7 @@ _eck-workspace() {
 compdef _eck-workspace eck-workspace
 
 [ -f "$HOME/repos/platform-cli-auth/vault-helper/vault-helper.sh" ] && source "$HOME/repos/platform-cli-auth/vault-helper/vault-helper.sh"
+[ -f "$HOME/repos/platform-cli-auth/tsh-helper/tsh-helper.sh" ] && source "$HOME/repos/platform-cli-auth/tsh-helper/tsh-helper.sh"
 
 # elastic CLI completions
 _cache_completion elastic elastic completion zsh

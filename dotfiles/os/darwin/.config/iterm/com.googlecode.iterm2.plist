@@ -885,6 +885,8 @@
 				<key>Red Component</key>
 				<real>0.8659515380859375</real>
 			</dict>
+			<key>Automatically Enable Alternate Mouse Scroll</key>
+			<false/>
 			<key>BM Growl</key>
 			<true/>
 			<key>Background Color</key>
@@ -1335,6 +1337,8 @@
 			<key>Option Key Sends</key>
 			<integer>1</integer>
 			<key>Prompt Before Closing 2</key>
+			<false/>
+			<key>Restrict Alternate Mouse Scroll to Vertical</key>
 			<false/>
 			<key>Right Option Key Sends</key>
 			<integer>0</integer>

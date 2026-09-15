@@ -11,6 +11,10 @@
     "showInMenuBar": false
   },
 
+  "terminal": {
+    "autoResumeAgentSessions": true
+  },
+
   "sidebarAppearance": {
     "matchTerminalBackground": true
   },
