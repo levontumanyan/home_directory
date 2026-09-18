@@ -6,7 +6,9 @@
 - Stop executing things when i am just asking you a question. Answer first if i ask you to do something then do it.
 - **Calendar CLI**: Use `cal-event add "<title>" --start "<YYYY-MM-DD HH:MM>"` (defaults to iCloud -> Home; see `cal-event --help`).
 - **WhatsApp CLI**: Use `whatsapp chats` (list/recent), `whatsapp read "<contact/phone>"`, `whatsapp search "<query>"`, `whatsapp unread`, or `whatsapp draft --to "<contact/phone>" --message "<text>"` (see `whatsapp --help`).
-- **iMessage CLI**: Use `imessage -q "<query>"`, `imessage -c "<contact>"`, `imessage --show "<contact>"`, or `imessage -d <days>` (see `imessage --help`).
+- **Outlook CLI**: Use `outlook list` (or `outlook`), `outlook unread`, `outlook search "<query>"`, or `outlook read "<message_id>"` (see `outlook --help`). Note: `search` defaults to `-l 10` (use `-l <N>` for full results). Rely on search metadata for summaries; avoid fetching individual message bodies or writing ad-hoc scripts unless specifically requested.
+- **Apple Pay CLI**: Queries and searches local Apple Pay transactions on macOS; see `apple-pay --help` for options.
+- **iMessage CLI**: Queries and searches local iMessage chat history on macOS; see `imessage --help` for options.
 
 # GitHub Issue & PR Bodies
 
