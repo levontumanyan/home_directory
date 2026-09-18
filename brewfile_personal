@@ -153,6 +153,7 @@ cask "miniconda"
 cask "yt-music"
 # Video communication and virtual meeting platform
 cask "zoom"
+uv "airbnb"
 uv "mcp-ical", source: "git+https://github.com/Omar-V2/mcp-ical"
 npm "@marlinjai/email-mcp"
 npm "pnpm"

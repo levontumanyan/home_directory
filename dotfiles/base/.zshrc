@@ -52,23 +52,6 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 [ -f "$HOME/.work.zsh" ] && source "$HOME/.work.zsh"
 [ -f "$HOME/.personal.zsh" ] && source "$HOME/.personal.zsh"
 
-# Load Elastic AWS and CLI authentication helpers.
-_platform_cli_auth_bootstrap() {
-	local repo="${XDG_DATA_HOME:-$HOME/.local/share}/platform-cli-auth"
-	if [[ ! -d "$repo" ]]; then
-		git clone --quiet git@github.com:elastic/platform-cli-auth.git "$repo" || return 1
-	fi
-
-	source "$repo/aws-config/shell-helper.sh"
-	source "$repo/aws-config/mfa"
-
-	mkdir -p "$HOME/.local/bin"
-	ln -sfn "$repo/vpn-helper/vpn-helper.sh" "$HOME/.local/bin/vpn-helper"
-	source "$repo/vault-helper/vault-helper.sh"
-	source "$repo/tsh-helper/tsh-helper.sh"
-}
-_platform_cli_auth_bootstrap
-unset -f _platform_cli_auth_bootstrap
 
 
 # Added by Antigravity CLI installer
