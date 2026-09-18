@@ -1,0 +1,642 @@
+#!/usr/bin/env swift
+
+import Foundation
+import CoreWLAN
+
+// ============================================================================
+// wifi-check: Comprehensive macOS Wi-Fi & Internet Diagnostic Utility
+// ============================================================================
+
+struct Colors {
+	static let reset = "\u{001B}[0m"
+	static let bold = "\u{001B}[1m"
+	static let dim = "\u{001B}[2m"
+	static let green = "\u{001B}[32m"
+	static let yellow = "\u{001B}[33m"
+	static let red = "\u{001B}[31m"
+	static let cyan = "\u{001B}[36m"
+	static let blue = "\u{001B}[34m"
+}
+
+struct WifiDetails: Codable {
+	var interfaceName: String
+	var ssid: String?
+	var bssid: String?
+	var band: String
+	var channel: Int
+	var channelWidthMHz: Int
+	var rssi: Int
+	var noise: Int
+	var snr: Int
+	var txRateMbps: Double
+	var phyMode: String
+	var signalQuality: String
+}
+
+struct DeepDiagnostics: Codable {
+	var ccaPercent: Int?
+	var ccaRating: String?
+	var nssStreams: Int?
+	var mcsIndex: Int?
+	var guardInterval: String?
+	var btcMode: String?
+	var desense: String?
+	var captivePortalStatus: String?
+}
+
+struct IpDetails: Codable {
+	var publicIp: String?
+	var hostname: String?
+	var city: String?
+	var region: String?
+	var country: String?
+	var org: String?
+	var localGateway: String?
+}
+
+struct PingResult: Codable {
+	var host: String
+	var packetsSent: Int
+	var packetsReceived: Int
+	var packetLossPercent: Double
+	var minMs: Double
+	var avgMs: Double
+	var maxMs: Double
+	var stddevMs: Double
+}
+
+struct SpeedResult: Codable {
+	var downloadMbps: Double
+	var uploadMbps: Double
+	var idleLatencyMs: Double
+	var responsivenessRpm: Double
+	var testEndpoint: String
+}
+
+struct DiagnosticReport: Codable {
+	var timestamp: String
+	var wifi: WifiDetails?
+	var deep: DeepDiagnostics?
+	var ip: IpDetails?
+	var ping: [PingResult]
+	var speed: SpeedResult?
+	var nomadRating: String
+}
+
+func printUsage() {
+	let usage = """
+	wifi-check: Complete macOS Wi-Fi and network performance diagnostic
+
+	Usage:
+	  wifi-check [options]
+
+	Options:
+	  -q, --quick        Quick mode (skip ~15s throughput test, check Wi-Fi + IP + ping only)
+	  -d, --deep         Deep hardware mode (reads airtime congestion, MIMO streams, MCS via sudo wdutil)
+	  -s, --scan         Scan and display nearby Wi-Fi networks and signal strengths
+	  -j, --json         Output raw JSON for automation and logging
+	  -c, --count <N>    Number of ping probe packets (default: 5)
+	  -h, --help         Show this help message
+	"""
+	print(usage)
+}
+
+func getSignalQuality(rssi: Int) -> (rating: String, color: String) {
+	switch rssi {
+	case -55 ... 0:
+		return ("Excellent", Colors.green)
+	case -67 ... -56:
+		return ("Very Good", Colors.green)
+	case -75 ... -68:
+		return ("Fair / Usable", Colors.yellow)
+	case -85 ... -76:
+		return ("Weak", Colors.yellow)
+	default:
+		return ("Poor / Unstable", Colors.red)
+	}
+}
+
+func getPhyModeName(_ mode: CWPHYMode) -> String {
+	switch mode {
+	case .modeNone: return "Unknown"
+	case .mode11a: return "802.11a (Wi-Fi 1)"
+	case .mode11b: return "802.11b (Wi-Fi 2)"
+	case .mode11g: return "802.11g (Wi-Fi 3)"
+	case .mode11n: return "802.11n (Wi-Fi 4)"
+	case .mode11ac: return "802.11ac (Wi-Fi 5)"
+	case .mode11ax: return "802.11ax (Wi-Fi 6)"
+	case .mode11be: return "802.11be (Wi-Fi 7)"
+	@unknown default: return "Unknown"
+	}
+}
+
+func getChannelWidthMHz(_ width: CWChannelWidth) -> Int {
+	switch width {
+	case .width20MHz: return 20
+	case .width40MHz: return 40
+	case .width80MHz: return 80
+	case .width160MHz: return 160
+	default: return 20
+	}
+}
+
+func inspectCurrentWifi() -> WifiDetails? {
+	guard let iface = CWWiFiClient.shared().interface() else {
+		return nil
+	}
+	let ch = iface.wlanChannel()
+	let bandStr: String
+	switch ch?.channelBand {
+	case .band2GHz: bandStr = "2.4 GHz"
+	case .band5GHz: bandStr = "5 GHz"
+	case .band6GHz: bandStr = "6 GHz"
+	default: bandStr = "Unknown"
+	}
+
+	let rssi = iface.rssiValue()
+	let noise = iface.noiseMeasurement()
+	let snr = rssi - noise
+	let (quality, _) = getSignalQuality(rssi: rssi)
+
+	return WifiDetails(
+		interfaceName: iface.interfaceName ?? "en0",
+		ssid: iface.ssid(),
+		bssid: iface.bssid(),
+		band: bandStr,
+		channel: Int(ch?.channelNumber ?? 0),
+		channelWidthMHz: getChannelWidthMHz(ch?.channelWidth ?? .widthUnknown),
+		rssi: rssi,
+		noise: noise,
+		snr: snr,
+		txRateMbps: iface.transmitRate(),
+		phyMode: getPhyModeName(iface.activePHYMode()),
+		signalQuality: quality
+	)
+}
+
+func runDeepDiagnostics() -> DeepDiagnostics? {
+	let pipe = Pipe()
+	let process = Process()
+	process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+	process.arguments = ["wdutil", "info"]
+	process.standardOutput = pipe
+
+	do {
+		try process.run()
+		process.waitUntilExit()
+	} catch {
+		return nil
+	}
+
+	guard process.terminationStatus == 0 else { return nil }
+
+	let data = pipe.fileHandleForReading.readDataToEndOfFile()
+	guard let output = String(data: data, encoding: .utf8) else { return nil }
+
+	var diag = DeepDiagnostics()
+
+	for line in output.split(separator: "\n") {
+		let lineStr = String(line)
+		let parts = lineStr.split(separator: ":", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+		if parts.count == 2 {
+			let key = parts[0]
+			let val = parts[1]
+
+			if key == "CCA" {
+				if let num = Int(val.replacingOccurrences(of: "%", with: "").trimmingCharacters(in: .whitespaces)) {
+					diag.ccaPercent = num
+					if num < 25 {
+						diag.ccaRating = "Clean (< 25% Airtime Contention)"
+					} else if num < 50 {
+						diag.ccaRating = "Moderate (25-50% Airtime Contention)"
+					} else {
+						diag.ccaRating = "Heavy Congestion (> 50% Airtime Busy)"
+					}
+				}
+			} else if key == "NSS" {
+				if let num = Int(val) {
+					diag.nssStreams = num
+				}
+			} else if key == "MCS Index" {
+				if let num = Int(val) {
+					diag.mcsIndex = num
+				}
+			} else if key == "Guard Interval" {
+				diag.guardInterval = val.contains("400") ? "400 ns (Short / Fast)" : "\(val) ns"
+			} else if key == "BTC Mode" {
+				diag.btcMode = val
+			} else if key == "Desense" && !val.isEmpty {
+				diag.desense = val
+			} else if key == "Apple" {
+				diag.captivePortalStatus = val
+			}
+		}
+	}
+
+	return diag
+}
+
+func scanNearbyNetworks() -> [WifiDetails] {
+	guard let iface = CWWiFiClient.shared().interface() else { return [] }
+	let scan = (try? iface.scanForNetworks(withName: nil)) ?? []
+	var results: [WifiDetails] = []
+
+	for net in scan {
+		let ch = net.wlanChannel
+		let bandStr: String
+		switch ch?.channelBand {
+		case .band2GHz: bandStr = "2.4 GHz"
+		case .band5GHz: bandStr = "5 GHz"
+		case .band6GHz: bandStr = "6 GHz"
+		default: bandStr = "Unknown"
+		}
+		let rssi = net.rssiValue
+		let noise = net.noiseMeasurement
+		let (quality, _) = getSignalQuality(rssi: rssi)
+
+		results.append(WifiDetails(
+			interfaceName: iface.interfaceName ?? "en0",
+			ssid: net.ssid ?? "(Hidden)",
+			bssid: net.bssid,
+			band: bandStr,
+			channel: Int(ch?.channelNumber ?? 0),
+			channelWidthMHz: getChannelWidthMHz(ch?.channelWidth ?? .widthUnknown),
+			rssi: rssi,
+			noise: noise,
+			snr: rssi - noise,
+			txRateMbps: 0,
+			phyMode: "",
+			signalQuality: quality
+		))
+	}
+	return results.sorted { $0.rssi > $1.rssi }
+}
+
+func inspectIpAndGateway() -> IpDetails {
+	var details = IpDetails()
+
+	// Default gateway via netstat
+	let pipe = Pipe()
+	let netstat = Process()
+	netstat.executableURL = URL(fileURLWithPath: "/usr/sbin/netstat")
+	netstat.arguments = ["-nr"]
+	netstat.standardOutput = pipe
+	try? netstat.run()
+	netstat.waitUntilExit()
+
+	let data = pipe.fileHandleForReading.readDataToEndOfFile()
+	if let output = String(data: data, encoding: .utf8) {
+		for line in output.split(separator: "\n") {
+			let parts = line.split(whereSeparator: { $0.isWhitespace })
+			if parts.count >= 2 && parts[0] == "default" {
+				let gw = String(parts[1])
+				if !gw.contains(":") {
+					details.localGateway = gw
+					break
+				}
+			}
+		}
+	}
+
+	// Public IP info via ipinfo.io
+	let curlPipe = Pipe()
+	let curl = Process()
+	curl.executableURL = URL(fileURLWithPath: "/usr/bin/curl")
+	curl.arguments = ["-s", "--connect-timeout", "3", "--max-time", "5", "https://ipinfo.io/json"]
+	curl.standardOutput = curlPipe
+	try? curl.run()
+	curl.waitUntilExit()
+
+	let curlData = curlPipe.fileHandleForReading.readDataToEndOfFile()
+	if let json = try? JSONSerialization.jsonObject(with: curlData) as? [String: Any] {
+		details.publicIp = json["ip"] as? String
+		details.hostname = json["hostname"] as? String
+		details.city = json["city"] as? String
+		details.region = json["region"] as? String
+		details.country = json["country"] as? String
+		details.org = json["org"] as? String
+	}
+
+	return details
+}
+
+func runPingTest(host: String, count: Int = 5) -> PingResult? {
+	let pipe = Pipe()
+	let process = Process()
+	process.executableURL = URL(fileURLWithPath: "/sbin/ping")
+	process.arguments = ["-c", "\(count)", host]
+	process.standardOutput = pipe
+	try? process.run()
+	process.waitUntilExit()
+
+	let data = pipe.fileHandleForReading.readDataToEndOfFile()
+	guard let output = String(data: data, encoding: .utf8) else { return nil }
+
+	var sent = count
+	var received = 0
+	var loss = 100.0
+	var minMs = 0.0
+	var avgMs = 0.0
+	var maxMs = 0.0
+	var stddevMs = 0.0
+
+	for line in output.split(separator: "\n") {
+		let lineStr = String(line)
+		if lineStr.contains("packets transmitted") {
+			let components = lineStr.split(separator: ",")
+			for comp in components {
+				if comp.contains("packets transmitted"), let num = Int(comp.trimmingCharacters(in: .whitespaces).split(separator: " ").first ?? "") {
+					sent = num
+				}
+				if comp.contains("packets received"), let num = Int(comp.trimmingCharacters(in: .whitespaces).split(separator: " ").first ?? "") {
+					received = num
+				}
+				if comp.contains("% packet loss"), let numStr = comp.trimmingCharacters(in: .whitespaces).split(separator: "%").first?.split(separator: " ").last, let num = Double(numStr) {
+					loss = num
+				}
+			}
+		}
+		if lineStr.contains("min/avg/max") {
+			if let statsPart = lineStr.split(separator: "=").last {
+				let parts = statsPart.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: " ms", with: "").split(separator: "/")
+				if parts.count == 4 {
+					minMs = Double(parts[0]) ?? 0
+					avgMs = Double(parts[1]) ?? 0
+					maxMs = Double(parts[2]) ?? 0
+					stddevMs = Double(parts[3]) ?? 0
+				}
+			}
+		}
+	}
+
+	return PingResult(
+		host: host,
+		packetsSent: sent,
+		packetsReceived: received,
+		packetLossPercent: loss,
+		minMs: minMs,
+		avgMs: avgMs,
+		maxMs: maxMs,
+		stddevMs: stddevMs
+	)
+}
+
+func runSpeedTest() -> SpeedResult? {
+	let pipe = Pipe()
+	let process = Process()
+	process.executableURL = URL(fileURLWithPath: "/usr/bin/networkQuality")
+	process.arguments = ["-c"]
+	process.standardOutput = pipe
+	try? process.run()
+	process.waitUntilExit()
+
+	let data = pipe.fileHandleForReading.readDataToEndOfFile()
+	guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+
+	let dlThroughput = (json["dl_throughput"] as? Double) ?? 0.0
+	let ulThroughput = (json["ul_throughput"] as? Double) ?? 0.0
+	let idleLatency = (json["idle_latency"] as? Double) ?? 0.0
+	let responsiveness = (json["responsiveness"] as? Double) ?? 0.0
+	let endpoint = (json["test_endpoint"] as? String) ?? "Apple Edge"
+
+	// Throughput is reported in bits per second by networkQuality -c
+	let dlMbps = (dlThroughput / 1_000_000.0)
+	let ulMbps = (ulThroughput / 1_000_000.0)
+
+	return SpeedResult(
+		downloadMbps: (dlMbps * 10).rounded() / 10,
+		uploadMbps: (ulMbps * 10).rounded() / 10,
+		idleLatencyMs: (idleLatency * 10).rounded() / 10,
+		responsivenessRpm: responsiveness,
+		testEndpoint: endpoint
+	)
+}
+
+func evaluateNomadRating(wifi: WifiDetails?, deep: DeepDiagnostics?, ping: PingResult?, speed: SpeedResult?) -> String {
+	let loss = ping?.packetLossPercent ?? 0.0
+	let avgLatency = ping?.avgMs ?? 0.0
+	let upload = speed?.uploadMbps ?? 0.0
+	let cca = deep?.ccaPercent ?? 0
+
+	if loss > 5.0 {
+		return "⚠️ Poor (High Packet Loss: \(loss)%)"
+	}
+	if cca > 50 {
+		return "⚠️ Poor Airtime Congestion (CCA: \(cca)%) - Channel is oversaturated"
+	}
+	if avgLatency > 200.0 {
+		return "⚠️ High Latency (>200ms) - Conversational delays expected"
+	}
+	if speed != nil && upload < 2.0 {
+		return "⚠️ Low Upload (<2 Mbps) - Video calls may degrade"
+	}
+	if (speed == nil || upload >= 10.0) && loss == 0.0 && avgLatency < 120.0 {
+		return "✅ Optimal for HD Zoom Calls & Remote Work"
+	}
+	return "✅ Good for Standard Video Calls & Remote Work"
+}
+
+// ============================================================================
+// Main Execution Flow
+// ============================================================================
+
+var isQuick = false
+var isDeep = false
+var isScan = false
+var isJson = false
+var pingCount = 5
+
+let args = CommandLine.arguments
+var i = 1
+while i < args.count {
+	let arg = args[i]
+	switch arg {
+	case "-q", "--quick":
+		isQuick = true
+	case "-d", "--deep":
+		isDeep = true
+	case "-s", "--scan":
+		isScan = true
+	case "-j", "--json":
+		isJson = true
+	case "-c", "--count":
+		if i + 1 < args.count, let n = Int(args[i + 1]) {
+			pingCount = n
+			i += 1
+		}
+	case "-h", "--help":
+		printUsage()
+		exit(0)
+	default:
+		print("Unknown argument: \(arg)")
+		printUsage()
+		exit(1)
+	}
+	i += 1
+}
+
+if isScan {
+	let networks = scanNearbyNetworks()
+	if isJson {
+		let encoder = JSONEncoder()
+		encoder.outputFormatting = .prettyPrinted
+		if let data = try? encoder.encode(networks), let str = String(data: data, encoding: .utf8) {
+			print(str)
+		}
+	} else {
+		print("\n\(Colors.bold)Nearby Wi-Fi Networks (\(networks.count) detected):\(Colors.reset)\n")
+		print(String(format: "%-26@ %-10@ %-8@ %-12@ %-14@", "SSID", "Band", "Channel", "Signal", "Quality"))
+		print(String(repeating: "-", count: 72))
+		for net in networks {
+			let (_, col) = getSignalQuality(rssi: net.rssi)
+			let row = String(format: "%-26@ %-10@ %-8d %-12@ \(col)%-14@\(Colors.reset)",
+				String(net.ssid?.prefix(25) ?? "(Hidden)"),
+				net.band,
+				net.channel,
+				"\(net.rssi) dBm",
+				net.signalQuality
+			)
+			print(row)
+		}
+		print("")
+	}
+	exit(0)
+}
+
+// 1. Gather Wi-Fi Link Details
+let wifi = inspectCurrentWifi()
+
+// 2. Gather Deep Diagnostics (if requested or if running as root)
+var deep: DeepDiagnostics? = nil
+if isDeep || getuid() == 0 {
+	deep = runDeepDiagnostics()
+}
+
+// 3. Gather Public IP & Gateway Details
+let ip = inspectIpAndGateway()
+
+// 4. Run Ping Latency Tests
+var pings: [PingResult] = []
+if let gw = ip.localGateway, let pGw = runPingTest(host: gw, count: min(pingCount, 3)) {
+	pings.append(pGw)
+}
+if let pCloudflare = runPingTest(host: "1.1.1.1", count: pingCount) {
+	pings.append(pCloudflare)
+}
+
+// 5. Run Throughput Speed Test (if not quick mode)
+var speed: SpeedResult? = nil
+if !isQuick {
+	if !isJson {
+		print("\(Colors.dim)Testing internet capacity & bufferbloat via Apple Edge... (takes ~15s)\(Colors.reset)")
+	}
+	speed = runSpeedTest()
+}
+
+// 6. Evaluate Work Suitability
+let rating = evaluateNomadRating(wifi: wifi, deep: deep, ping: pings.first(where: { $0.host == "1.1.1.1" }), speed: speed)
+
+let report = DiagnosticReport(
+	timestamp: ISO8601DateFormatter().string(from: Date()),
+	wifi: wifi,
+	deep: deep,
+	ip: ip,
+	ping: pings,
+	speed: speed,
+	nomadRating: rating
+)
+
+if isJson {
+	let encoder = JSONEncoder()
+	encoder.outputFormatting = .prettyPrinted
+	if let data = try? encoder.encode(report), let str = String(data: data, encoding: .utf8) {
+		print(str)
+	}
+	exit(0)
+}
+
+// Pretty Terminal Display
+print("")
+print("\(Colors.bold)\(Colors.cyan)=== macOS Wi-Fi & Internet Diagnostic ===\(Colors.reset)")
+
+// Wi-Fi Hardware Section
+print("\n\(Colors.bold)Wi-Fi Wireless Link:\(Colors.reset)")
+if let w = wifi {
+	let (_, sigColor) = getSignalQuality(rssi: w.rssi)
+	print("  • Interface:        \(w.interfaceName)")
+	print("  • Frequency Band:   \(w.band) (Channel \(w.channel), \(w.channelWidthMHz) MHz width)")
+	print("  • Physical Standard: \(w.phyMode)")
+	print("  • Link Transmit Rate: \(w.txRateMbps) Mbps")
+	print("  • Signal Strength:  \(sigColor)\(w.rssi) dBm (\(w.signalQuality))\(Colors.reset)")
+	print("  • Noise / SNR:      \(w.noise) dBm (SNR: \(w.snr) dB)")
+} else {
+	print("  • Wi-Fi interface not active or not associated.")
+}
+
+// Deep Diagnostics Section
+if let d = deep {
+	print("\n\(Colors.bold)Deep Radio & Hardware Health (wdutil):\(Colors.reset)")
+	if let cca = d.ccaPercent, let rating = d.ccaRating {
+		let ccaColor = cca < 25 ? Colors.green : (cca < 50 ? Colors.yellow : Colors.red)
+		print("  • Airtime Congestion: \(ccaColor)\(cca)% - \(rating)\(Colors.reset)")
+	}
+	if let nss = d.nssStreams {
+		let nssColor = nss >= 2 ? Colors.green : Colors.yellow
+		print("  • Spatial Streams:   \(nssColor)\(nss)x\(nss) MIMO (\(nss >= 2 ? "Dual Antenna" : "Single Stream Degraded"))\(Colors.reset)")
+	}
+	if let mcs = d.mcsIndex {
+		print("  • Modulation (MCS):  Index \(mcs) / 11")
+	}
+	if let gi = d.guardInterval {
+		print("  • Guard Interval:    \(gi)")
+	}
+	if let btc = d.btcMode {
+		let btcColor = btc.lowercased().contains("off") ? Colors.green : Colors.yellow
+		print("  • Bluetooth Coexist: \(btcColor)\(btc)\(Colors.reset)")
+	}
+	if let desense = d.desense {
+		print("  • \(Colors.red)⚠️ RF Desensitization: \(desense) (USB-C hub or cable noise detected)\(Colors.reset)")
+	}
+	if let portal = d.captivePortalStatus {
+		print("  • Captive Portal:    \(portal)")
+	}
+} else if isDeep {
+	print("\n\(Colors.dim)Deep hardware diagnostics: sudo permission was not granted.\(Colors.reset)")
+}
+
+// IP & Route Section
+print("\n\(Colors.bold)Routing & Public Presence:\(Colors.reset)")
+print("  • Local Gateway:    \(ip.localGateway ?? "Unknown")")
+if let pub = ip.publicIp {
+	let loc = [ip.city, ip.region, ip.country].compactMap { $0 }.joined(separator: ", ")
+	print("  • Public IP:        \(pub)")
+	print("  • ISP / Provider:   \(ip.org ?? "Unknown")")
+	print("  • Geo Location:     \(loc)")
+} else {
+	print("  • Public IP lookup failed (no internet or timeout)")
+}
+
+// Ping Section
+print("\n\(Colors.bold)Latency & Packet Stability:\(Colors.reset)")
+for p in pings {
+	let lossColor = p.packetLossPercent == 0 ? Colors.green : Colors.red
+	print("  • Target: \(p.host)")
+	print("    - Packet Loss:    \(lossColor)\(p.packetLossPercent)%\(Colors.reset) (\(p.packetsReceived)/\(p.packetsSent) received)")
+	print("    - Latency (RTT):  Avg \(p.avgMs) ms (Min: \(p.minMs) ms, Max: \(p.maxMs) ms)")
+	print("    - Jitter (StdDev): ±\(p.stddevMs) ms")
+}
+
+// Speed Section
+if let s = speed {
+	print("\n\(Colors.bold)Throughput & Loaded Latency (Bufferbloat):\(Colors.reset)")
+	print("  • Download Speed:   \(Colors.green)\(s.downloadMbps) Mbps\(Colors.reset)")
+	print("  • Upload Speed:     \(Colors.green)\(s.uploadMbps) Mbps\(Colors.reset)")
+	print("  • Idle Latency:     \(s.idleLatencyMs) ms (Tested via \(s.testEndpoint))")
+	print("  • Responsiveness:   \(Int(s.responsivenessRpm)) RPM")
+} else if isQuick {
+	print("\n\(Colors.dim)Throughput test skipped (--quick mode). Run without -q for full speed test.\(Colors.reset)")
+}
+
+// Rating Section
+print("\n\(Colors.bold)Nomad & Remote Work Verdict:\(Colors.reset)")
+print("  \(rating)\n")
