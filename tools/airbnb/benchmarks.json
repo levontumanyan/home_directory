@@ -1,0 +1,70 @@
+{
+	"metrics": {
+		"amenities": {
+			"weight": 0.4,
+			"function": "percentage_match",
+			"params": {
+				"bonus_amenities": [
+					"air_conditioning",
+					"dedicated_workspace",
+					"washer",
+					"dryer"
+				]
+			}
+		},
+		"value": {
+			"weight": 0.3,
+			"function": "fixed_decay",
+			"params": {
+				"decay_rate": 0.1
+			}
+		},
+		"sentiment": {
+			"weight": 0.3,
+			"function": "keyword_analysis",
+			"params": {
+				"positive_keywords": [
+					"clean",
+					"quiet",
+					"comfortable"
+				],
+				"negative_keywords": [
+					"loud",
+					"dirty",
+					"smell"
+				]
+			}
+		}
+	},
+	"penalties": [
+		{
+			"name": "Low Review Count",
+			"condition": {
+				"field": "review_count",
+				"operator": "<",
+				"value": 10
+			},
+			"multiplier": 0.5
+		},
+		{
+			"name": "Low Review Score",
+			"condition": {
+				"field": "review_score",
+				"operator": "<",
+				"value": 4.5
+			},
+			"multiplier": 0.5
+		}
+	],
+	"hard_filters": {
+		"must_have_amenities": [
+			"wifi",
+			"kitchen"
+		]
+	},
+	"scoring_thresholds": {
+		"excellent": 80,
+		"good": 60,
+		"pass": 40
+	}
+}
