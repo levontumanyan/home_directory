@@ -112,8 +112,24 @@ curl --silent
 argo get
 d2
 
+# --- local cli & diagnostics ---
+apple-pay
+cal-event search
+dig
+ipconfig getifaddr
+networkQuality
+outlook
+pdftotext
+ping
+route get
+traceroute
+wifi-check
+
 # --- build ---
+make check
+make format
 make lint
+make test
 
 [websearch]
 # Claude: "WebSearch" entry in permissions.allow

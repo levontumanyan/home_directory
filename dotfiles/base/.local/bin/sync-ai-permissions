@@ -145,6 +145,9 @@ def _claude_mcp_entries(mcp_lines):
 
 
 def sync_claude(sections):
+	if not CLAUDE_SETTINGS.exists():
+		print(f"- Claude:      {CLAUDE_SETTINGS} (not found, skipping)")
+		return
 	with open(CLAUDE_SETTINGS) as f:
 		settings = json.load(f)
 
@@ -188,6 +191,9 @@ def sync_claude(sections):
 # ---------------------------------------------------------------------------
 
 def sync_agent(sections):
+	if not AGENT_SETTINGS.exists():
+		print(f"- Antigravity: {AGENT_SETTINGS} (not found, skipping)")
+		return
 	with open(AGENT_SETTINGS) as f:
 		settings = json.load(f)
 
@@ -210,6 +216,9 @@ def sync_agent(sections):
 # ---------------------------------------------------------------------------
 
 def sync_opencode(sections):
+	if not OPENCODE_CONFIG.exists():
+		print(f"- opencode:    {OPENCODE_CONFIG} (not found, skipping)")
+		return
 	text = OPENCODE_CONFIG.read_text()
 	clean = strip_jsonc_comments(text)
 	config = json.loads(clean)
