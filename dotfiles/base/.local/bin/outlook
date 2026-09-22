@@ -11,6 +11,7 @@
 import os
 import sys
 import argparse
+import email.utils
 from pathlib import Path
 import requests
 import msal
@@ -105,6 +106,29 @@ def format_address(addr_obj: dict) -> str:
 	if name and name != address:
 		return f"{name} <{address}>"
 	return address
+
+
+def parse_recipients(recipient_inputs: list | None) -> list[dict]:
+	if not recipient_inputs:
+		return []
+	results = []
+	for item in recipient_inputs:
+		if isinstance(item, list):
+			subitems = item
+		else:
+			subitems = [item]
+		for subitem in subitems:
+			for part in subitem.split(","):
+				part = part.strip()
+				if not part:
+					continue
+				name, addr = email.utils.parseaddr(part)
+				clean_addr = addr if addr else part
+				if name:
+					results.append({"emailAddress": {"name": name, "address": clean_addr}})
+				else:
+					results.append({"emailAddress": {"address": clean_addr}})
+	return results
 
 
 def cmd_auth(args):
@@ -221,10 +245,69 @@ def cmd_read(args):
 	print("-" * 60)
 
 
+def cmd_draft(args):
+	token = get_access_token(interactive=True)
+	headers = get_headers(token)
+	headers["Content-Type"] = "application/json"
+
+	body = ""
+	if args.file:
+		if args.file == "-":
+			body = sys.stdin.read()
+		else:
+			file_path = Path(args.file)
+			if not file_path.exists():
+				sys.exit(f"Error: File not found: {args.file}")
+			body = file_path.read_text()
+	elif args.body is not None:
+		body = args.body
+	elif not sys.stdin.isatty():
+		body = sys.stdin.read()
+
+	payload = {
+		"subject": args.subject or "",
+		"importance": args.importance,
+		"body": {
+			"contentType": "HTML" if args.html else "Text",
+			"content": body,
+		},
+	}
+
+	to_recipients = parse_recipients(args.to)
+	if to_recipients:
+		payload["toRecipients"] = to_recipients
+
+	cc_recipients = parse_recipients(args.cc)
+	if cc_recipients:
+		payload["ccRecipients"] = cc_recipients
+
+	bcc_recipients = parse_recipients(args.bcc)
+	if bcc_recipients:
+		payload["bccRecipients"] = bcc_recipients
+
+	resp = requests.post(f"{GRAPH_ENDPOINT}/me/messages", headers=headers, json=payload)
+	if resp.status_code not in (200, 201):
+		sys.exit(f"Error creating draft: {resp.status_code} {resp.text}")
+
+	draft = resp.json()
+	print("Draft created successfully!")
+	print(f"ID:      {draft.get('id')}")
+	print(f"Subject: {draft.get('subject') or '(No Subject)'}")
+	if draft.get("toRecipients"):
+		to_display = ", ".join(format_address(r) for r in draft.get("toRecipients", []))
+		print(f"To:      {to_display}")
+	if draft.get("ccRecipients"):
+		cc_display = ", ".join(format_address(r) for r in draft.get("ccRecipients", []))
+		print(f"CC:      {cc_display}")
+	if draft.get("bccRecipients"):
+		bcc_display = ", ".join(format_address(r) for r in draft.get("bccRecipients", []))
+		print(f"BCC:     {bcc_display}")
+
+
 def main():
 	parser = argparse.ArgumentParser(
 		prog="outlook",
-		description="CLI to read and search Outlook emails via Microsoft Graph API",
+		description="CLI to read, search, and draft Outlook emails via Microsoft Graph API",
 	)
 	subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
@@ -255,6 +338,18 @@ def main():
 	p_read = subparsers.add_parser("read", help="Read a specific email by ID")
 	p_read.add_argument("message_id", help="Message ID")
 	p_read.set_defaults(func=cmd_read)
+
+	# draft
+	p_draft = subparsers.add_parser("draft", help="Create a draft email")
+	p_draft.add_argument("-t", "--to", nargs="+", action="extend", help="Recipient email address(es)")
+	p_draft.add_argument("-c", "--cc", nargs="+", action="extend", help="CC recipient email address(es)")
+	p_draft.add_argument("-b", "--bcc", nargs="+", action="extend", help="BCC recipient email address(es)")
+	p_draft.add_argument("-s", "--subject", default="", help="Draft subject line")
+	p_draft.add_argument("--body", help="Email body text")
+	p_draft.add_argument("-f", "--file", help="Path to file containing email body (use '-' for stdin)")
+	p_draft.add_argument("--html", action="store_true", help="Treat body as HTML (default: plain text)")
+	p_draft.add_argument("--importance", choices=["low", "normal", "high"], default="normal", help="Email importance level (default: normal)")
+	p_draft.set_defaults(func=cmd_draft)
 
 	args = parser.parse_args()
 	if not args.command:
