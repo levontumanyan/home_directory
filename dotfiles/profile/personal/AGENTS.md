@@ -9,6 +9,7 @@
 - **Outlook CLI**: Use `outlook list` (or `outlook`), `outlook unread`, `outlook search "<query>"`, or `outlook read "<message_id>"` (see `outlook --help`). Note: `search` defaults to `-l 10` (use `-l <N>` for full results). Rely on search metadata for summaries; avoid fetching individual message bodies or writing ad-hoc scripts unless specifically requested.
 - **Apple Pay CLI**: Queries and searches local Apple Pay transactions on macOS; see `apple-pay --help` for options.
 - **iMessage CLI**: Queries and searches local iMessage chat history on macOS; see `imessage --help` for options.
+- **PDF Text Extraction**: Use `pdftotext` directly to extract and read PDF contents; it is already installed and available. Do not write ad-hoc Python scripts (e.g. `pypdf`) or run tool existence checks.
 
 # GitHub Issue & PR Bodies
 

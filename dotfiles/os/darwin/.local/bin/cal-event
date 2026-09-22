@@ -4,7 +4,7 @@ import Foundation
 import EventKit
 
 // ============================================================================
-// cal-event: Fast CLI to add/query events via macOS EventKit
+// cal-event: Fast CLI to add/query/edit/delete events via macOS EventKit
 // Default Target: iCloud -> Home (or specified --calendar / --account)
 // ============================================================================
 
@@ -12,21 +12,26 @@ enum Mode {
 	case add
 	case list
 	case listCalendars
+	case edit
+	case delete
 }
 
 struct Config {
 	var mode: Mode = .add
 	var summary: String = ""
+	var newTitle: String?
 	var startDate: Date?
 	var endDate: Date?
-	var durationMinutes: Int = 30
-	var isAllDay: Bool = false
+	var rangeStart: Date?
+	var rangeEnd: Date?
+	var durationMinutes: Int?
+	var isAllDay: Bool?
 	var calendarName: String?
 	var accountName: String?
 	var notes: String?
 	var url: URL?
 	var location: String?
-	var alarmMinutesBefore: [Int] = [0]
+	var alarmMinutesBefore: [Int]?
 	var days: Int?
 	var searchQuery: String?
 	var showDetails: Bool = false
@@ -36,6 +41,9 @@ func printUsage() {
 	let usage = """
 	Usage:
 	  cal-event add "<title>" [options]
+	  cal-event edit "<query>" [options]
+	  cal-event update "<query>" [options]
+	  cal-event delete "<query>" [options]
 	  cal-event list [options]
 	  cal-event search "<query>" [options]
 	  cal-event list-calendars
@@ -53,17 +61,20 @@ func printUsage() {
 	  --account, -a "<name>"   Filter by account/source name
 	  --details, -v            Show notes, location, and URLs
 
-	Add Options:
+	Add & Edit Options:
+	  --title "<title>"         New event title (for edit/update)
 	  --start "<date/time>"     Start date (e.g., "2026-09-09 09:00", "2026-09-09", "2026-09-09T09:00:00")
 	  --end "<date/time>"       End date (optional)
-	  --duration <minutes>      Duration in minutes (default: 30)
+	  --duration <minutes>      Duration in minutes (default: 30 for add)
 	  --all-day                 Mark event as all-day
-	  --calendar "<name>"       Target calendar (default: "Home")
-	  --account "<name>"        Target account/source (default: "iCloud")
+	  --calendar "<name>"       Target calendar (for add; filter for search/edit/delete)
+	  --account "<name>"        Target account/source (for add; filter for search/edit/delete)
 	  --notes "<text>"          Event notes / description
 	  --url "<url>"             Associated URL
 	  --location "<text>"       Location string
 	  --alarm <minutes>         Alarm minutes before event (e.g., 60, or 60,1440; use -1 for none)
+	  --from "<date/time>"      Search range start (for edit/delete)
+	  --to "<date/time>"        Search range end (for edit/delete)
 	  --list-calendars          List all available accounts & calendars
 
 	Examples:
@@ -74,8 +85,9 @@ func printUsage() {
 	  cal-event search "LATAM" --details
 	  cal-event search "callback" --from "2026-09-01" --days 30
 	  cal-event add "Doctor Appointment" --start "2026-09-15 14:00" --duration 60 --alarm 60,1440
-	  cal-event add "Customs Form" --start "2026-09-09 09:00" --calendar "Home" --account "iCloud" --url "https://..."
-	  cal-event add "Flight to Cuenca" --start "2026-09-12 08:30" --calendar "Calendar" --account "levon.tumanyan@outlook.com"
+	  cal-event edit "Doctor Appointment" --start "2026-09-15 15:30"
+	  cal-event update "Doctor Appointment" --title "Dentist Appointment" --location "Dental Clinic"
+	  cal-event delete "Doctor Appointment"
 	"""
 	print(usage)
 }
@@ -157,19 +169,22 @@ func handleAdd(config: Config, store: EKEventStore, allCalendars: [EKCalendar]) 
 	}
 
 	let start = config.startDate ?? Date()
-	let end = config.endDate ?? start.addingTimeInterval(TimeInterval(config.durationMinutes * 60))
+	let duration = config.durationMinutes ?? 30
+	let end = config.endDate ?? start.addingTimeInterval(TimeInterval(duration * 60))
+	let isAllDay = config.isAllDay ?? false
+	let alarmList = config.alarmMinutesBefore ?? [0]
 
 	let event = EKEvent(eventStore: store)
 	event.title = config.summary
 	event.startDate = start
 	event.endDate = end
-	event.isAllDay = config.isAllDay
+	event.isAllDay = isAllDay
 	event.calendar = targetCalendar
 	event.notes = config.notes
 	event.url = config.url
 	event.location = config.location
 
-	for alarmMins in config.alarmMinutesBefore {
+	for alarmMins in alarmList {
 		let alarm = EKAlarm(relativeOffset: TimeInterval(-alarmMins * 60))
 		event.addAlarm(alarm)
 	}
@@ -178,7 +193,7 @@ func handleAdd(config: Config, store: EKEventStore, allCalendars: [EKCalendar]) 
 		try store.save(event, span: .thisEvent)
 		let df = DateFormatter()
 		df.dateStyle = .medium
-		df.timeStyle = config.isAllDay ? .none : .short
+		df.timeStyle = isAllDay ? .none : .short
 		print("✅ Event created successfully:")
 		print("   • Title:    \(event.title ?? "")")
 		print("   • When:     \(df.string(from: start)) - \(df.string(from: end))")
@@ -186,8 +201,8 @@ func handleAdd(config: Config, store: EKEventStore, allCalendars: [EKCalendar]) 
 		if let loc = event.location, !loc.isEmpty {
 			print("   • Location: \(loc)")
 		}
-		if !config.alarmMinutesBefore.isEmpty {
-			let alarmStr = config.alarmMinutesBefore.map { "\($0)m before" }.joined(separator: ", ")
+		if !alarmList.isEmpty {
+			let alarmStr = alarmList.map { "\($0)m before" }.joined(separator: ", ")
 			print("   • Alarms:   \(alarmStr)")
 		}
 		if let notes = event.notes, !notes.isEmpty {
@@ -207,21 +222,25 @@ func handleList(config: Config, store: EKEventStore, allCalendars: [EKCalendar])
 	let now = Date()
 
 	let start: Date
-	if let userStart = config.startDate {
+	if let userFrom = config.rangeStart {
+		start = userFrom
+	} else if let userStart = config.startDate {
 		start = userStart
 	} else {
 		start = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: now) ?? now
 	}
 
 	let end: Date
-	if let userEnd = config.endDate {
+	if let userTo = config.rangeEnd {
+		end = userTo
+	} else if let userEnd = config.endDate {
 		end = userEnd
 	} else if let days = config.days {
 		end = calendar.date(byAdding: .day, value: days, to: start) ?? start.addingTimeInterval(TimeInterval(days * 86400))
-	} else if config.searchQuery != nil && config.startDate == nil {
+	} else if config.searchQuery != nil && config.startDate == nil && config.rangeStart == nil {
 		// When searching without explicit dates, default to next 30 days
 		end = calendar.date(byAdding: .day, value: 30, to: start) ?? start.addingTimeInterval(30 * 86400)
-	} else if config.startDate != nil {
+	} else if config.startDate != nil || config.rangeStart != nil {
 		end = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: start) ?? start.addingTimeInterval(86399)
 	} else {
 		end = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: now) ?? now.addingTimeInterval(86399)
@@ -317,6 +336,213 @@ func handleList(config: Config, store: EKEventStore, allCalendars: [EKCalendar])
 	}
 }
 
+func findMatchingEvents(config: Config, store: EKEventStore, allCalendars: [EKCalendar]) -> [EKEvent] {
+	guard let query = config.searchQuery?.trimmingCharacters(in: .whitespaces), !query.isEmpty else {
+		return []
+	}
+
+	let calendar = Calendar.current
+	let now = Date()
+
+	let start = config.rangeStart ?? calendar.date(byAdding: .day, value: -30, to: now) ?? now.addingTimeInterval(-30 * 86400)
+	let end = config.rangeEnd ?? calendar.date(byAdding: .day, value: 90, to: now) ?? now.addingTimeInterval(90 * 86400)
+
+	var targetCalendars: [EKCalendar]? = nil
+	if let calName = config.calendarName, let accName = config.accountName {
+		let matched = allCalendars.filter {
+			$0.title.caseInsensitiveCompare(calName) == .orderedSame &&
+			$0.source.title.caseInsensitiveCompare(accName) == .orderedSame
+		}
+		if !matched.isEmpty { targetCalendars = matched }
+	} else if let calName = config.calendarName {
+		let matched = allCalendars.filter {
+			$0.title.caseInsensitiveCompare(calName) == .orderedSame
+		}
+		if !matched.isEmpty { targetCalendars = matched }
+	} else if let accName = config.accountName {
+		let matched = allCalendars.filter {
+			$0.source.title.caseInsensitiveCompare(accName) == .orderedSame
+		}
+		if !matched.isEmpty { targetCalendars = matched }
+	}
+
+	let predicate = store.predicateForEvents(withStart: start, end: end, calendars: targetCalendars)
+	var events = store.events(matching: predicate)
+
+	let lowerQuery = query.lowercased()
+	events = events.filter { event in
+		let titleMatch = event.title?.lowercased().contains(lowerQuery) ?? false
+		let notesMatch = event.notes?.lowercased().contains(lowerQuery) ?? false
+		let locationMatch = event.location?.lowercased().contains(lowerQuery) ?? false
+		return titleMatch || notesMatch || locationMatch
+	}
+
+	events.sort { $0.startDate < $1.startDate }
+	return events
+}
+
+func formatEventTime(_ event: EKEvent) -> String {
+	let calendar = Calendar.current
+	let dfDate = DateFormatter()
+	dfDate.dateFormat = "yyyy-MM-dd"
+	let dfTime = DateFormatter()
+	dfTime.dateFormat = "HH:mm"
+	let dfDateTime = DateFormatter()
+	dfDateTime.dateFormat = "yyyy-MM-dd HH:mm"
+
+	if event.isAllDay {
+		return "\(dfDate.string(from: event.startDate)) (All Day)"
+	} else if calendar.isDate(event.startDate, inSameDayAs: event.endDate) {
+		return "\(dfDate.string(from: event.startDate)) \(dfTime.string(from: event.startDate)) - \(dfTime.string(from: event.endDate))"
+	} else {
+		return "\(dfDateTime.string(from: event.startDate)) - \(dfDateTime.string(from: event.endDate))"
+	}
+}
+
+func handleEdit(config: Config, store: EKEventStore, allCalendars: [EKCalendar]) {
+	guard let query = config.searchQuery?.trimmingCharacters(in: .whitespaces), !query.isEmpty else {
+		fputs("Error: Missing search query for event to edit.\nUsage: cal-event edit \"<query>\" [options]\n", stderr)
+		exit(1)
+	}
+
+	let events = findMatchingEvents(config: config, store: store, allCalendars: allCalendars)
+
+	if events.isEmpty {
+		fputs("Error: No events found matching '\(query)'.\n", stderr)
+		exit(1)
+	}
+
+	if events.count > 1 {
+		fputs("Error: Multiple events (\(events.count)) matched '\(query)':\n", stderr)
+		for event in events {
+			let calSource = event.calendar.source.title
+			let calTitle = event.calendar.title
+			let title = event.title ?? "(No Title)"
+			fputs("  • [\(calSource) -> \(calTitle)] \(formatEventTime(event)): \(title)\n", stderr)
+		}
+		fputs("Please refine your query with --from, --to, --calendar, or a more specific title.\n", stderr)
+		exit(1)
+	}
+
+	let event = events[0]
+
+	if let newTitle = config.newTitle, !newTitle.isEmpty {
+		event.title = newTitle
+	}
+
+	if let newStart = config.startDate {
+		let origDuration = event.endDate.timeIntervalSince(event.startDate)
+		event.startDate = newStart
+		if let newEnd = config.endDate {
+			event.endDate = newEnd
+		} else if let duration = config.durationMinutes {
+			event.endDate = newStart.addingTimeInterval(TimeInterval(duration * 60))
+		} else {
+			event.endDate = newStart.addingTimeInterval(origDuration > 0 ? origDuration : 1800)
+		}
+	} else if let newEnd = config.endDate {
+		event.endDate = newEnd
+	} else if let duration = config.durationMinutes {
+		event.endDate = event.startDate.addingTimeInterval(TimeInterval(duration * 60))
+	}
+
+	if let isAllDay = config.isAllDay {
+		event.isAllDay = isAllDay
+	}
+
+	if let location = config.location {
+		event.location = location
+	}
+
+	if let notes = config.notes {
+		event.notes = notes
+	}
+
+	if let url = config.url {
+		event.url = url
+	}
+
+	if let alarmMinsList = config.alarmMinutesBefore {
+		if let existingAlarms = event.alarms {
+			for a in existingAlarms {
+				event.removeAlarm(a)
+			}
+		}
+		for mins in alarmMinsList {
+			event.addAlarm(EKAlarm(relativeOffset: TimeInterval(-mins * 60)))
+		}
+	}
+
+	do {
+		try store.save(event, span: .thisEvent)
+		let df = DateFormatter()
+		df.dateStyle = .medium
+		df.timeStyle = event.isAllDay ? .none : .short
+		print("✅ Event updated successfully:")
+		print("   • Title:    \(event.title ?? "")")
+		print("   • When:     \(df.string(from: event.startDate)) - \(df.string(from: event.endDate))")
+		print("   • Calendar: [\(event.calendar.source.title)] -> \(event.calendar.title)")
+		if let loc = event.location, !loc.isEmpty {
+			print("   • Location: \(loc)")
+		}
+		if let alarms = event.alarms, !alarms.isEmpty {
+			let alarmStr = alarms.map { "\(Int(-$0.relativeOffset / 60))m before" }.joined(separator: ", ")
+			print("   • Alarms:   \(alarmStr)")
+		}
+		if let notes = event.notes, !notes.isEmpty {
+			print("   • Notes:    \(notes)")
+		}
+		if let url = event.url {
+			print("   • Link:     \(url.absoluteString)")
+		}
+	} catch {
+		fputs("Error saving event: \(error.localizedDescription)\n", stderr)
+		exit(1)
+	}
+}
+
+func handleDelete(config: Config, store: EKEventStore, allCalendars: [EKCalendar]) {
+	guard let query = config.searchQuery?.trimmingCharacters(in: .whitespaces), !query.isEmpty else {
+		fputs("Error: Missing search query for event to delete.\nUsage: cal-event delete \"<query>\" [options]\n", stderr)
+		exit(1)
+	}
+
+	let events = findMatchingEvents(config: config, store: store, allCalendars: allCalendars)
+
+	if events.isEmpty {
+		fputs("Error: No events found matching '\(query)'.\n", stderr)
+		exit(1)
+	}
+
+	if events.count > 1 {
+		fputs("Error: Multiple events (\(events.count)) matched '\(query)':\n", stderr)
+		for event in events {
+			let calSource = event.calendar.source.title
+			let calTitle = event.calendar.title
+			let title = event.title ?? "(No Title)"
+			fputs("  • [\(calSource) -> \(calTitle)] \(formatEventTime(event)): \(title)\n", stderr)
+		}
+		fputs("Please refine your query with --from, --to, --calendar, or a more specific title.\n", stderr)
+		exit(1)
+	}
+
+	let event = events[0]
+	let title = event.title ?? "(No Title)"
+	let timeStr = formatEventTime(event)
+	let calStr = "[\(event.calendar.source.title)] -> \(event.calendar.title)"
+
+	do {
+		try store.remove(event, span: .thisEvent)
+		print("🗑️ Event deleted successfully:")
+		print("   • Title:    \(title)")
+		print("   • When:     \(timeStr)")
+		print("   • Calendar: \(calStr)")
+	} catch {
+		fputs("Error deleting event: \(error.localizedDescription)\n", stderr)
+		exit(1)
+	}
+}
+
 func main() {
 	var args = CommandLine.arguments
 	args.removeFirst()
@@ -339,6 +565,18 @@ func main() {
 		if !args.isEmpty && !args[0].hasPrefix("-") {
 			config.searchQuery = args.removeFirst()
 		}
+	} else if args[0] == "edit" || args[0] == "update" {
+		config.mode = .edit
+		args.removeFirst()
+		if !args.isEmpty && !args[0].hasPrefix("-") {
+			config.searchQuery = args.removeFirst()
+		}
+	} else if args[0] == "delete" || args[0] == "rm" || args[0] == "remove" {
+		config.mode = .delete
+		args.removeFirst()
+		if !args.isEmpty && !args[0].hasPrefix("-") {
+			config.searchQuery = args.removeFirst()
+		}
 	} else if args[0] == "add" {
 		config.mode = .add
 		args.removeFirst()
@@ -354,7 +592,12 @@ func main() {
 	while idx < args.count {
 		let arg = args[idx]
 		switch arg {
-		case "--start", "--from":
+		case "--title", "--new-title":
+			if idx + 1 < args.count {
+				idx += 1
+				config.newTitle = args[idx]
+			}
+		case "--start":
 			if idx + 1 < args.count {
 				idx += 1
 				guard let d = parseDate(args[idx], isEndOfDay: false) else {
@@ -363,7 +606,16 @@ func main() {
 				}
 				config.startDate = d
 			}
-		case "--end", "--to":
+		case "--from":
+			if idx + 1 < args.count {
+				idx += 1
+				guard let d = parseDate(args[idx], isEndOfDay: false) else {
+					fputs("Error: Could not parse date '\(args[idx])'.\n", stderr)
+					exit(1)
+				}
+				config.rangeStart = d
+			}
+		case "--end":
 			if idx + 1 < args.count {
 				idx += 1
 				guard let d = parseDate(args[idx], isEndOfDay: true) else {
@@ -371,6 +623,15 @@ func main() {
 					exit(1)
 				}
 				config.endDate = d
+			}
+		case "--to":
+			if idx + 1 < args.count {
+				idx += 1
+				guard let d = parseDate(args[idx], isEndOfDay: true) else {
+					fputs("Error: Could not parse date '\(args[idx])'.\n", stderr)
+					exit(1)
+				}
+				config.rangeEnd = d
 			}
 		case "--duration":
 			if idx + 1 < args.count {
@@ -462,6 +723,16 @@ func main() {
 
 		if config.mode == .list {
 			handleList(config: config, store: store, allCalendars: allCalendars)
+			return
+		}
+
+		if config.mode == .edit {
+			handleEdit(config: config, store: store, allCalendars: allCalendars)
+			return
+		}
+
+		if config.mode == .delete {
+			handleDelete(config: config, store: store, allCalendars: allCalendars)
 			return
 		}
 
