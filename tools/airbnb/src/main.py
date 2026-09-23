@@ -2,12 +2,17 @@ import argparse
 import json
 import logging
 import re
+import statistics
 import sys
 from datetime import datetime
 
 from config import REPORTS_DIR
 from fetcher import get_listing_details, search_listings
-from reporter import generate_csv_report, generate_json_report
+from reporter import (
+	generate_csv_report,
+	generate_json_report,
+	generate_survey_report,
+)
 from scorer import Scorer
 from utils import (
 	check_internet_connection,
@@ -17,6 +22,144 @@ from utils import (
 	load_search_filters,
 	setup_logging,
 )
+
+
+def run_survey(args, defaults, search_amenities, logger):
+	delimiter = ";" if ";" in args.cities else ","
+	raw_cities = [c.strip() for c in args.cities.split(delimiter) if c.strip()]
+	if not raw_cities:
+		logger.error("No cities provided for survey.")
+		return
+
+	d1 = datetime.strptime(args.check_in, "%Y-%m-%d")
+	d2 = datetime.strptime(args.check_out, "%Y-%m-%d")
+	num_nights = max(1, (d2 - d1).days)
+
+	survey_results = []
+	if not args.json:
+		print(
+			f"\nStarting market price survey across {len(raw_cities)} cities for {args.check_in} to {args.check_out} ({num_nights} nights, {args.currency})...\n"
+		)
+
+	for city in raw_cities:
+		logger.info(f"Surveying {city}...")
+		coords = get_city_coords(city)
+		if not coords:
+			logger.warning(f"Could not resolve coords for {city}, skipping.")
+			continue
+
+		listings = search_listings(
+			coords,
+			check_in=args.check_in,
+			check_out=args.check_out,
+			min_price=0,
+			max_price=10000,
+			currency=args.currency,
+			place_type=args.place_type,
+			amenities=search_amenities if search_amenities else None,
+			language=defaults.get("language", "en"),
+			free_cancellation=defaults.get("free_cancellation", False),
+			zoom_value=defaults.get("zoom_value", 12),
+		)
+
+		prices = []
+		discounts = []
+		qualified_prices = []
+
+		for item in listings:
+			p_info = item.get("price", {})
+			unit = p_info.get("unit", {})
+			amt = (
+				unit.get("discount")
+				or unit.get("amount")
+				or p_info.get("total", {}).get("amount", 0)
+			)
+			orig_amt = unit.get("amount") or amt
+
+			try:
+				amt_float = float(amt)
+				orig_float = float(orig_amt)
+			except (ValueError, TypeError):
+				continue
+
+			if amt_float > 0:
+				prices.append(amt_float)
+				if orig_float > amt_float:
+					discounts.append(((orig_float - amt_float) / orig_float) * 100)
+
+				val = float(item.get("rating", {}).get("value", 0) or 0)
+				try:
+					rc = int(item.get("rating", {}).get("reviewCount", 0) or 0)
+				except (ValueError, TypeError):
+					rc = 0
+
+				if val >= args.min_rating and rc >= args.min_reviews:
+					qualified_prices.append(amt_float)
+
+		# Calculate stay duration
+		d1 = datetime.strptime(args.check_in, "%Y-%m-%d")
+		d2 = datetime.strptime(args.check_out, "%Y-%m-%d")
+		num_nights = max(1, (d2 - d1).days)
+
+		target_list = qualified_prices if qualified_prices else prices
+		if target_list:
+			med = round(statistics.median(target_list), 2)
+			mean_val = round(statistics.mean(target_list), 2)
+			p25 = (
+				round(statistics.quantiles(target_list, n=4)[0], 2)
+				if len(target_list) >= 4
+				else round(min(target_list), 2)
+			)
+			p75 = (
+				round(statistics.quantiles(target_list, n=4)[2], 2)
+				if len(target_list) >= 4
+				else round(max(target_list), 2)
+			)
+			nightly_med = round(med / num_nights, 2)
+			avg_disc = round(statistics.mean(discounts), 1) if discounts else 0.0
+			pct_disc = round((len(discounts) / len(prices)) * 100, 1) if prices else 0.0
+
+			res = {
+				"city": city,
+				"total_found": len(listings),
+				"qualified_count": len(qualified_prices),
+				"median_total": med,
+				"mean_total": mean_val,
+				"nightly_median": nightly_med,
+				"p25_total": p25,
+				"p75_total": p75,
+				"avg_monthly_discount_pct": avg_disc,
+				"pct_with_discount": pct_disc,
+				"currency": args.currency,
+			}
+			survey_results.append(res)
+			if not args.json:
+				print(
+					f"  {city:<28} | Qualified ({args.min_rating}+): {len(qualified_prices):>3}/{len(listings):<3} | Median: {args.currency} ${med:.2f} (~${nightly_med:.2f}/nt) | Avg Discount: {avg_disc:.1f}%"
+				)
+
+	csv_path = REPORTS_DIR / f"survey-{args.check_in}-{args.check_out}.csv"
+	json_path = REPORTS_DIR / f"survey-{args.check_in}-{args.check_out}.json"
+	generate_survey_report(survey_results, csv_path=csv_path, json_path=json_path)
+
+	if args.json:
+		print(
+			json.dumps(
+				{
+					"check_in": args.check_in,
+					"check_out": args.check_out,
+					"currency": args.currency,
+					"min_rating": args.min_rating,
+					"min_reviews": args.min_reviews,
+					"results": survey_results,
+					"csv_report": str(csv_path),
+					"json_report": str(json_path),
+				},
+				indent=2,
+			)
+		)
+	else:
+		print(f"\nSurvey reports saved to:\n  CSV:  {csv_path}\n  JSON: {json_path}")
 
 
 def main():
@@ -108,6 +251,34 @@ def main():
 		help="Filter listings by target neighborhoods (comma-separated, e.g. 'Cayma, Yanahuara')",
 	)
 	parser.add_argument(
+		"--survey",
+		action="store_true",
+		help="Run a high-level market price survey across multiple cities without fetching full details",
+	)
+	parser.add_argument(
+		"--cities",
+		type=str,
+		default="Buenos Aires, Argentina; Guadalajara, Mexico; Córdoba, Argentina; Arequipa, Peru",
+		help="Semicolon- or comma-separated list of cities to sweep when running in --survey mode",
+	)
+	parser.add_argument(
+		"--min_rating",
+		type=float,
+		default=4.7,
+		help="Minimum rating threshold for pre-filtering (default: 4.7)",
+	)
+	parser.add_argument(
+		"--min_reviews",
+		type=int,
+		default=10,
+		help="Minimum review count for pre-filtering (default: 10)",
+	)
+	parser.add_argument(
+		"--no_prefilter",
+		action="store_true",
+		help="Disable pre-filtering by rating and review count before fetching details",
+	)
+	parser.add_argument(
 		"-v", "--verbose", action="store_true", help="Increase output verbosity"
 	)
 	parser.add_argument(
@@ -117,6 +288,10 @@ def main():
 	)
 
 	args = parser.parse_args()
+
+	if args.survey:
+		run_survey(args, defaults, search_amenities, logger)
+		return
 
 	coords = get_city_coords(args.location)
 	if not coords:
@@ -134,16 +309,33 @@ def main():
 	logger.debug(f"Search Coords: {coords}")
 	logger.debug(f"Search Amenities (IDs): {search_amenities}")
 
+	# Calculate number of nights for daily price calculation
+	d1 = datetime.strptime(args.check_in, "%Y-%m-%d")
+	d2 = datetime.strptime(args.check_out, "%Y-%m-%d")
+	num_nights = max(1, (d2 - d1).days)
+
+	# If max_price is small (e.g. <= 500) and stay is longer than 7 nights,
+	# it represents a nightly rate, so scale to total stay price for Airbnb's API filter
+	if num_nights > 7 and args.max_price <= 500:
+		api_min_price = args.min_price * num_nights
+		api_max_price = args.max_price * num_nights
+		logger.info(
+			f"Detected nightly rate range ({args.min_price}-{args.max_price}/night). Scaling to total reservation price for {num_nights} nights: {api_min_price}-{api_max_price} {args.currency}"
+		)
+	else:
+		api_min_price = args.min_price
+		api_max_price = args.max_price
+
 	logger.info(
-		f"--- Searching in {args.location} (Price: {args.min_price}-{args.max_price}) ---"
+		f"--- Searching in {args.location} (Price: {api_min_price}-{api_max_price} {args.currency}) ---"
 	)
 
 	listings = search_listings(
 		coords,
 		check_in=args.check_in,
 		check_out=args.check_out,
-		min_price=args.min_price,
-		max_price=args.max_price,
+		min_price=api_min_price,
+		max_price=api_max_price,
 		currency=args.currency,
 		place_type=args.place_type,
 		amenities=search_amenities if search_amenities else None,
@@ -177,14 +369,32 @@ def main():
 		)
 		listings = filtered
 
+	# Pre-filter by rating & reviews (default >= 4.7 rating and >= 10 reviews)
+	if not args.no_prefilter:
+		filtered = []
+		for item in listings:
+			val = float(item.get("rating", {}).get("value", 0) or 0)
+			try:
+				rc = int(item.get("rating", {}).get("reviewCount", 0) or 0)
+			except (ValueError, TypeError):
+				rc = 0
+			if val >= args.min_rating and rc >= args.min_reviews:
+				filtered.append(item)
+		logger.info(
+			f"Pre-filter (rating >= {args.min_rating}, reviews >= {args.min_reviews}) kept {len(filtered)}/{len(listings)} listings."
+		)
+		filtered.sort(
+			key=lambda x: (
+				float(x.get("rating", {}).get("value", 0) or 0),
+				int(x.get("rating", {}).get("reviewCount", 0) or 0),
+			),
+			reverse=True,
+		)
+		listings = filtered
+
 	if args.limit:
 		logger.info(f"Limiting to first {args.limit} listings.")
 		listings = listings[: args.limit]
-
-	# Calculate number of nights for daily price calculation
-	d1 = datetime.strptime(args.check_in, "%Y-%m-%d")
-	d2 = datetime.strptime(args.check_out, "%Y-%m-%d")
-	num_nights = max(1, (d2 - d1).days)
 
 	# Store price data from search results since details API might not return it
 	listing_prices = {}
@@ -198,17 +408,31 @@ def main():
 			or unit.get("amount")
 			or price_info.get("total", {}).get("amount", 0)
 		)
+		orig_amt = unit.get("amount") or amt
 
 		try:
 			amt_float = float(amt)
 		except (ValueError, TypeError):
 			amt_float = 0.0
 
+		try:
+			orig_float = float(orig_amt)
+		except (ValueError, TypeError):
+			orig_float = amt_float
+
+		discount_pct = (
+			round(((orig_float - amt_float) / orig_float) * 100, 1)
+			if orig_float > amt_float
+			else 0.0
+		)
+
 		if "night" in qualifier and "for" not in qualifier:
 			nightly_rate = amt_float
 			total_amt = nightly_rate * num_nights
+			orig_total = orig_float * num_nights
 		else:
 			total_amt = amt_float
+			orig_total = orig_float
 			nightly_rate = total_amt / num_nights if num_nights > 0 else total_amt
 
 		currency = unit.get("curency_symbol", args.currency)
@@ -219,6 +443,8 @@ def main():
 
 		listing_prices[room_id] = {
 			"amount": total_amt,
+			"orig_amount": orig_total,
+			"discount_pct": discount_pct,
 			"nightly": round(nightly_rate, 2),
 			"currency": currency,
 		}
@@ -260,12 +486,20 @@ def main():
 
 			# Add captured price back into details for the scorer
 			lp = listing_prices.get(
-				str(listing_id), {"amount": 0, "nightly": 0, "currency": args.currency}
+				str(listing_id),
+				{
+					"amount": 0,
+					"orig_amount": 0,
+					"discount_pct": 0.0,
+					"nightly": 0,
+					"currency": args.currency,
+				},
 			)
 			details["price"] = lp
 
-			# Check verified Fast Wi-Fi
+			# Check verified Fast Wi-Fi and extract review evidence
 			wifi_info = scorer.detect_fast_wifi(details)
+			review_evidence = scorer.extract_review_evidence(details)
 
 			# Calculate and display score
 			score, penalties = scorer.calculate_score(details)
@@ -274,6 +508,10 @@ def main():
 				logger.info(f"  Penalties: {', '.join(penalties)}")
 			if wifi_info.get("verified"):
 				logger.info(f"  Verified Fast Wi-Fi: {wifi_info.get('details')}")
+			if lp.get("discount_pct", 0) > 0:
+				logger.info(
+					f"  Discount: {lp['discount_pct']}% off original {lp['currency']} {lp['orig_amount']}"
+				)
 
 			display_price = lp["nightly"] if lp["nightly"] > 0 else lp["amount"]
 			scored_results.append(
@@ -282,12 +520,15 @@ def main():
 					"id": listing_id,
 					"name": listing_name,
 					"price": display_price,
+					"orig_price": lp.get("orig_amount", display_price),
+					"discount_pct": lp.get("discount_pct", 0.0),
 					"currency": lp["currency"],
 					"review_count": rating.get("review_count", 0),
 					"rating": rating.get("guest_satisfaction", 0),
 					"amenities": total_amenities,
 					"penalties": penalties,
 					"fast_wifi": wifi_info,
+					"review_evidence": review_evidence,
 				}
 			)
 		else:

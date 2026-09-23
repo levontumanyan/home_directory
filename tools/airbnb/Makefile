@@ -1,4 +1,4 @@
-.PHONY: run lint format test check setup clean
+.PHONY: run survey lint format test check setup clean
 
 location ?= Montreal
 min_price ?= 100
@@ -6,15 +6,35 @@ max_price ?= 250
 limit ?=
 fast_wifi ?=
 neighborhood ?=
+cities ?=
+check_in ?=
+check_out ?=
+currency ?=
+min_rating ?=
+min_reviews ?=
 
 run:
 	uv run src/main.py \
 		--location "$(location)" \
 		--min_price $(min_price) \
 		--max_price $(max_price) \
+		$(if $(check_in),--check_in $(check_in)) \
+		$(if $(check_out),--check_out $(check_out)) \
+		$(if $(currency),--currency $(currency)) \
 		$(if $(limit),--limit $(limit)) \
 		$(if $(fast_wifi),--fast-wifi) \
-		$(if $(neighborhood),--neighborhood "$(neighborhood)")
+		$(if $(neighborhood),--neighborhood "$(neighborhood)") \
+		$(if $(min_rating),--min_rating $(min_rating)) \
+		$(if $(min_reviews),--min_reviews $(min_reviews))
+
+survey:
+	uv run src/main.py --survey \
+		$(if $(cities),--cities "$(cities)") \
+		$(if $(check_in),--check_in $(check_in)) \
+		$(if $(check_out),--check_out $(check_out)) \
+		$(if $(currency),--currency $(currency)) \
+		$(if $(min_rating),--min_rating $(min_rating)) \
+		$(if $(min_reviews),--min_reviews $(min_reviews))
 
 # Run code linting and formatting checks
 lint:

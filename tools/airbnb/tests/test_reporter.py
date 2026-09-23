@@ -3,7 +3,11 @@ import json
 
 import pytest
 
-from src.reporter import generate_csv_report, generate_json_report
+from src.reporter import (
+	generate_csv_report,
+	generate_json_report,
+	generate_survey_report,
+)
 
 
 @pytest.fixture
@@ -53,6 +57,8 @@ def test_generate_new_csv(tmp_path, mock_listings):
 			"Listing ID",
 			"Title",
 			"Price",
+			"Orig Price",
+			"Discount %",
 			"Currency",
 			"Review Count",
 			"Review Rating",
@@ -160,7 +166,7 @@ def test_generate_new_json(tmp_path, mock_listings):
 	assert data[0]["rank"] == 1
 	assert data[0]["score"] == 92.0
 	assert data[0]["penalties"] == ["Low Review Count"]
-	assert data[0]["url"] == "https://www.airbnb.com/rooms/B2"
+	assert data[0]["url"] == "https://www.airbnb.ca/rooms/B2"
 
 	assert data[1]["id"] == "A1"
 	assert data[1]["rank"] == 2
@@ -216,3 +222,31 @@ def test_json_sorting_logic(tmp_path):
 	assert scores == [90.0, 70.0, 50.0]
 	ranks = [item["rank"] for item in data]
 	assert ranks == [1, 2, 3]
+
+
+def test_generate_survey_report(tmp_path):
+	csv_path = tmp_path / "survey.csv"
+	json_path = tmp_path / "survey.json"
+	survey_data = [
+		{
+			"city": "Buenos Aires, Argentina",
+			"total_found": 150,
+			"qualified_count": 45,
+			"median_total": 1500.0,
+			"nightly_median": 53.57,
+			"p25_total": 1200.0,
+			"p75_total": 1800.0,
+			"avg_monthly_discount_pct": 25.0,
+			"pct_with_discount": 80.0,
+			"currency": "CAD",
+		}
+	]
+	generate_survey_report(survey_data, csv_path=csv_path, json_path=json_path)
+	assert csv_path.exists()
+	assert json_path.exists()
+
+	with open(json_path, "r", encoding="utf-8") as f:
+		loaded = json.load(f)
+		assert len(loaded) == 1
+		assert loaded[0]["city"] == "Buenos Aires, Argentina"
+		assert loaded[0]["median_total"] == 1500.0

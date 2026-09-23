@@ -30,6 +30,8 @@ def generate_csv_report(
 		"Listing ID",
 		"Title",
 		"Price",
+		"Orig Price",
+		"Discount %",
 		"Currency",
 		"Review Count",
 		"Review Rating",
@@ -53,6 +55,8 @@ def generate_csv_report(
 						"id": listing_id,
 						"name": row["Title"],
 						"price": float(row["Price"]),
+						"orig_price": float(row.get("Orig Price") or row["Price"]),
+						"discount_pct": float(row.get("Discount %") or 0.0),
 						"currency": row["Currency"],
 						"review_count": int(row["Review Count"]),
 						"rating": float(row["Review Rating"]),
@@ -100,12 +104,14 @@ def generate_csv_report(
 						"Listing ID": listing["id"],
 						"Title": listing["name"],
 						"Price": listing["price"],
+						"Orig Price": listing.get("orig_price", listing["price"]),
+						"Discount %": listing.get("discount_pct", 0.0),
 						"Currency": listing["currency"],
 						"Review Count": listing["review_count"],
 						"Review Rating": listing["rating"],
 						"Total Amenities": listing["amenities"],
 						"Penalties Applied": ", ".join(listing["penalties"]),
-						"Listing URL": f"https://www.airbnb.com/rooms/{listing['id']}",
+						"Listing URL": f"https://www.airbnb.ca/rooms/{listing['id']}",
 					}
 				)
 		logger.info(f"Report successfully saved/merged at {output_path}")
@@ -156,7 +162,7 @@ def generate_json_report(new_listings, output_path):
 							"penalties": penalties,
 							"url": item.get("url")
 							or item.get("Listing URL")
-							or f"https://www.airbnb.com/rooms/{listing_id}",
+							or f"https://www.airbnb.ca/rooms/{listing_id}",
 						}
 			logger.info(
 				f"Loaded {len(combined_listings)} existing listings from {output_path}"
@@ -172,7 +178,7 @@ def generate_json_report(new_listings, output_path):
 		listing_copy = dict(listing)
 		listing_copy["id"] = listing_id
 		if not listing_copy.get("url"):
-			listing_copy["url"] = f"https://www.airbnb.com/rooms/{listing_id}"
+			listing_copy["url"] = f"https://www.airbnb.ca/rooms/{listing_id}"
 		combined_listings[listing_id] = listing_copy
 
 	# Sort by score descending
@@ -192,3 +198,52 @@ def generate_json_report(new_listings, output_path):
 	except Exception as e:
 		logger.error(f"Failed to save JSON report: {e}")
 		return False
+
+
+def generate_survey_report(survey_results, csv_path=None, json_path=None):
+	"""
+	Saves survey comparison results to CSV and/or JSON.
+	"""
+	if json_path:
+		try:
+			with open(json_path, "w", encoding="utf-8") as f:
+				json.dump(survey_results, f, indent=2)
+			logger.info(f"Survey JSON report saved at {json_path}")
+		except Exception as e:
+			logger.error(f"Failed to save survey JSON report: {e}")
+
+	if csv_path and survey_results:
+		headers = [
+			"City",
+			"Total Found",
+			"Qualified (4.7+)",
+			"Median Total",
+			"Nightly Median",
+			"P25 Total",
+			"P75 Total",
+			"Avg Monthly Discount %",
+			"Discounted Listings %",
+			"Currency",
+		]
+		try:
+			with open(csv_path, "w", newline="", encoding="utf-8") as f:
+				writer = csv.DictWriter(f, fieldnames=headers)
+				writer.writeheader()
+				for r in survey_results:
+					writer.writerow(
+						{
+							"City": r.get("city"),
+							"Total Found": r.get("total_found"),
+							"Qualified (4.7+)": r.get("qualified_count"),
+							"Median Total": r.get("median_total"),
+							"Nightly Median": r.get("nightly_median"),
+							"P25 Total": r.get("p25_total"),
+							"P75 Total": r.get("p75_total"),
+							"Avg Monthly Discount %": r.get("avg_monthly_discount_pct"),
+							"Discounted Listings %": r.get("pct_with_discount"),
+							"Currency": r.get("currency"),
+						}
+					)
+			logger.info(f"Survey CSV report saved at {csv_path}")
+		except Exception as e:
+			logger.error(f"Failed to save survey CSV report: {e}")

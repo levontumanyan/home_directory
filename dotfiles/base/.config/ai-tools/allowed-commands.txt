@@ -114,7 +114,7 @@ d2
 
 # --- local cli & diagnostics ---
 apple-pay
-cal-event search
+cal-event
 dig
 ipconfig getifaddr
 networkQuality

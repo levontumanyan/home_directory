@@ -9,7 +9,7 @@
       "Bash(bk build list *)",
       "Bash(bk build view *)",
       "Bash(bk pipeline view *)",
-      "Bash(cal-event search *)",
+      "Bash(cal-event *)",
       "Bash(cat *)",
       "Bash(curl *)",
       "Bash(curl --silent *)",

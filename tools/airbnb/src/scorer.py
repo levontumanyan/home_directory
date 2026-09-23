@@ -307,3 +307,77 @@ class Scorer:
 			"speed_mbps": None,
 			"details": "Standard wifi",
 		}
+
+	def extract_review_evidence(self, listing):
+		"""
+		Extracts verified review evidence (quotes) for remote work, wifi, noise, kitchen, and cleanliness issues.
+		"""
+		reviews = listing.get("reviews", [])
+		wifi_pos = []
+		wifi_neg = []
+		noise_pos = []
+		noise_neg = []
+		kitchen_pos = []
+		kitchen_neg = []
+		cleanliness_neg = []
+
+		wifi_pos_regex = re.compile(
+			r"\b(wifi|wi-fi|internet|fibra|fiber|speed|mbps|zoom|teams|videocall|videollamada)\b",
+			re.IGNORECASE,
+		)
+		wifi_neg_regex = re.compile(
+			r"\b(slow wifi|bad wifi|wifi lento|sin internet|internet se cortaba|inestable|poor wifi)\b",
+			re.IGNORECASE,
+		)
+		noise_pos_regex = re.compile(
+			r"\b(tranquil[oa]|silencios[oa]|quiet|peaceful|dormir bien)\b",
+			re.IGNORECASE,
+		)
+		noise_neg_regex = re.compile(
+			r"\b(ruidoso|mucho ruido|loud|noisy|street noise|fiesta|party|construcci[oó]n|obras)\b",
+			re.IGNORECASE,
+		)
+		kitchen_pos_regex = re.compile(
+			r"\b(cocinar|cozinhar|cocina completa|bien equipada|horno|oven|cook)\b",
+			re.IGNORECASE,
+		)
+		kitchen_neg_regex = re.compile(
+			r"\b(cocina b[aá]sica|sin horno|no oven|lo m[ií]nimo|little equipment)\b",
+			re.IGNORECASE,
+		)
+		cleanliness_neg_regex = re.compile(
+			r"\b(cucaracha|roach|bug|insecto|humedad|mold|mal olor|dirty|sucio)\b",
+			re.IGNORECASE,
+		)
+
+		for r in reviews:
+			com = (r.get("comments") or "").replace("\n", " ").strip()
+			if not com:
+				continue
+			if wifi_neg_regex.search(com):
+				wifi_neg.append(com)
+			elif wifi_pos_regex.search(com):
+				wifi_pos.append(com)
+
+			if noise_neg_regex.search(com):
+				noise_neg.append(com)
+			elif noise_pos_regex.search(com):
+				noise_pos.append(com)
+
+			if kitchen_neg_regex.search(com):
+				kitchen_neg.append(com)
+			elif kitchen_pos_regex.search(com):
+				kitchen_pos.append(com)
+
+			if cleanliness_neg_regex.search(com):
+				cleanliness_neg.append(com)
+
+		return {
+			"wifi_positive": wifi_pos[:3],
+			"wifi_negative": wifi_neg[:2],
+			"noise_positive": noise_pos[:3],
+			"noise_negative": noise_neg[:2],
+			"kitchen_positive": kitchen_pos[:3],
+			"kitchen_negative": kitchen_neg[:2],
+			"cleanliness_negative": cleanliness_neg[:2],
+		}

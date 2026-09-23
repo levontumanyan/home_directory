@@ -13,6 +13,11 @@
 
 - **Test Suite**: Use `make test` to validate changes.
 
+# Currency & Domain Standards
+
+- **Primary Currency**: **ALWAYS** evaluate, search, and report Airbnb prices in **CAD** unless the user explicitly requests otherwise.
+- **Listing URLs**: **ALWAYS** format Airbnb listing URLs using the Canadian domain: `https://www.airbnb.ca/rooms/<id>`. Never use `airbnb.com`.
+
 # Development Workflow Mandates
 
 After every major code change, the following steps MUST be performed in order:

@@ -116,3 +116,23 @@ def test_scorer_keyword_analysis_with_reviews(benchmarks):
 		},
 	)
 	assert score > 80.0
+
+
+def test_extract_review_evidence(benchmarks):
+	scorer = Scorer(benchmarks)
+	listing = {
+		"reviews": [
+			{"comments": "The wifi was fast and zoom calls were flawless."},
+			{"comments": "The street was very noisy and loud at night."},
+			{
+				"comments": "We cooked every day in the well-equipped kitchen with a great oven."
+			},
+		]
+	}
+	evidence = scorer.extract_review_evidence(listing)
+	assert len(evidence["wifi_positive"]) == 1
+	assert "wifi was fast" in evidence["wifi_positive"][0]
+	assert len(evidence["noise_negative"]) == 1
+	assert "noisy" in evidence["noise_negative"][0]
+	assert len(evidence["kitchen_positive"]) == 1
+	assert "cooked every day" in evidence["kitchen_positive"][0]
