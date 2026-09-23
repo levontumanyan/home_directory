@@ -1,15 +1,17 @@
 import logging
+import re
 
 logger = logging.getLogger("airbnb")
 
 
 class Scorer:
-	def __init__(self, benchmarks, num_nights=1):
+	def __init__(self, benchmarks, num_nights=1, require_fast_wifi=False):
 		self.benchmarks = benchmarks
 		self.metrics = benchmarks.get("metrics", {})
 		self.penalties = benchmarks.get("penalties", [])
 		self.hard_filters = benchmarks.get("hard_filters", {})
 		self.num_nights = num_nights
+		self.require_fast_wifi = require_fast_wifi
 
 	def calculate_score(self, listing_details):
 		"""
@@ -54,7 +56,7 @@ class Scorer:
 		# Check must_have_amenities
 		must_haves = self.hard_filters.get("must_have_amenities", [])
 		failed_filters = []
-		if must_haves:
+		if must_haves and listing.get("amenities"):
 			# Flatten all amenities from categories
 			available_amenities = []
 			for category in listing.get("amenities", []):
@@ -68,6 +70,16 @@ class Scorer:
 				if not any(must_have.lower() in am for am in available_amenities):
 					logger.info(f"  Missing must-have amenity: {must_have}")
 					failed_filters.append(f"Missing {must_have}")
+
+		if failed_filters:
+			return False, failed_filters
+
+		# Check Fast Wi-Fi requirement if flag is set
+		if self.require_fast_wifi:
+			wifi_info = self.detect_fast_wifi(listing)
+			if not wifi_info.get("verified"):
+				logger.info(f"  Missing verified fast wifi: {wifi_info.get('details')}")
+				failed_filters.append("Missing verified fast wifi")
 
 		if failed_filters:
 			return False, failed_filters
@@ -151,6 +163,147 @@ class Scorer:
 		return max(0.0, min(100.0, score))
 
 	def _keyword_analysis(self, listing, params):
-		# Placeholder for sentiment analysis
-		# For now, return a neutral/high score if no reviews, or 80 as default
-		return 80
+		reviews = listing.get("reviews", [])
+		if not reviews:
+			return 80.0
+
+		pos_keywords = [
+			k.lower()
+			for k in params.get(
+				"positive_keywords",
+				[
+					"clean",
+					"quiet",
+					"comfortable",
+					"fast wifi",
+					"tranquilo",
+					"escritorio",
+					"fibra",
+					"zoom",
+				],
+			)
+		]
+		neg_keywords = [
+			k.lower()
+			for k in params.get(
+				"negative_keywords",
+				[
+					"loud",
+					"dirty",
+					"smell",
+					"slow wifi",
+					"ruido",
+					"sin mesa",
+					"no hot water",
+					"cold water",
+				],
+			)
+		]
+
+		pos_count = 0
+		neg_count = 0
+
+		for r in reviews:
+			comment = (r.get("comments") or "").lower()
+			for p in pos_keywords:
+				if p in comment:
+					pos_count += 1
+			for n in neg_keywords:
+				if n in comment:
+					neg_count += 1
+
+		# Score baseline at 80, boosted by positive keywords, penalized by negative
+		score = 80.0 + min(20.0, pos_count * 2.0) - (neg_count * 5.0)
+		return max(0.0, min(100.0, score))
+
+	def detect_fast_wifi(self, listing):
+		"""
+		Detects verified fast wifi across 4 layers:
+		1. Highlights (Official Airbnb badge e.g. 'Fast wifi' / 50+ Mbps)
+		2. Amenities (Wifi subtitle with verified Mbps)
+		3. Description (Host fiber/speed declaration)
+		4. Reviews (Guest speed tests or remote work confirmations)
+		"""
+		# 1. Highlights
+		for h in listing.get("highlights", []):
+			htitle = (h.get("title") or "").lower()
+			hsub = (h.get("subtitle") or "").lower()
+			if (
+				"fast wifi" in htitle
+				or "wifi rápido" in htitle
+				or "wifi veloz" in htitle
+				or "mbps" in hsub
+				or "mbps" in htitle
+			):
+				speed_match = re.search(
+					r"(\d+)\s*mbps", f"{htitle} {hsub}", re.IGNORECASE
+				)
+				speed = int(speed_match.group(1)) if speed_match else 50
+				return {
+					"verified": True,
+					"source": "badge",
+					"speed_mbps": speed,
+					"details": h.get("title") or "Airbnb Fast Wifi Badge",
+				}
+
+		# 2. Amenities
+		for cat in listing.get("amenities", []):
+			for val in cat.get("values", []):
+				vtitle = (val.get("title") or "").lower()
+				vsub = (val.get("subtitle") or "").lower()
+				if ("wifi" in vtitle or "internet" in vtitle) and "mbps" in vsub:
+					speed_match = re.search(r"(\d+)\s*mbps", vsub, re.IGNORECASE)
+					speed = int(speed_match.group(1)) if speed_match else None
+					return {
+						"verified": True,
+						"source": "amenity",
+						"speed_mbps": speed,
+						"details": f"Amenity verified: {val.get('subtitle')}",
+					}
+
+		# 3. Description
+		desc = listing.get("description", "") or ""
+		speed_match = re.search(r"(\d+)\s*(?:mbps|megas|mb)\b", desc, re.IGNORECASE)
+		fiber_match = re.search(
+			r"\b(fibra\s*[\w\s]{0,15}|fiber\s*[\w\s]{0,15})\b", desc, re.IGNORECASE
+		)
+		if speed_match or fiber_match:
+			speed = int(speed_match.group(1)) if speed_match else None
+			detail = speed_match.group(0) if speed_match else fiber_match.group(0)
+			return {
+				"verified": True,
+				"source": "description",
+				"speed_mbps": speed,
+				"details": f"Host description: {detail}",
+			}
+
+		# 4. Reviews
+		for r in listing.get("reviews", []):
+			com = (r.get("comments") or "").lower()
+			speed_match = re.search(r"(\d+)\s*mbps", com)
+			if speed_match:
+				speed = int(speed_match.group(1))
+				return {
+					"verified": True,
+					"source": "review",
+					"speed_mbps": speed,
+					"details": f"Guest review speed test: {speed} Mbps",
+				}
+			if (
+				"fibra" in com
+				or ("zoom" in com and "sin problema" in com)
+				or "flawless wifi" in com
+			):
+				return {
+					"verified": True,
+					"source": "review",
+					"speed_mbps": None,
+					"details": "Guest review verified remote work / fiber",
+				}
+
+		return {
+			"verified": False,
+			"source": "none",
+			"speed_mbps": None,
+			"details": "Standard wifi",
+		}

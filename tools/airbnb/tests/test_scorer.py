@@ -66,3 +66,53 @@ def test_scorer_applies_penalty(benchmarks):
 	score, penalties = scorer.calculate_score(listing)
 	assert score == 45.0
 	assert "Low Rating" in penalties
+
+
+def test_scorer_fast_wifi_requirement_passed(benchmarks):
+	scorer = Scorer(benchmarks, num_nights=1, require_fast_wifi=True)
+	listing = {
+		"amenities": [
+			{"title": "Internet", "values": [{"title": "Wifi", "available": True}]}
+		],
+		"highlights": [
+			{"title": "Fast wifi", "subtitle": "At 100 Mbps, you can take video calls"}
+		],
+		"price": {"amount": 100},
+		"rating": {"guest_satisfaction": 4.8, "review_count": 20},
+	}
+	score, penalties = scorer.calculate_score(listing)
+	assert score > 0
+	assert len(penalties) == 0
+
+
+def test_scorer_fast_wifi_requirement_failed(benchmarks):
+	scorer = Scorer(benchmarks, num_nights=1, require_fast_wifi=True)
+	listing = {
+		"amenities": [
+			{"title": "Internet", "values": [{"title": "Wifi", "available": True}]}
+		],
+		"highlights": [],
+		"price": {"amount": 100},
+		"rating": {"guest_satisfaction": 4.8, "review_count": 20},
+	}
+	score, penalties = scorer.calculate_score(listing)
+	assert score == 0
+	assert any("FAILED: Missing verified fast wifi" in p for p in penalties)
+
+
+def test_scorer_keyword_analysis_with_reviews(benchmarks):
+	scorer = Scorer(benchmarks, num_nights=1)
+	listing = {
+		"reviews": [
+			{"comments": "Very clean and quiet, excellent fast wifi!"},
+			{"comments": "Great place with a nice desk to work."},
+		]
+	}
+	score = scorer._keyword_analysis(
+		listing,
+		{
+			"positive_keywords": ["clean", "quiet", "fast wifi", "desk"],
+			"negative_keywords": ["loud", "dirty"],
+		},
+	)
+	assert score > 80.0

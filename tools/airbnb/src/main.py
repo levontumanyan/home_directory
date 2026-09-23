@@ -96,6 +96,18 @@ def main():
 		help="Limit the number of listings to fetch and score",
 	)
 	parser.add_argument(
+		"--fast_wifi",
+		"--fast-wifi",
+		action="store_true",
+		help="Filter listings requiring verified Fast Wi-Fi (badges, fiber declarations, or review speed tests)",
+	)
+	parser.add_argument(
+		"--neighborhood",
+		type=str,
+		default=None,
+		help="Filter listings by target neighborhoods (comma-separated, e.g. 'Cayma, Yanahuara')",
+	)
+	parser.add_argument(
 		"-v", "--verbose", action="store_true", help="Increase output verbosity"
 	)
 	parser.add_argument(
@@ -142,37 +154,77 @@ def main():
 
 	logger.info(f"Found {len(listings)} total listings.")
 
+	# Deduplicate listings by room_id
+	seen_ids = set()
+	unique_listings = []
+	for item in listings:
+		rid = str(item.get("room_id"))
+		if rid not in seen_ids:
+			seen_ids.add(rid)
+			unique_listings.append(item)
+	listings = unique_listings
+
+	# Filter by neighborhood keywords if specified
+	if args.neighborhood:
+		targets = [n.strip().lower() for n in args.neighborhood.split(",") if n.strip()]
+		filtered = []
+		for item in listings:
+			text = f"{item.get('name', '')} {item.get('title', '')}".lower()
+			if any(t in text for t in targets):
+				filtered.append(item)
+		logger.info(
+			f"Neighborhood filter '{args.neighborhood}' matched {len(filtered)}/{len(listings)} listings."
+		)
+		listings = filtered
+
 	if args.limit:
 		logger.info(f"Limiting to first {args.limit} listings.")
 		listings = listings[: args.limit]
-
-	# Store price data from search results since details API might not return it
-	listing_prices = {}
-	for listing in listings:
-		room_id = str(listing.get("room_id"))
-		price_info = listing.get("price", {})
-		# Use unit amount if total is 0 or missing
-		amount = price_info.get("unit", {}).get("amount", 0)
-		if amount == 0:
-			amount = price_info.get("total", {}).get("amount", 0)
-
-		currency = price_info.get("unit", {}).get("curency_symbol", args.currency)
-		# Clean up currency symbol if it contains extra characters (e.g., "$ USD")
-		if " " in currency:
-			currency = currency.split(" ")[-1].strip()
-		if "\xa0" in currency:
-			currency = currency.split("\xa0")[-1].strip()
-
-		listing_prices[room_id] = {"amount": amount, "currency": currency}
 
 	# Calculate number of nights for daily price calculation
 	d1 = datetime.strptime(args.check_in, "%Y-%m-%d")
 	d2 = datetime.strptime(args.check_out, "%Y-%m-%d")
 	num_nights = max(1, (d2 - d1).days)
 
+	# Store price data from search results since details API might not return it
+	listing_prices = {}
+	for listing in listings:
+		room_id = str(listing.get("room_id"))
+		price_info = listing.get("price", {})
+		unit = price_info.get("unit", {})
+		qualifier = unit.get("qualifier", "")
+		amt = (
+			unit.get("discount")
+			or unit.get("amount")
+			or price_info.get("total", {}).get("amount", 0)
+		)
+
+		try:
+			amt_float = float(amt)
+		except (ValueError, TypeError):
+			amt_float = 0.0
+
+		if "night" in qualifier and "for" not in qualifier:
+			nightly_rate = amt_float
+			total_amt = nightly_rate * num_nights
+		else:
+			total_amt = amt_float
+			nightly_rate = total_amt / num_nights if num_nights > 0 else total_amt
+
+		currency = unit.get("curency_symbol", args.currency)
+		if " " in currency:
+			currency = currency.split(" ")[-1].strip()
+		if "\xa0" in currency:
+			currency = currency.split("\xa0")[-1].strip()
+
+		listing_prices[room_id] = {
+			"amount": total_amt,
+			"nightly": round(nightly_rate, 2),
+			"currency": currency,
+		}
+
 	# Fetch details for ALL listings (cached after first run)
-	# Note: A 1s delay is applied in get_listing_details to avoid rate limiting
-	scorer = Scorer(benchmarks, num_nights=num_nights)
+	scorer = Scorer(benchmarks, num_nights=num_nights, require_fast_wifi=args.fast_wifi)
 	scored_results = []
 
 	from tqdm import tqdm
@@ -208,27 +260,34 @@ def main():
 
 			# Add captured price back into details for the scorer
 			lp = listing_prices.get(
-				str(listing_id), {"amount": 0, "currency": args.currency}
+				str(listing_id), {"amount": 0, "nightly": 0, "currency": args.currency}
 			)
 			details["price"] = lp
+
+			# Check verified Fast Wi-Fi
+			wifi_info = scorer.detect_fast_wifi(details)
 
 			# Calculate and display score
 			score, penalties = scorer.calculate_score(details)
 			logger.info(f"  FINAL SCORE: {score}/100")
 			if penalties:
 				logger.info(f"  Penalties: {', '.join(penalties)}")
+			if wifi_info.get("verified"):
+				logger.info(f"  Verified Fast Wi-Fi: {wifi_info.get('details')}")
 
+			display_price = lp["nightly"] if lp["nightly"] > 0 else lp["amount"]
 			scored_results.append(
 				{
 					"score": score,
 					"id": listing_id,
 					"name": listing_name,
-					"price": lp["amount"],
+					"price": display_price,
 					"currency": lp["currency"],
 					"review_count": rating.get("review_count", 0),
 					"rating": rating.get("guest_satisfaction", 0),
 					"amenities": total_amenities,
 					"penalties": penalties,
+					"fast_wifi": wifi_info,
 				}
 			)
 		else:

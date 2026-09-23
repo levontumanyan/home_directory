@@ -32,22 +32,29 @@ def get_listing_details(
 
 	# Fetch from API if not in cache or expired
 	logger.info(f"API FETCH: Fetching listing {listing_id}...")
-	try:
-		import time
+	import time
 
-		time.sleep(1)  # Small delay to avoid aggressive rate limiting
+	max_retries = 3
+	for attempt in range(max_retries):
+		try:
+			time.sleep(1 + attempt * 1.0)
+			details = pyairbnb.get_details(room_id=listing_id, currency=currency)
 
-		# Removing check_in/check_out as they are likely causing the internal library crash
-		details = pyairbnb.get_details(room_id=listing_id, currency=currency)
+			if details:
+				with open(cache_file, "w") as f:
+					json.dump(details, f, indent=4)
 
-		if details:
-			with open(cache_file, "w") as f:
-				json.dump(details, f, indent=4)
-
-		return details
-	except Exception as e:
-		logger.error(f"Error fetching details for listing {listing_id}: {e}")
-		return None
+			return details
+		except Exception as e:
+			if "429" in str(e) and attempt < max_retries - 1:
+				wait_time = (attempt + 1) * 3
+				logger.warning(
+					f"Rate limited (429) fetching {listing_id}. Waiting {wait_time}s before retry (attempt {attempt + 1}/{max_retries})..."
+				)
+				time.sleep(wait_time)
+				continue
+			logger.error(f"Error fetching details for listing {listing_id}: {e}")
+			return None
 
 
 def search_listings(
