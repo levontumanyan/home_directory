@@ -4,13 +4,17 @@ location ?= Montreal
 min_price ?= 100
 max_price ?= 250
 limit ?=
+fast_wifi ?=
+neighborhood ?=
 
 run:
 	uv run src/main.py \
 		--location "$(location)" \
 		--min_price $(min_price) \
 		--max_price $(max_price) \
-		$(if $(limit),--limit $(limit))
+		$(if $(limit),--limit $(limit)) \
+		$(if $(fast_wifi),--fast-wifi) \
+		$(if $(neighborhood),--neighborhood "$(neighborhood)")
 
 # Run code linting and formatting checks
 lint:
