@@ -1,6 +1,7 @@
 tap "homebrew/cask"
 tap "homebrew/core"
 tap "manaflow-ai/cmux"
+tap "tiagovilasboas/tap"
 tap "wpscanteam/tap"
 # Mozilla CA certificate store
 brew "ca-certificates"
@@ -142,6 +143,8 @@ brew "ykman"
 brew "zoxide"
 # Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
+# Autonomous Session Agent Engine & Outer Harness for Google Antigravity
+brew "tiagovilasboas/tap/agyo", trusted: true
 # Web browser focusing on privacy
 cask "brave-browser"
 # Terminal-based AI coding assistant
@@ -159,6 +162,8 @@ cask "miniconda"
 cask "yt-music"
 # Video communication and virtual meeting platform
 cask "zoom"
+go "github.com/zricethezav/gitleaks/v8/cmd/generate/config"
+go "github.com/zricethezav/gitleaks/v8"
 uv "airbnb"
 uv "flights"
 uv "mcp-ical", source: "git+https://github.com/Omar-V2/mcp-ical"

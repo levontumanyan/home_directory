@@ -5,8 +5,8 @@
 - Exception Rule: You may query the binary version strictly if the requested operation relies on a flag or feature introduced in a specific release. If a version check is executed, state the required version and the feature dependency.
 - If the user asks about a Github issue or pr, always use `gh` cli commands. Do not fetch the website directly. Also every time you mention/create a pr/issue provide the full link to the user.
 - Stop executing things when i am just asking you a question. Answer first if i ask you to do something then do it.
-- **Calendar CLI**: Use `cal-event add "<title>" --start "<YYYY-MM-DD HH:MM>"` (defaults to iCloud -> Home; see `cal-event --help`).
-- **WhatsApp CLI**: Use `whatsapp chats` (list/recent), `whatsapp read "<contact/phone>"`, `whatsapp search "<query>"`, `whatsapp unread`, or `whatsapp draft --to "<contact/phone>" --message "<text>"` (see `whatsapp --help`).
+- **Calendar & Reminders CLI**: Use `cal-event add "<title>" --start "<YYYY-MM-DD HH:MM>"` for calendar events (defaults to iCloud -> Home) and `cal-event add "<title>" --reminder --due "<YYYY-MM-DD HH:MM>"` for Apple Reminders (integrates directly with Reminders & Calendar; see `cal-event --help`). Reminders should always be created with this script using the `--reminder` flag.
+- **WhatsApp CLI**: Use `whatsapp chats` (list/recent), `whatsapp read "<contact/phone>"`, `whatsapp documents` (list/search docs & attachments), `whatsapp search "<query>"`, `whatsapp unread`, or `whatsapp draft --to "<contact/phone>" --message "<text>"` (see `whatsapp --help`).
 - **Outlook CLI**: Reads, searches, and drafts Outlook emails via Microsoft Graph API; see `outlook --help` for options.
 - **Apple Pay CLI**: Queries and searches local Apple Pay transactions on macOS; see `apple-pay --help` for options.
 - **iMessage CLI**: Queries and searches local iMessage chat history on macOS; see `imessage --help` for options.
@@ -21,7 +21,7 @@ Always write issue and PR bodies to a temp file first, then pass it via `--body-
 
 - **Indentation**: Use one tab per hierarchy level for all code. Never use spaces, except for YAML files.
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
-- **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
+- **Python**: Always execute Python commands, scripts, and one-liners via uv (e.g., uv run python ...), never bare python or python3. Whenever installing packages or creating environments, strictly use uv/venv so global python is never polluted.
 - **Permissions**: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x` or specific octal modes like `755`/`700`).
 - Use tabs for indentation in all files — shell scripts, Makefiles, config files, etc. The only exception is YAML, which requires spaces by spec.
 - In Markdown files, never use ASCII/text-based borders, cards, or custom section headers (e.g. `===` or `---` frames). Use simple standard Markdown headers (`#`, `##`, etc.) instead.

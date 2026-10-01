@@ -26,12 +26,26 @@
 				"positive_keywords": [
 					"clean",
 					"quiet",
-					"comfortable"
+					"comfortable",
+					"tranquilo",
+					"tranquila",
+					"silencioso",
+					"silenciosa",
+					"peaceful"
 				],
 				"negative_keywords": [
 					"loud",
 					"dirty",
-					"smell"
+					"smell",
+					"ruido",
+					"ruidoso",
+					"ruidosa",
+					"bulla",
+					"tráfico",
+					"trafico",
+					"noisy",
+					"construcción",
+					"construccion"
 				]
 			}
 		}

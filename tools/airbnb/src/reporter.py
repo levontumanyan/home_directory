@@ -17,7 +17,13 @@ def _format_date_human(date_str):
 
 
 def generate_csv_report(
-	new_listings, output_path, location=None, check_in=None, check_out=None
+	new_listings,
+	output_path,
+	location=None,
+	check_in=None,
+	check_out=None,
+	max_guests=None,
+	adults=None,
 ):
 	"""
 	Generates or updates a CSV report from a list of scored listings.
@@ -29,10 +35,13 @@ def generate_csv_report(
 		"Score",
 		"Listing ID",
 		"Title",
-		"Price",
-		"Orig Price",
+		"Nightly Price",
+		"Total Stay Price",
+		"Orig Total Price",
 		"Discount %",
 		"Currency",
+		"Bedrooms",
+		"Guests",
 		"Review Count",
 		"Review Rating",
 		"Total Amenities",
@@ -50,14 +59,29 @@ def generate_csv_report(
 				for row in reader:
 					# Convert back to internal types for sorting
 					listing_id = str(row["Listing ID"])
+					price_val = float(
+						row.get("Nightly Price") or row.get("Price") or 0.0
+					)
+					orig_val = float(
+						row.get("Orig Total Price")
+						or row.get("Orig Price")
+						or price_val
+					)
 					combined_listings[listing_id] = {
 						"score": float(row["Score"]),
 						"id": listing_id,
 						"name": row["Title"],
-						"price": float(row["Price"]),
-						"orig_price": float(row.get("Orig Price") or row["Price"]),
+						"price": price_val,
+						"nightly_price": price_val,
+						"total_price": float(
+							row.get("Total Stay Price") or (price_val * 28)
+						),
+						"orig_price": orig_val,
+						"orig_total_price": orig_val,
 						"discount_pct": float(row.get("Discount %") or 0.0),
 						"currency": row["Currency"],
+						"bedrooms": int(row.get("Bedrooms") or 1),
+						"person_capacity": int(row.get("Guests") or 2),
 						"review_count": int(row["Review Count"]),
 						"rating": float(row["Review Rating"]),
 						"amenities": int(row["Total Amenities"]),
@@ -68,6 +92,7 @@ def generate_csv_report(
 						],
 						"url": row["Listing URL"],
 					}
+
 			logger.info(
 				f"Loaded {len(combined_listings)} existing listings from {output_path}"
 			)
@@ -81,6 +106,14 @@ def generate_csv_report(
 		listing_id = str(listing["id"])
 		listing["id"] = listing_id
 		combined_listings[listing_id] = listing
+
+	# Filter by max_guests if requested
+	if max_guests:
+		combined_listings = {
+			lid: item
+			for lid, item in combined_listings.items()
+			if int(item.get("person_capacity") or item.get("Guests") or 2) <= max_guests
+		}
 
 	# 3. Sort by score descending
 	sorted_listings = sorted(
@@ -97,23 +130,44 @@ def generate_csv_report(
 			writer = csv.DictWriter(f, fieldnames=headers)
 			writer.writeheader()
 			for listing in sorted_listings:
+				nightly = (
+					listing.get("nightly_price")
+					or listing.get("Price")
+					or listing.get("price", 0)
+				)
+				total = listing.get("total_price") or (nightly * 28)
+				orig_total = (
+					listing.get("orig_total_price")
+					or listing.get("Orig Price")
+					or total
+				)
 				writer.writerow(
 					{
 						"Rank": listing["rank"],
 						"Score": listing["score"],
 						"Listing ID": listing["id"],
 						"Title": listing["name"],
-						"Price": listing["price"],
-						"Orig Price": listing.get("orig_price", listing["price"]),
+						"Nightly Price": round(nightly, 2),
+						"Total Stay Price": round(total, 2),
+						"Orig Total Price": round(orig_total, 2),
 						"Discount %": listing.get("discount_pct", 0.0),
 						"Currency": listing["currency"],
+						"Bedrooms": listing.get("bedrooms", 1),
+						"Guests": listing.get("person_capacity", 2),
 						"Review Count": listing["review_count"],
 						"Review Rating": listing["rating"],
 						"Total Amenities": listing["amenities"],
 						"Penalties Applied": ", ".join(listing["penalties"]),
-						"Listing URL": f"https://www.airbnb.ca/rooms/{listing['id']}",
+						"Listing URL": listing.get("url")
+						or (
+							f"https://www.airbnb.ca/rooms/{listing['id']}?check_in={check_in}&check_out={check_out}"
+							+ (f"&adults={adults}" if adults else "")
+							if check_in and check_out
+							else f"https://www.airbnb.ca/rooms/{listing['id']}"
+						),
 					}
 				)
+
 		logger.info(f"Report successfully saved/merged at {output_path}")
 		return True
 	except Exception as e:
@@ -121,7 +175,14 @@ def generate_csv_report(
 		return False
 
 
-def generate_json_report(new_listings, output_path):
+def generate_json_report(
+	new_listings,
+	output_path,
+	check_in=None,
+	check_out=None,
+	max_guests=None,
+	adults=None,
+):
 	"""
 	Generates or updates a JSON report from a list of scored listings.
 	If the file exists, it merges new_listings with existing ones, removing duplicates by ID,
@@ -144,26 +205,34 @@ def generate_json_report(new_listings, output_path):
 							penalties = [
 								p.strip() for p in penalties.split(",") if p.strip()
 							]
-						combined_listings[listing_id] = {
-							"score": float(item.get("score", item.get("Score", 0))),
-							"id": listing_id,
-							"name": item.get("name", item.get("Title", "")),
-							"price": float(item.get("price", item.get("Price", 0))),
-							"currency": item.get("currency", item.get("Currency", "")),
-							"review_count": int(
-								item.get("review_count", item.get("Review Count", 0))
-							),
-							"rating": float(
-								item.get("rating", item.get("Review Rating", 0))
-							),
-							"amenities": int(
-								item.get("amenities", item.get("Total Amenities", 0))
-							),
-							"penalties": penalties,
-							"url": item.get("url")
-							or item.get("Listing URL")
-							or f"https://www.airbnb.ca/rooms/{listing_id}",
-						}
+						default_url = (
+							f"https://www.airbnb.ca/rooms/{listing_id}?check_in={check_in}&check_out={check_out}"
+							+ (f"&adults={adults}" if adults else "")
+							if check_in and check_out
+							else f"https://www.airbnb.ca/rooms/{listing_id}"
+						)
+						entry = dict(item)
+						entry["id"] = listing_id
+						entry["score"] = float(item.get("score", item.get("Score", 0)))
+						entry["name"] = item.get("name", item.get("Title", ""))
+						entry["price"] = float(item.get("price", item.get("Price", 0)))
+						entry["currency"] = item.get(
+							"currency", item.get("Currency", "")
+						)
+						entry["review_count"] = int(
+							item.get("review_count", item.get("Review Count", 0))
+						)
+						entry["rating"] = float(
+							item.get("rating", item.get("Review Rating", 0))
+						)
+						entry["amenities"] = int(
+							item.get("amenities", item.get("Total Amenities", 0))
+						)
+						entry["penalties"] = penalties
+						entry["url"] = (
+							item.get("url") or item.get("Listing URL") or default_url
+						)
+						combined_listings[listing_id] = entry
 			logger.info(
 				f"Loaded {len(combined_listings)} existing listings from {output_path}"
 			)
@@ -178,8 +247,21 @@ def generate_json_report(new_listings, output_path):
 		listing_copy = dict(listing)
 		listing_copy["id"] = listing_id
 		if not listing_copy.get("url"):
-			listing_copy["url"] = f"https://www.airbnb.ca/rooms/{listing_id}"
+			adults_param = f"&adults={adults}" if adults else ""
+			listing_copy["url"] = (
+				f"https://www.airbnb.ca/rooms/{listing_id}?check_in={check_in}&check_out={check_out}{adults_param}"
+				if check_in and check_out
+				else f"https://www.airbnb.ca/rooms/{listing_id}"
+			)
 		combined_listings[listing_id] = listing_copy
+
+	# Filter by max_guests if requested
+	if max_guests:
+		combined_listings = {
+			lid: item
+			for lid, item in combined_listings.items()
+			if int(item.get("person_capacity") or item.get("Guests") or 2) <= max_guests
+		}
 
 	# Sort by score descending
 	sorted_listings = sorted(

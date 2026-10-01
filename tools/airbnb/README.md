@@ -37,11 +37,17 @@ Multiple penalties can stack. For instance, low review count (0.5x) AND low revi
 # Usage
 
 ```bash
-# Default (Montreal, prices in CAD)
-make run
+# Default search (Montreal, prices in CAD)
+airbnb
 
-# Custom location and price (prices evaluated in CAD by default)
-make run location="Miraflores, Peru" min_price=20 max_price=30
+# Search specific location and price range (CAD)
+airbnb --location "Miraflores, Peru" --min_price 20 --max_price 30
+
+# Long stay search with dates and rating filters
+airbnb --location "San Borja, Lima, Peru" --check_in 2026-10-10 --check_out 2026-11-07 --min_price 700 --max_price 1600 --limit 15
+
+# Multi-city market survey
+airbnb --survey --cities "Lima, Peru;Santiago, Chile" --check_in 2026-10-10 --check_out 2026-11-07
 ```
 
 # Architecture Overview

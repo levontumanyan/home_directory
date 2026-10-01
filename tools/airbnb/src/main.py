@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 
 from config import REPORTS_DIR
-from fetcher import get_listing_details, search_listings
+from fetcher import search_listings
 from reporter import (
 	generate_csv_report,
 	generate_json_report,
@@ -206,8 +206,8 @@ def main():
 		default="Montreal",
 		help="Location name (e.g., 'Montreal', 'New York')",
 	)
-	parser.add_argument("--min_price", type=int, default=100, help="Minimum price")
-	parser.add_argument("--max_price", type=int, default=250, help="Maximum price")
+	parser.add_argument("--min_price", type=int, default=0, help="Minimum price")
+	parser.add_argument("--max_price", type=int, default=500, help="Maximum price")
 	parser.add_argument(
 		"--check_in",
 		type=str,
@@ -251,6 +251,13 @@ def main():
 		help="Filter listings by target neighborhoods (comma-separated, e.g. 'Cayma, Yanahuara')",
 	)
 	parser.add_argument(
+		"--max_guests",
+		type=int,
+		default=None,
+		help="Filter listings allowing at most this many guests (e.g. 2 for solo/couples)",
+	)
+
+	parser.add_argument(
 		"--survey",
 		action="store_true",
 		help="Run a high-level market price survey across multiple cities without fetching full details",
@@ -286,8 +293,19 @@ def main():
 		action="store_true",
 		help="Output JSON summary directly to stdout and suppress human-readable logging",
 	)
+	parser.add_argument(
+		"--cookie",
+		type=str,
+		default=None,
+		help="Airbnb session cookie string to unlock authenticated discounts",
+	)
 
 	args = parser.parse_args()
+
+	if args.cookie:
+		from fetcher import set_session_cookie
+
+		set_session_cookie(args.cookie)
 
 	if args.survey:
 		run_survey(args, defaults, search_amenities, logger)
@@ -342,6 +360,7 @@ def main():
 		language=defaults.get("language", "en"),
 		free_cancellation=defaults.get("free_cancellation", False),
 		zoom_value=defaults.get("zoom_value", 15),
+		adults=args.max_guests or 1,
 	)
 
 	logger.info(f"Found {len(listings)} total listings.")
@@ -392,9 +411,12 @@ def main():
 		)
 		listings = filtered
 
-	if args.limit:
+	if args.limit and not args.max_guests:
 		logger.info(f"Limiting to first {args.limit} listings.")
 		listings = listings[: args.limit]
+	elif args.limit and args.max_guests:
+		candidate_limit = max(args.limit * 3, 30)
+		listings = listings[:candidate_limit]
 
 	# Store price data from search results since details API might not return it
 	listing_prices = {}
@@ -449,44 +471,49 @@ def main():
 			"currency": currency,
 		}
 
-	# Fetch details for ALL listings (cached after first run)
+	# Fetch details in parallel (cached after first run)
 	scorer = Scorer(benchmarks, num_nights=num_nights, require_fast_wifi=args.fast_wifi)
 	scored_results = []
 
-	from tqdm import tqdm
-
+	listing_ids = [str(item.get("room_id")) for item in listings]
 	if not args.json:
-		print(f"\nProcessing {len(listings)} listings...")
-	for listing in tqdm(
-		listings, desc="Scoring Listings", unit="listing", disable=args.json
-	):
-		listing_id = listing.get("room_id")
-		name = listing.get("name")
-		logger.info(f"\n--- [{listing_id}] {name} ---")
+		print(f"\nFetching and scoring {len(listing_ids)} listings in parallel...")
 
-		details = get_listing_details(
-			listing_id,
-			currency=args.currency,
-		)
+	from fetcher import batch_get_listing_details
+
+	all_details = batch_get_listing_details(
+		listing_ids,
+		currency=args.currency,
+		max_workers=10,
+		check_in=args.check_in,
+		check_out=args.check_out,
+		adults=args.max_guests or 1,
+	)
+
+	for listing in listings:
+		listing_id = str(listing.get("room_id"))
+		name = listing.get("name")
+		details = all_details.get(listing_id)
+
 		if details:
+			person_cap = int(details.get("person_capacity", 2) or 2)
+			if args.max_guests and person_cap > args.max_guests:
+				logger.debug(
+					f"  Skipping {listing_id}: capacity {person_cap} exceeds max_guests {args.max_guests}"
+				)
+				continue
+
 			raw_title = details.get("title")
 			listing_name = (
 				raw_title if isinstance(raw_title, str) and raw_title.strip() else name
 			)
-			logger.info(f"  Title: {listing_name}")
 			rating = details.get("rating", {})
-			logger.info(
-				f"  Rating: {rating.get('guest_satisfaction')} ({rating.get('review_count')} reviews)"
-			)
-
 			total_amenities = sum(
 				len(cat.get("values", [])) for cat in details.get("amenities", [])
 			)
-			logger.info(f"  Amenities: {total_amenities} found")
 
-			# Add captured price back into details for the scorer
-			lp = listing_prices.get(
-				str(listing_id),
+			lp = details.get("exact_price") or listing_prices.get(
+				listing_id,
 				{
 					"amount": 0,
 					"orig_amount": 0,
@@ -497,56 +524,70 @@ def main():
 			)
 			details["price"] = lp
 
-			# Check verified Fast Wi-Fi and extract review evidence
 			wifi_info = scorer.detect_fast_wifi(details)
 			review_evidence = scorer.extract_review_evidence(details)
 
-			# Calculate and display score
 			score, penalties = scorer.calculate_score(details)
-			logger.info(f"  FINAL SCORE: {score}/100")
-			if penalties:
-				logger.info(f"  Penalties: {', '.join(penalties)}")
-			if wifi_info.get("verified"):
-				logger.info(f"  Verified Fast Wi-Fi: {wifi_info.get('details')}")
-			if lp.get("discount_pct", 0) > 0:
-				logger.info(
-					f"  Discount: {lp['discount_pct']}% off original {lp['currency']} {lp['orig_amount']}"
-				)
+			adults_count = args.max_guests or 1
+			room_url = (
+				f"https://www.airbnb.ca/rooms/{listing_id}?check_in={args.check_in}&check_out={args.check_out}&adults={adults_count}"
+				if args.check_in and args.check_out
+				else f"https://www.airbnb.ca/rooms/{listing_id}"
+			)
 
-			display_price = lp["nightly"] if lp["nightly"] > 0 else lp["amount"]
 			scored_results.append(
 				{
 					"score": score,
 					"id": listing_id,
 					"name": listing_name,
-					"price": display_price,
-					"orig_price": lp.get("orig_amount", display_price),
+					"price": lp["nightly"],
+					"nightly_price": lp["nightly"],
+					"total_price": lp["amount"],
+					"orig_total_price": lp.get("orig_amount", lp["amount"]),
+					"orig_price": lp.get("orig_amount", lp["amount"]),
 					"discount_pct": lp.get("discount_pct", 0.0),
 					"currency": lp["currency"],
+					"bedrooms": details.get("bedrooms", 1),
+					"person_capacity": details.get("person_capacity", 2),
 					"review_count": rating.get("review_count", 0),
 					"rating": rating.get("guest_satisfaction", 0),
 					"amenities": total_amenities,
 					"penalties": penalties,
 					"fast_wifi": wifi_info,
 					"review_evidence": review_evidence,
+					"url": room_url,
 				}
 			)
+			if args.limit and len(scored_results) >= args.limit:
+				break
 		else:
 			logger.error(f"  Failed to fetch details for {listing_id}")
 
 	# Sort results and generate report
 	if scored_results:
-		# Replace spaces, commas, and slashes with dashes and collapse multiples
 		safe_location = re.sub(r"[ ,/]+", "-", args.location).strip("-")
-
-		# Include stay dates in the filenames
 		csv_filename = f"{safe_location}-{args.check_in}-{args.check_out}.csv"
 		json_filename = f"{safe_location}-{args.check_in}-{args.check_out}.json"
 		csv_path = REPORTS_DIR / csv_filename
 		json_path = REPORTS_DIR / json_filename
 
-		csv_ok = generate_csv_report(scored_results, csv_path)
-		json_ok = generate_json_report(scored_results, json_path)
+		csv_ok = generate_csv_report(
+			scored_results,
+			csv_path,
+			location=args.location,
+			check_in=args.check_in,
+			check_out=args.check_out,
+			max_guests=args.max_guests,
+			adults=args.max_guests or 1,
+		)
+		json_ok = generate_json_report(
+			scored_results,
+			json_path,
+			check_in=args.check_in,
+			check_out=args.check_out,
+			max_guests=args.max_guests,
+			adults=args.max_guests or 1,
+		)
 
 		if not (csv_ok and json_ok):
 			logger.error("Failed to generate one or more report files.")
@@ -555,7 +596,6 @@ def main():
 			sys.exit(1)
 
 		if args.json:
-			# Load merged listings from the saved JSON report
 			try:
 				with open(json_path, "r", encoding="utf-8") as f:
 					final_listings = json.load(f)
@@ -581,6 +621,7 @@ def main():
 			print("\n--- SUCCESS: Reports saved/merged ---")
 			print(f"CSV:  {csv_path}")
 			print(f"JSON: {json_path}")
+
 	else:
 		if args.json:
 			print(

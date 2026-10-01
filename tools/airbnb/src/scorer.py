@@ -50,6 +50,13 @@ class Scorer:
 				applied_penalties.append(penalty.get("name"))
 				logger.info(f"  Penalty Applied: {penalty.get('name')} ({multiplier}x)")
 
+		# Apply review-extracted noise penalty if guests reported noise, traffic, or construction
+		evidence = self.extract_review_evidence(listing_details)
+		if evidence.get("noise_negative"):
+			final_score *= 0.75
+			applied_penalties.append("Noise Complaints (0.75x)")
+			logger.info("  Penalty Applied: Noise Complaints (0.75x)")
+
 		return round(final_score, 2), applied_penalties
 
 	def _passes_hard_filters(self, listing):
@@ -330,11 +337,11 @@ class Scorer:
 			re.IGNORECASE,
 		)
 		noise_pos_regex = re.compile(
-			r"\b(tranquil[oa]|silencios[oa]|quiet|peaceful|dormir bien)\b",
+			r"\b(tranquil[oa]|silencios[oa]|quiet|peaceful|dormir bien|sin ruido)\b",
 			re.IGNORECASE,
 		)
 		noise_neg_regex = re.compile(
-			r"\b(ruidoso|mucho ruido|loud|noisy|street noise|fiesta|party|construcci[oó]n|obras)\b",
+			r"\b(ruidos[oa]|mucho ruido|ruido|bulla|tr[aá]fico|loud|noisy|street noise|fiesta|party|construcci[oó]n|obras)\b",
 			re.IGNORECASE,
 		)
 		kitchen_pos_regex = re.compile(

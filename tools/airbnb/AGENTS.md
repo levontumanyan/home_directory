@@ -6,8 +6,8 @@
 
 # Environment & Execution
 
-- **Command Policy**: **ALWAYS** use `make` commands for all operations (running, testing, linting).
-- **Prohibited**: Do **NOT** run or suggest direct `uv` or `python3` command calls.
+- **CLI Tool**: The primary way to run searches and benchmark listings is the `airbnb` CLI executable, installed in PATH (`~/.local/bin/airbnb`). Run `airbnb --help` for options.
+- **Make Targets**: Use `make` commands strictly for development lifecycle tasks: `make format`, `make lint`, and `make test`. Do not create or use a `make run` target.
 
 # Testing & Validation
 

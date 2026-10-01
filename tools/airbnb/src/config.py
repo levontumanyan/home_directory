@@ -32,5 +32,20 @@ REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 TEST_DATA_DIR = ROOT_DIR / "tests" / "data"
 TEST_LISTING_ID = "19643333"
 
-# API Keys
+# API Keys & Auth
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+AIRBNB_COOKIE = os.getenv("AIRBNB_COOKIE")
+COOKIE_FILE = ROOT_DIR / "cookies.txt"
+USER_COOKIE_FILE = Path.home() / ".config" / "airbnb" / "cookies.txt"
+
+if not AIRBNB_COOKIE:
+	if COOKIE_FILE.exists():
+		try:
+			AIRBNB_COOKIE = COOKIE_FILE.read_text(encoding="utf-8").strip()
+		except Exception:
+			pass
+	elif USER_COOKIE_FILE.exists():
+		try:
+			AIRBNB_COOKIE = USER_COOKIE_FILE.read_text(encoding="utf-8").strip()
+		except Exception:
+			pass

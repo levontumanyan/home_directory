@@ -24,6 +24,7 @@ git fetch
 git worktree
 git rev-parse
 git check-ignore
+git ls-files
 
 # --- github cli ---
 gh pr status
@@ -98,6 +99,7 @@ du
 env
 printenv
 lsof
+type
 
 # --- search ---
 rg
@@ -124,6 +126,10 @@ ping
 route get
 traceroute
 wifi-check
+whatsapp
+flights
+airbnb
+download-video
 
 # --- build ---
 make check

@@ -132,15 +132,32 @@ def get_city_coords(city_name):
 		}
 	else:
 		# Nominatim order: [sw_lat, ne_lat, sw_lon, ne_lon]
+		sw_lat = float(raw_bbox[0])
+		ne_lat = float(raw_bbox[1])
+		sw_long = float(raw_bbox[2])
+		ne_long = float(raw_bbox[3])
+
+		# If bounding box is too tiny (e.g. single building/point < 0.04 deg ~ 4.4km), expand to minimum useful radius
+		min_span = 0.04
+		if (ne_lat - sw_lat) < min_span:
+			mid_lat = (ne_lat + sw_lat) / 2
+			sw_lat = mid_lat - min_span / 2
+			ne_lat = mid_lat + min_span / 2
+		if (ne_long - sw_long) < min_span:
+			mid_long = (ne_long + sw_long) / 2
+			sw_long = mid_long - min_span / 2
+			ne_long = mid_long + min_span / 2
+
 		coords = {
-			"sw_lat": float(raw_bbox[0]),
-			"ne_lat": float(raw_bbox[1]),
-			"sw_long": float(raw_bbox[2]),
-			"ne_long": float(raw_bbox[3]),
+			"sw_lat": sw_lat,
+			"ne_lat": ne_lat,
+			"sw_long": sw_long,
+			"ne_long": ne_long,
 		}
 
 	# Save to cache
 	cache[city_name] = coords
+
 	with open(CITY_CACHE, "w") as f:
 		json.dump(cache, f, indent=4)
 

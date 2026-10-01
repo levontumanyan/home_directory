@@ -1,3 +1,4 @@
 .antigravitycli/
 .aider*
 .DS_Store
+dotfiles/os/darwin/.local/bin/pdf-ocr
