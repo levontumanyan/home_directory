@@ -104,16 +104,22 @@ struct DiagnosticReport: Codable {
 
 func printUsage() {
 	let usage = """
-	wifi-check: Complete macOS Wi-Fi and network performance diagnostic
+	wifi-check: Complete macOS Wi-Fi, VPN stealth, and network performance diagnostic
 
 	Usage:
 	  wifi-check [options]
 
+	Features:
+	  • Wi-Fi Link Health: RSSI, SNR, MIMO streams, transmit link rate, and channel width
+	  • VPN & Stealth Audit: Validates home residential IP, tests for DNS leaks, and checks IPv6
+	  • Latency Route Map: Hop-by-hop breakdown (Local Airwaves ➔ Subsea Tunnel ➔ Home LAN ➔ Edge)
+	  • Internet Capacity: Download/upload bandwidth and loaded bufferbloat responsiveness (RPM)
+
 	Options:
-	  -q, --quick        Quick mode (skip ~15s throughput test, check Wi-Fi + IP + ping only)
+	  -q, --quick        Quick mode (skip ~15s throughput test; runs Wi-Fi + VPN + hops + ping)
 	  -d, --deep         Deep hardware mode (reads airtime congestion, MIMO streams, MCS via sudo wdutil)
 	  -s, --scan         Scan and display nearby Wi-Fi networks and signal strengths
-	  -j, --json         Output raw JSON for automation and logging
+	  -j, --json         Output raw JSON for automation, logging, or Grafana dashboards
 	  -c, --count <N>    Number of ping probe packets (default: 5)
 	  -h, --help         Show this help message
 	"""
