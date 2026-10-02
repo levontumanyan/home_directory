@@ -73,11 +73,30 @@ struct SpeedResult: Codable {
 	var testEndpoint: String
 }
 
+struct VpnAuditResult: Codable {
+	var isVpnDetected: Bool
+	var tunnelName: String
+	var homeIpMatch: Bool
+	var dnsResolverGeo: String?
+	var ednsClientGeo: String?
+	var isDnsSecure: Bool
+	var ipv6Status: String
+}
+
+struct HopResult: Codable {
+	var hopNumber: Int
+	var ip: String
+	var rttMs: Double
+	var stageDescription: String
+}
+
 struct DiagnosticReport: Codable {
 	var timestamp: String
 	var wifi: WifiDetails?
 	var deep: DeepDiagnostics?
 	var ip: IpDetails?
+	var vpn: VpnAuditResult?
+	var hops: [HopResult]
 	var ping: [PingResult]
 	var speed: SpeedResult?
 	var nomadRating: String
@@ -412,11 +431,151 @@ func runSpeedTest() -> SpeedResult? {
 	)
 }
 
-func evaluateNomadRating(wifi: WifiDetails?, deep: DeepDiagnostics?, ping: PingResult?, speed: SpeedResult?) -> String {
+func auditVpnAndDns(ip: IpDetails) -> VpnAuditResult {
+	let isBeryl = ip.localGateway == "192.168.8.1"
+	let isHomeRogers = ip.publicIp == "99.241.213.21" || (ip.org?.contains("Rogers") ?? false)
+	let isVpn = isBeryl || isHomeRogers
+
+	let tunnelName: String
+	if isHomeRogers {
+		tunnelName = "WireGuard Tunnel to Toronto Home (Rogers)"
+	} else if isVpn {
+		tunnelName = "Active VPN Tunnel"
+	} else {
+		tunnelName = "None (Direct ISP Connection)"
+	}
+
+	var dnsGeo: String? = nil
+	var ednsGeo: String? = nil
+	var isDnsSecure = true
+
+	let curlPipe = Pipe()
+	let curl = Process()
+	curl.executableURL = URL(fileURLWithPath: "/usr/bin/curl")
+	curl.arguments = ["-sL", "--connect-timeout", "2", "--max-time", "3", "https://edns.ip-api.com/json"]
+	curl.standardOutput = curlPipe
+	try? curl.run()
+	curl.waitUntilExit()
+
+	let data = curlPipe.fileHandleForReading.readDataToEndOfFile()
+	if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+		if let dns = json["dns"] as? [String: Any], let geo = dns["geo"] as? String {
+			dnsGeo = geo
+		}
+		if let edns = json["edns"] as? [String: Any], let geo = edns["geo"] as? String {
+			ednsGeo = geo
+		}
+	}
+
+	if let dns = dnsGeo {
+		if isHomeRogers && !dns.contains("Canada") && !dns.contains("United States") {
+			isDnsSecure = false
+		}
+	}
+
+	var ipv6Status = "Disabled on en0 (Protected)"
+	let ifPipe = Pipe()
+	let ifProc = Process()
+	ifProc.executableURL = URL(fileURLWithPath: "/sbin/ifconfig")
+	ifProc.arguments = ["en0"]
+	ifProc.standardOutput = ifPipe
+	try? ifProc.run()
+	ifProc.waitUntilExit()
+
+	let ifData = ifPipe.fileHandleForReading.readDataToEndOfFile()
+	if let ifStr = String(data: ifData, encoding: .utf8) {
+		for line in ifStr.split(separator: "\n") {
+			let lineTrimmed = line.trimmingCharacters(in: .whitespaces)
+			if lineTrimmed.hasPrefix("inet6 ") {
+				let parts = lineTrimmed.split(separator: " ")
+				if parts.count >= 2 {
+					let addr = String(parts[1])
+					if !addr.hasPrefix("fe80:") {
+						ipv6Status = "Active Routable IPv6 (\(addr.prefix(16))...) - Potential Leak"
+						break
+					}
+				}
+			}
+		}
+	}
+
+	return VpnAuditResult(
+		isVpnDetected: isVpn,
+		tunnelName: tunnelName,
+		homeIpMatch: isHomeRogers,
+		dnsResolverGeo: dnsGeo,
+		ednsClientGeo: ednsGeo,
+		isDnsSecure: isDnsSecure,
+		ipv6Status: ipv6Status
+	)
+}
+
+func mapLatencyHops(gateway: String?, isVpn: Bool) -> [HopResult] {
+	let pipe = Pipe()
+	let errPipe = Pipe()
+	let proc = Process()
+	proc.executableURL = URL(fileURLWithPath: "/usr/sbin/traceroute")
+	proc.arguments = ["-n", "-m", "8", "-q", "1", "-w", "1", "1.1.1.1"]
+	proc.standardOutput = pipe
+	proc.standardError = errPipe
+	try? proc.run()
+	proc.waitUntilExit()
+
+	let data = pipe.fileHandleForReading.readDataToEndOfFile()
+	guard let output = String(data: data, encoding: .utf8) else { return [] }
+
+	var results: [HopResult] = []
+	for line in output.split(separator: "\n") {
+		let parts = line.split(whereSeparator: { $0.isWhitespace })
+		if parts.count >= 3, let hopNum = Int(parts[0]) {
+			let ip = String(parts[1])
+			if ip != "*" {
+				let rtt = Double(parts[2]) ?? 0.0
+				let desc: String
+				if hopNum == 1 {
+					if ip == "192.168.8.1" {
+						desc = "Local Airwaves (Mac ➔ Beryl AX Wi-Fi 6)"
+					} else {
+						desc = "Local Airwaves (Device ➔ Local Wi-Fi Router)"
+					}
+				} else if isVpn && ip == "192.168.89.1" {
+					desc = "Subsea Optical Cable (Tunnel to Toronto ER605)"
+				} else if isVpn && ip == "10.0.0.1" {
+					desc = "Home LAN (ER605 ➔ Rogers Ignite Modem)"
+				} else if isVpn && (ip.hasPrefix("99.241.") || ip.hasPrefix("24.156.")) {
+					desc = "Rogers Last Mile / Regional Node (Toronto)"
+				} else if isVpn && hopNum >= 6 {
+					desc = "Internet Exchange / Cloudflare Peering"
+				} else {
+					if hopNum == 2 {
+						desc = "ISP Central Office / Last Mile (GPON/Fiber)"
+					} else if hopNum == 3 {
+						desc = "Regional Internet Exchange (Domestic IXP)"
+					} else if hopNum == 4 {
+						desc = "International Submarine Cable (Long Haul)"
+					} else {
+						desc = "Transit Backbone / Internet Edge"
+					}
+				}
+
+				results.append(HopResult(
+					hopNumber: hopNum,
+					ip: ip,
+					rttMs: (rtt * 10).rounded() / 10,
+					stageDescription: desc
+				))
+			}
+		}
+	}
+	return results
+}
+
+func evaluateNomadRating(wifi: WifiDetails?, deep: DeepDiagnostics?, ping: PingResult?, speed: SpeedResult?, vpn: VpnAuditResult?) -> String {
 	let loss = ping?.packetLossPercent ?? 0.0
 	let avgLatency = ping?.avgMs ?? 0.0
 	let upload = speed?.uploadMbps ?? 0.0
 	let cca = deep?.ccaPercent ?? 0
+	let isVpn = vpn?.isVpnDetected ?? false
 
 	if loss > 5.0 {
 		return "⚠️ Poor (High Packet Loss: \(loss)%)"
@@ -424,14 +583,22 @@ func evaluateNomadRating(wifi: WifiDetails?, deep: DeepDiagnostics?, ping: PingR
 	if cca > 50 {
 		return "⚠️ Poor Airtime Congestion (CCA: \(cca)%) - Channel is oversaturated"
 	}
-	if avgLatency > 200.0 {
-		return "⚠️ High Latency (>200ms) - Conversational delays expected"
+	let maxAllowedLatency = isVpn ? 220.0 : 180.0
+	if avgLatency > maxAllowedLatency {
+		return "⚠️ High Latency (>\(Int(maxAllowedLatency))ms) - Conversational delays expected"
 	}
 	if speed != nil && upload < 2.0 {
 		return "⚠️ Low Upload (<2 Mbps) - Video calls may degrade"
 	}
-	if (speed == nil || upload >= 10.0) && loss == 0.0 && avgLatency < 120.0 {
-		return "✅ Optimal for HD Zoom Calls & Remote Work"
+	if isVpn && !(vpn?.homeIpMatch ?? false) {
+		return "⚠️ VPN Alert: Public IP does not match Canadian Homebase"
+	}
+	if (speed == nil || upload >= 10.0) && loss == 0.0 {
+		if isVpn {
+			return "✅ Optimal for HD Zoom Calls & Remote Work (Protected Canadian Tunnel)"
+		} else {
+			return "✅ Optimal for HD Zoom Calls & Remote Work"
+		}
 	}
 	return "✅ Good for Standard Video Calls & Remote Work"
 }
@@ -515,7 +682,13 @@ if isDeep || getuid() == 0 {
 // 3. Gather Public IP & Gateway Details
 let ip = inspectIpAndGateway()
 
-// 4. Run Ping Latency Tests
+// 4. Audit VPN & DNS Stealth
+let vpn = auditVpnAndDns(ip: ip)
+
+// 5. Map Latency Hops (Breakdown)
+let hops = mapLatencyHops(gateway: ip.localGateway, isVpn: vpn.isVpnDetected)
+
+// 6. Run Ping Latency Tests
 var pings: [PingResult] = []
 if let gw = ip.localGateway, let pGw = runPingTest(host: gw, count: min(pingCount, 3)) {
 	pings.append(pGw)
@@ -524,7 +697,7 @@ if let pCloudflare = runPingTest(host: "1.1.1.1", count: pingCount) {
 	pings.append(pCloudflare)
 }
 
-// 5. Run Throughput Speed Test (if not quick mode)
+// 7. Run Throughput Speed Test (if not quick mode)
 var speed: SpeedResult? = nil
 if !isQuick {
 	if !isJson {
@@ -533,14 +706,16 @@ if !isQuick {
 	speed = runSpeedTest()
 }
 
-// 6. Evaluate Work Suitability
-let rating = evaluateNomadRating(wifi: wifi, deep: deep, ping: pings.first(where: { $0.host == "1.1.1.1" }), speed: speed)
+// 8. Evaluate Work Suitability
+let rating = evaluateNomadRating(wifi: wifi, deep: deep, ping: pings.first(where: { $0.host == "1.1.1.1" }), speed: speed, vpn: vpn)
 
 let report = DiagnosticReport(
 	timestamp: ISO8601DateFormatter().string(from: Date()),
 	wifi: wifi,
 	deep: deep,
 	ip: ip,
+	vpn: vpn,
+	hops: hops,
 	ping: pings,
 	speed: speed,
 	nomadRating: rating
@@ -614,6 +789,30 @@ if let pub = ip.publicIp {
 	print("  • Geo Location:     \(loc)")
 } else {
 	print("  • Public IP lookup failed (no internet or timeout)")
+}
+
+// VPN & Stealth Audit Section
+if vpn.isVpnDetected {
+	print("\n\(Colors.bold)VPN & Stealth Audit:\(Colors.reset)")
+	let statusColor = vpn.homeIpMatch ? Colors.green : Colors.yellow
+	print("  • Tunnel Status:    \(statusColor)🔒 \(vpn.tunnelName)\(Colors.reset)")
+	let matchTag = vpn.homeIpMatch ? "\(Colors.green)[MATCH: Canadian Homebase]\(Colors.reset)" : "\(Colors.yellow)[Unmatched]\(Colors.reset)"
+	print("  • Residential IP:   \(matchTag)")
+	if let dns = vpn.dnsResolverGeo {
+		let dnsCol = vpn.isDnsSecure ? Colors.green : Colors.red
+		let leakTag = vpn.isDnsSecure ? "\(Colors.green)[PASS: Protected]\(Colors.reset)" : "\(Colors.red)[LEAK DETECTED]\(Colors.reset)"
+		print("  • DNS Resolver:     \(dnsCol)\(dns)\(Colors.reset) \(leakTag)")
+	}
+	let v6Col = vpn.ipv6Status.contains("Potential Leak") ? Colors.red : Colors.green
+	print("  • IPv6 Leak Check:  \(v6Col)\(vpn.ipv6Status)\(Colors.reset)")
+}
+
+// Latency Route Mapping Section
+if !hops.isEmpty {
+	print("\n\(Colors.bold)Latency Route Mapping (Hop-by-Hop Breakdown):\(Colors.reset)")
+	for h in hops {
+		print(String(format: "  • Hop %d: %6.1f ms  (%-15@) ─── %@", h.hopNumber, h.rttMs, h.ip, h.stageDescription))
+	}
 }
 
 // Ping Section
