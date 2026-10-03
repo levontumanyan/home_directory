@@ -1077,12 +1077,18 @@ func draftMessage(target: String, message: String) {
 	pasteboard.clearContents()
 	pasteboard.setString(message, forType: .string)
 
-	guard let encodedText = message.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+	var allowedQueryCharacters = CharacterSet.urlQueryAllowed
+	allowedQueryCharacters.remove(charactersIn: "&#+=?")
+	guard let encodedText = message.addingPercentEncoding(withAllowedCharacters: allowedQueryCharacters) else {
 		fputs("Error: Failed to URL-encode message.\n", stderr)
 		exit(1)
 	}
 
-	if let session = matchingSession, session.contactJID.hasSuffix("@g.us") {
+	let digitsOnly = extractDigits(target)
+	let letters = target.filter { $0.isLetter }
+	let isRawPhone = digitsOnly.count >= 7 && letters.isEmpty
+
+	if !isRawPhone, let session = matchingSession, session.contactJID.hasSuffix("@g.us") {
 		let cleanPartner = cleanUnicode(session.partnerName).replacingOccurrences(of: "\u{00A0}", with: " ")
 		let urlString = "whatsapp://send?text=\(encodedText)"
 		if let url = URL(string: urlString) {
