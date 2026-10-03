@@ -53,6 +53,41 @@ func resolveMediaPath(_ localPath: String?) -> String? {
 	return (messageDir as NSString).appendingPathComponent(path)
 }
 
+func parseVCard(vcardName: String?, vcardString: String?) -> (name: String?, phone: String?) {
+	var name: String? = vcardName?.trimmingCharacters(in: .whitespacesAndNewlines)
+	if name?.isEmpty == true { name = nil }
+	var phone: String? = nil
+
+	if let vcard = vcardString, !vcard.isEmpty {
+		let lines = vcard.components(separatedBy: .newlines)
+		for rawLine in lines {
+			let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+			if name == nil && line.hasPrefix("FN:") {
+				let fn = String(line.dropFirst(3)).trimmingCharacters(in: .whitespacesAndNewlines)
+				if !fn.isEmpty { name = fn }
+			}
+			if phone == nil && (line.hasPrefix("TEL;") || line.hasPrefix("TEL:")) {
+				let parts = line.components(separatedBy: ":")
+				if parts.count >= 2 {
+					let tel = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+					if !tel.isEmpty { phone = tel }
+				}
+			}
+		}
+	}
+	return (name, phone)
+}
+
+func extractEventName(from text: String?) -> String? {
+	guard let text = text, text.contains("event_name") else { return nil }
+	if let data = text.data(using: .utf8),
+	   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+	   let eventName = json["event_name"] as? String {
+		return eventName
+	}
+	return nil
+}
+
 // MARK: - Transcript Cache
 
 let cacheDir = (("~/.local/share/whatsapp" as NSString).expandingTildeInPath)
@@ -387,15 +422,25 @@ func listChats(limit: Int, unreadOnly: Bool, search: String?) {
 				let dur = Int(sqlite3_column_int(stmt, 10))
 				let durStr = dur > 0 ? " (\(formatDuration(dur)))" : ""
 				content = "[Voice Note\(durStr)]"
+			case 4, 14: content = "[Contact]"
 			case 5: content = "[Location]"
+			case 6: content = "[Group Event]"
 			case 8: content = "[Document]"
-			case 14: content = "[Contact]"
+			case 10: content = "[System Notice]"
+			case 11: content = "[View Once]"
 			case 15: content = "[Sticker]"
+			case 19: content = "[Poll]"
+			case 59: content = "[Reaction]"
 			default: content = "[Media]"
 			}
 		}
 
-		let prefix = isFromMe ? "You: " : ""
+		let prefix: String
+		if msgType == 6 || msgType == 10 {
+			prefix = ""
+		} else {
+			prefix = isFromMe ? "You: " : ""
+		}
 		let preview = "\(prefix)\(content)"
 		let truncatedPreview = preview.count > 45 ? "\(preview.prefix(42))..." : preview
 		let unreadDisplay = unread > 0 ? "*\(unread)*" : "0"
@@ -571,7 +616,8 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 	print(String(repeating: "-", count: 80))
 
 	let lookupSQL = """
-	SELECT m.ZISFROMME, COALESCE(gm.ZCONTACTNAME, m.ZPUSHNAME) AS SENDERNAME, m.ZTEXT, m.ZMESSAGETYPE, mi.ZTITLE
+	SELECT m.ZISFROMME, COALESCE(gm.ZCONTACTNAME, m.ZPUSHNAME) AS SENDERNAME,
+	       m.ZTEXT, m.ZMESSAGETYPE, mi.ZTITLE, mi.ZVCARDNAME, mi.ZVCARDSTRING
 	FROM ZWAMESSAGE m
 	LEFT JOIN ZWAGROUPMEMBER gm ON m.ZGROUPMEMBER = gm.Z_PK
 	LEFT JOIN ZWAMEDIAITEM mi ON m.ZMEDIAITEM = mi.Z_PK
@@ -586,7 +632,9 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 	SELECT m.ZMESSAGEDATE, m.ZISFROMME, m.ZTEXT, m.ZMESSAGETYPE,
 	       COALESCE(gm.ZCONTACTNAME, m.ZPUSHNAME) AS SENDERNAME,
 	       mi.ZMEDIALOCALPATH, mi.ZMOVIEDURATION, mi.ZTITLE,
-	       m.ZSTANZAID, m.Z_PK, mi.ZMETADATA
+	       m.ZSTANZAID, m.Z_PK, mi.ZMETADATA,
+	       mi.ZVCARDNAME, mi.ZVCARDSTRING, mi.ZLATITUDE, mi.ZLONGITUDE,
+	       m.ZGROUPEVENTTYPE
 	FROM ZWAMESSAGE m
 	LEFT JOIN ZWAGROUPMEMBER gm ON m.ZGROUPMEMBER = gm.Z_PK
 	LEFT JOIN ZWAMEDIAITEM mi ON m.ZMEDIAITEM = mi.Z_PK
@@ -626,9 +674,29 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 		let stanzaId = sqlite3_column_text(msgStmt, 8).flatMap { String(cString: $0) }
 		let msgPk = sqlite3_column_int(msgStmt, 9)
 		let messageId = (stanzaId != nil && !stanzaId!.isEmpty) ? stanzaId! : "msg_\(msgPk)"
+		let vcardName = sqlite3_column_text(msgStmt, 11).flatMap { String(cString: $0) }
+		let vcardString = sqlite3_column_text(msgStmt, 12).flatMap { String(cString: $0) }
+		let lat = sqlite3_column_double(msgStmt, 13)
+		let lon = sqlite3_column_double(msgStmt, 14)
+		let groupEventType = sqlite3_column_int(msgStmt, 15)
+
+		// Filter out reactions and internal protocol handshakes
+		if msgType == 59 {
+			continue
+		}
+		if msgType == 10 {
+			if groupEventType == 2 || groupEventType == 56 || groupEventType == 58 || groupEventType == 63 || groupEventType == 92 {
+				continue
+			}
+			if (rawText == nil || rawText!.isEmpty) && mediaPath == nil {
+				continue
+			}
+		}
 
 		let sender: String
-		if isFromMe {
+		if msgType == 6 || msgType == 10 {
+			sender = "System"
+		} else if isFromMe {
 			sender = "You"
 		} else if isGroup {
 			if let sn = senderName, !sn.isEmpty && !sn.hasPrefix("IAB") && !sn.hasPrefix("CN") && !sn.hasPrefix("CL") && !sn.hasPrefix("CP") {
@@ -640,53 +708,118 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 			sender = partnerName
 		}
 
+		let caption = (rawText != nil && !rawText!.isEmpty) ? rawText! : nil
 		let body: String
-		if let t = rawText, !t.isEmpty {
-			body = t
-		} else {
-			switch msgType {
-			case 1:
-				if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
-					body = "[Image • \(full)]"
-				} else {
-					body = "[Image]"
-				}
-			case 2:
-				let dur = movieDur > 0 ? " (\(formatDuration(movieDur)))" : ""
-				if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
-					body = "[Video\(dur) • \(full)]"
-				} else {
-					body = "[Video\(dur)]"
-				}
-			case 3:
-				let dur = movieDur > 0 ? " (\(formatDuration(movieDur)))" : ""
-				if let cached = getCachedTranscript(messageId: messageId) {
-					body = "[Voice Note\(dur)] \"\(cached)\""
-				} else if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
-					if transcribe {
-						if let t = transcribeAudioFile(filePath: full) {
-							saveCachedTranscript(messageId: messageId, mediaPath: p, chatPartner: partnerName, sender: sender, dateStr: dateStr, duration: movieDur, transcript: t)
-							body = "[Voice Note\(dur)] \"\(t)\""
-						} else {
-							body = "[Voice Note\(dur) • \(full)]"
-						}
+		switch msgType {
+		case 0:
+			body = caption ?? ""
+		case 1:
+			let imgTag: String
+			if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
+				imgTag = "[Image • \(full)]"
+			} else {
+				imgTag = "[Image]"
+			}
+			body = caption != nil ? "\(imgTag) \(caption!)" : imgTag
+		case 2:
+			let dur = movieDur > 0 ? " (\(formatDuration(movieDur)))" : ""
+			let vidTag: String
+			if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
+				vidTag = "[Video\(dur) • \(full)]"
+			} else {
+				vidTag = "[Video\(dur)]"
+			}
+			body = caption != nil ? "\(vidTag) \(caption!)" : vidTag
+		case 3:
+			let dur = movieDur > 0 ? " (\(formatDuration(movieDur)))" : ""
+			if let cached = getCachedTranscript(messageId: messageId) {
+				body = "[Voice Note\(dur)] \"\(cached)\""
+			} else if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
+				if transcribe {
+					if let t = transcribeAudioFile(filePath: full) {
+						saveCachedTranscript(messageId: messageId, mediaPath: p, chatPartner: partnerName, sender: sender, dateStr: dateStr, duration: movieDur, transcript: t)
+						body = "[Voice Note\(dur)] \"\(t)\""
 					} else {
 						body = "[Voice Note\(dur) • \(full)]"
 					}
 				} else {
-					body = "[Voice Note\(dur)]"
+					body = "[Voice Note\(dur) • \(full)]"
 				}
-			case 5: body = "[Location]"
-			case 8:
-				let title = mediaTitle ?? "Document"
-				if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
-					body = "[\(title) • \(full)]"
+			} else {
+				body = "[Voice Note\(dur)]"
+			}
+		case 4, 14:
+			let (cName, cPhone) = parseVCard(vcardName: vcardName, vcardString: vcardString)
+			if let cn = cName, let cp = cPhone {
+				body = "[Contact: \(cn) • \(cp)]"
+			} else if let cn = cName {
+				body = "[Contact: \(cn)]"
+			} else {
+				body = "[Contact]"
+			}
+		case 5:
+			if lat != 0.0 || lon != 0.0 {
+				let coord = String(format: "%.4f, %.4f", lat, lon)
+				if let t = mediaTitle, !t.isEmpty {
+					body = "[Location: \(t) (\(coord))]"
 				} else {
-					body = "[\(title)]"
+					body = "[Location: \(coord)]"
 				}
-			case 14: body = "[Contact]"
-			case 15: body = "[Sticker]"
-			default: body = "[Media]"
+			} else if let t = mediaTitle, !t.isEmpty {
+				body = "[Location: \(t)]"
+			} else {
+				body = "[Location]"
+			}
+		case 6:
+			if let cap = caption, !cap.isEmpty {
+				body = "[Group Event: \(cap)]"
+			} else {
+				body = "[Group Event]"
+			}
+		case 7:
+			if let cap = caption, !cap.isEmpty {
+				body = cap
+			} else if let t = mediaTitle, !t.isEmpty {
+				body = "[Link: \(t)]"
+			} else {
+				body = "[Call / Link]"
+			}
+		case 8:
+			let title = mediaTitle ?? "Document"
+			let docTag: String
+			if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
+				docTag = "[\(title) • \(full)]"
+			} else {
+				docTag = "[\(title)]"
+			}
+			body = caption != nil ? "\(docTag) \(caption!)" : docTag
+		case 10:
+			if let evName = extractEventName(from: caption) {
+				body = "[Event: \"\(evName)\"]"
+			} else if let cap = caption, !cap.isEmpty {
+				body = "[System: \(cap)]"
+			} else {
+				body = "[System Notice]"
+			}
+		case 11:
+			body = caption != nil ? "[View Once Media] \(caption!)" : "[View Once Media]"
+		case 15:
+			if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
+				body = "[Sticker • \(full)]"
+			} else {
+				body = "[Sticker]"
+			}
+		case 19:
+			body = caption != nil ? "[Poll: \(caption!)]" : "[Poll]"
+		case 20:
+			body = "[Poll Vote]"
+		default:
+			if let cap = caption, !cap.isEmpty {
+				body = cap
+			} else if let p = mediaPath, let full = resolveMediaPath(p), FileManager.default.fileExists(atPath: full) {
+				body = "[Media • \(full)]"
+			} else {
+				body = "[Media]"
 			}
 		}
 
@@ -724,14 +857,19 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 								} else {
 									let qType = sqlite3_column_int(lStmt, 3)
 									let qTitle = sqlite3_column_text(lStmt, 4).flatMap({ String(cString: $0) })
+									let qVCardName = sqlite3_column_text(lStmt, 5).flatMap({ String(cString: $0) })
+									let qVCardString = sqlite3_column_text(lStmt, 6).flatMap({ String(cString: $0) })
 									switch qType {
 									case 1: quotedText = "[Image]"
 									case 2: quotedText = "[Video]"
 									case 3: quotedText = "[Voice Note]"
+									case 4, 14:
+										let (cName, _) = parseVCard(vcardName: qVCardName, vcardString: qVCardString)
+										quotedText = cName != nil ? "[Contact: \(cName!)]" : "[Contact]"
 									case 5: quotedText = "[Location]"
 									case 8: quotedText = "[\(qTitle ?? "Document")]"
-									case 14: quotedText = "[Contact]"
 									case 15: quotedText = "[Sticker]"
+									case 19: quotedText = "[Poll]"
 									default: quotedText = "[Media]"
 									}
 								}
@@ -811,7 +949,8 @@ func searchMessages(query: String, contact: String?, days: Int?, limit: Int) {
 	let whereClause = conditions.joined(separator: " AND ")
 	let sql = """
 	SELECT m.ZMESSAGEDATE, s.ZPARTNERNAME, m.ZISFROMME, m.ZTEXT, s.ZCONTACTJID,
-	       m.ZMESSAGETYPE, mi.ZTITLE, mi.ZMEDIALOCALPATH, mi.ZFILESIZE
+	       m.ZMESSAGETYPE, mi.ZTITLE, mi.ZMEDIALOCALPATH, mi.ZFILESIZE,
+	       mi.ZVCARDNAME, mi.ZVCARDSTRING
 	FROM ZWAMESSAGE m
 	JOIN ZWACHATSESSION s ON m.ZCHATSESSION = s.Z_PK
 	LEFT JOIN ZWAMEDIAITEM mi ON m.ZMEDIAITEM = mi.Z_PK
@@ -848,6 +987,8 @@ func searchMessages(query: String, contact: String?, days: Int?, limit: Int) {
 		let docTitle = sqlite3_column_text(stmt, 6).flatMap { String(cString: $0) }
 		let localPath = sqlite3_column_text(stmt, 7).flatMap { String(cString: $0) }
 		let fileSize = sqlite3_column_int64(stmt, 8)
+		let vcardName = sqlite3_column_text(stmt, 9).flatMap { String(cString: $0) }
+		let vcardString = sqlite3_column_text(stmt, 10).flatMap { String(cString: $0) }
 		let sender = isFromMe ? "You" : partner
 
 		let text: String
@@ -859,11 +1000,26 @@ func searchMessages(query: String, contact: String?, days: Int?, limit: Int) {
 			case 1: text = "[Image\(szStr)]"
 			case 2: text = "[Video\(szStr)]"
 			case 3: text = "[Voice Note\(szStr)]"
+			case 4, 14:
+				let (cName, cPhone) = parseVCard(vcardName: vcardName, vcardString: vcardString)
+				if let cn = cName, let cp = cPhone {
+					text = "[Contact: \(cn) • \(cp)]"
+				} else if let cn = cName {
+					text = "[Contact: \(cn)]"
+				} else {
+					text = "[Contact]"
+				}
+			case 5: text = "[Location]"
+			case 6: text = "[Group Event]"
 			case 8:
 				let name = docTitle ?? (localPath != nil ? (localPath! as NSString).lastPathComponent : "Document")
 				text = "[\(name)\(szStr)]"
+			case 10: text = "[System Notice]"
+			case 11: text = "[View Once]"
+			case 15: text = "[Sticker]"
+			case 19: text = "[Poll]"
 			default:
-				text = "[Attachment\(szStr)]"
+				text = localPath != nil ? "[Attachment\(szStr)]" : "[Media]"
 			}
 		}
 
@@ -1217,8 +1373,12 @@ func listDocuments(target: String?, type: String?, minSizeMB: Double?, ext: Stri
 		conditions.append("m.ZMESSAGETYPE = 2")
 	case "audio", "voice":
 		conditions.append("m.ZMESSAGETYPE = 3")
+	case "sticker", "stickers":
+		conditions.append("m.ZMESSAGETYPE = 15")
+	case "contact", "contacts":
+		conditions.append("m.ZMESSAGETYPE IN (4, 14)")
 	case "all", "any", "attachment", "attachments":
-		conditions.append("m.ZMESSAGETYPE IN (1, 2, 3, 8)")
+		conditions.append("m.ZMESSAGETYPE IN (1, 2, 3, 4, 8, 14, 15)")
 	default:
 		conditions.append("m.ZMESSAGETYPE = 8")
 	}
@@ -1300,7 +1460,9 @@ func listDocuments(target: String?, type: String?, minSizeMB: Double?, ext: Stri
 		case 1: typeLabel = "Image"
 		case 2: typeLabel = "Video"
 		case 3: typeLabel = "Audio"
+		case 4, 14: typeLabel = "Contact"
 		case 8: typeLabel = "Document"
+		case 15: typeLabel = "Sticker"
 		default: typeLabel = "Media"
 		}
 
