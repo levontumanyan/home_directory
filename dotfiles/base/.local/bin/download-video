@@ -29,6 +29,9 @@ def get_clipboard_url():
 def is_instagram_url(url):
 	return bool(re.search(r'instagram\.com/(p|reel|stories)/', url))
 
+def is_youtube_url(url):
+	return bool(re.search(r'(?:youtube\.com/(?:watch\?v=|shorts/|embed/|live/)|youtu\.be/)', url))
+
 def ffmpeg(*args):
 	return subprocess.run(["ffmpeg", *args], capture_output=True)
 
@@ -216,7 +219,17 @@ def make_filename_slug(ocr_texts):
 			slug = truncated
 	return slug.strip('-')
 
+def is_non_interactive():
+	return (
+		not sys.stdin.isatty()
+		or os.environ.get("ANTIGRAVITY_AGENT") == "1"
+		or os.environ.get("TERM") == "dumb"
+		or os.environ.get("NONINTERACTIVE") == "1"
+	)
+
 def input_with_default(prompt, default_val=None):
+	if is_non_interactive():
+		return default_val or ""
 	if default_val:
 		replacements = {
 			"«": '"', "»": '"',
@@ -345,6 +358,7 @@ def main():
 	parser.add_argument("-m", "--metadata", default=None, help="Show all container and stream metadata for a video file.")
 	parser.add_argument("-c", "--cookies", default=None, help="Path to cookies file passed to yt-dlp.")
 	parser.add_argument("--cookies-from-browser", default=None, help="Browser to extract cookies from (e.g. chrome, safari, firefox).")
+	parser.add_argument("-s", "--section", "--snippet", dest="section", default=None, help="Download only a section/snippet (YouTube only). E.g. '01:30-02:15' or '90-135'.")
 	args = parser.parse_args()
 
 	output_dir = os.path.abspath(os.path.expanduser(args.output_dir))
@@ -377,7 +391,13 @@ def main():
 			print("\033[1;31mNo URL provided. Exiting.\033[0m")
 			sys.exit(0)
 
-	if any(is_instagram_url(u) for u in urls) and not args.cookies and not args.cookies_from_browser:
+	if args.section:
+		for u in urls:
+			if not is_youtube_url(u):
+				print(f"\033[1;31m[download-video] Error: The --section flag is only supported for YouTube videos. Invalid URL: {u}\033[0m", file=sys.stderr)
+				sys.exit(1)
+
+	if any((is_instagram_url(u) or is_youtube_url(u)) for u in urls) and not args.cookies and not args.cookies_from_browser:
 		args.cookies_from_browser = "brave"
 
 	archive_file = os.path.join(output_dir, ".yt-dlp-archive")
@@ -414,9 +434,14 @@ def main():
 		elif instagram:
 			cmd += ["-f", "bestvideo[vcodec^=vp09]+bestaudio/bestvideo+bestaudio/best", "--merge-output-format", "mkv"]
 		else:
-			cmd += ["-f", "bv*[vcodec^=av01]+ba[acodec=opus]/bv*[vcodec^=vp9]+ba[acodec=opus]/bv*[vcodec^=vp9]+ba/bestvideo+bestaudio/best", "--merge-output-format", "mkv"]
+			cmd += ["-f", "bv*[vcodec^=av01]+ba/bv*[vcodec^=vp9]+ba/bv*+ba/best", "--merge-output-format", "mkv"]
 		cmd += ["--embed-metadata", "--embed-thumbnail", "--restrict-filenames", "--ignore-errors"]
-		if not instagram:
+		if args.section:
+			sec = args.section.strip()
+			if not sec.startswith("*"):
+				sec = f"*{sec}"
+			cmd += ["--download-sections", sec, "--force-keyframes-at-cuts"]
+		if not instagram and not args.section:
 			cmd += ["--download-archive", archive_file]
 
 		if args.cookies:
@@ -425,9 +450,9 @@ def main():
 			cmd += ["--cookies-from-browser", args.cookies_from_browser]
 
 		if args.name:
-			stem = (args.name + ".instatmp") if (instagram and not args.audio_only) else args.name
+			stem = (args.name + ".instatmp") if not args.audio_only else args.name
 		else:
-			stem = "%(title)s.instatmp" if (instagram and not args.audio_only) else "%(title)s"
+			stem = "%(title)s.instatmp" if not args.audio_only else "%(title)s"
 		cmd += ["-o", os.path.join(output_dir, f"{stem}.%(ext)s"), url]
 
 
@@ -479,7 +504,7 @@ def main():
 
 
 
-			if instagram and not args.audio_only:
+			if not args.audio_only:
 				if dl_file and os.path.exists(dl_file):
 					if custom_name:
 						clean_custom_name = custom_name.replace("_", "-")
