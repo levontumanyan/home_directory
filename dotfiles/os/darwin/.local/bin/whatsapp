@@ -680,8 +680,8 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 		let lon = sqlite3_column_double(msgStmt, 14)
 		let groupEventType = sqlite3_column_int(msgStmt, 15)
 
-		// Filter out reactions and internal protocol handshakes
-		if msgType == 59 {
+		// Filter out reactions, album containers, and internal protocol handshakes
+		if msgType == 59 || msgType == 66 {
 			continue
 		}
 		if msgType == 10 {
