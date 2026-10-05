@@ -1,6 +1,7 @@
 # System Instruction
 
 - use ripgrep: `rg` for searching/grepping
+- make sure in scripts `--help` output is automatically generated
 - Assume all standard and user-specified CLI tools (e.g., gh) are installed and available. Do not execute availability or existence checks (e.g., command -v, which, or --version) prior to use. Execute the primary target command directly. Only if it shows that the command isn't there start digging into that.
 - Exception Rule: You may query the binary version strictly if the requested operation relies on a flag or feature introduced in a specific release. If a version check is executed, state the required version and the feature dependency.
 - If the user asks about a Github issue or pr, always use `gh` cli commands. Do not fetch the website directly. Also every time you mention/create a pr/issue provide the full link to the user.
@@ -11,6 +12,7 @@
 - **Apple Pay CLI**: Queries and searches local Apple Pay transactions on macOS; see `apple-pay --help` for options.
 - **iMessage CLI**: Queries and searches local iMessage chat history on macOS; see `imessage --help` for options.
 - **PDF Text Extraction**: Use `pdftotext` directly to extract and read PDF contents; it is already installed and available. Do not write ad-hoc Python scripts (e.g. `pypdf`) or run tool existence checks.
+- **Browser Automation**: Use the dedicated Patchright stealth Chromium instance via MCP (`brave-mcp` / `uv run`) for agent browsing. Never launch a second Brave binary alongside an active one on macOS because shared Mach port rendezvous (`com.brave.Browser.MachPortRendezvousServer`) freezes tab opening and IPC in the primary browser.
 
 # GitHub Issue & PR Bodies
 
@@ -35,8 +37,6 @@ My personal knowledge base is located at: `~repos/knowledge-base`
 - **Unified Instructions**: If a repository contains `GEMINI.md` or `CLAUDE.md`, unify them into a single `AGENTS.md` file and symlink the original filenames back to it. `AGENTS.md` is the primary source of truth for all AI instructions.
 
 - In Markdown files, always use a single '#' for top-level section headings. Sub-sections should use '##'. Avoid using '###' or deeper unless absolutely necessary. Major sections must always be at the root heading level (#). Avoid having one # top level heading only.
-
-- When presenting structured data or strategies in Markdown files, prefer high-quality ASCII tables and vertical "card" layouts over standard Markdown tables. Ensure they are clean, well-aligned, and focus on vertical readability.
 
 # Personal Repos
 

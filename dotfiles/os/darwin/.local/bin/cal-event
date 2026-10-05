@@ -229,6 +229,19 @@ func handleAdd(config: Config, store: EKEventStore, allCalendars: [EKCalendar]) 
 	}
 }
 
+func normalizeTitle(_ str: String) -> String {
+	var s = ""
+	for scalar in str.unicodeScalars {
+		// filter out emoji and symbols
+		if scalar.properties.isEmoji && scalar.value > 0x2380 {
+			continue
+		}
+		s.append(Character(scalar))
+	}
+	let allowed = CharacterSet.alphanumerics.union(.whitespaces)
+	return s.components(separatedBy: allowed.inverted).joined().lowercased().trimmingCharacters(in: .whitespaces)
+}
+
 func handleAddReminder(config: Config, store: EKEventStore, allCalendars: [EKCalendar]) {
 	if config.summary.isEmpty {
 		fputs("Error: Missing reminder title.\n", stderr)
@@ -250,11 +263,75 @@ func handleAddReminder(config: Config, store: EKEventStore, allCalendars: [EKCal
 		targetCalendar = store.defaultCalendarForNewReminders() ?? allCalendars.first!
 	}
 
-	let reminder = EKReminder(eventStore: store)
-	reminder.title = config.summary
-	reminder.calendar = targetCalendar
-	reminder.notes = config.notes
-	reminder.url = config.url
+	// Search target calendar for existing reminder (complete or incomplete)
+	let inputNorm = normalizeTitle(config.summary)
+	var matchedExisting: EKReminder? = nil
+	let sem = DispatchSemaphore(value: 0)
+	let predicate = store.predicateForReminders(in: [targetCalendar])
+	store.fetchReminders(matching: predicate) { foundList in
+		defer { sem.signal() }
+		guard let foundList = foundList else { return }
+		// Try exact normalized match first
+		if let exact = foundList.first(where: { normalizeTitle($0.title ?? "") == inputNorm }) {
+			matchedExisting = exact
+			return
+		}
+		// If input is a single word or prefix, check if one contains the other
+		if !inputNorm.isEmpty {
+			if let partial = foundList.first(where: {
+				let existingNorm = normalizeTitle($0.title ?? "")
+				return existingNorm == inputNorm ||
+					(inputNorm.count >= 4 && (existingNorm.contains(inputNorm) || inputNorm.contains(existingNorm)))
+			}) {
+				matchedExisting = partial
+			}
+		}
+	}
+	sem.wait()
+
+	let reminder: EKReminder
+	var wasReactivated = false
+
+	if let existing = matchedExisting {
+		reminder = existing
+		if existing.isCompleted {
+			existing.isCompleted = false
+			existing.completionDate = nil
+			wasReactivated = true
+		} else {
+			print("ℹ️ Reminder already active in [\(targetCalendar.title)]: \(existing.title ?? "")")
+			// Update optional fields if provided
+			var updated = false
+			if let notes = config.notes, !notes.isEmpty {
+				reminder.notes = notes
+				updated = true
+			}
+			if let url = config.url {
+				reminder.url = url
+				updated = true
+			}
+			if updated {
+				do {
+					try store.save(reminder, commit: true)
+					print("   Updated notes/details.")
+				} catch {
+					fputs("Error updating reminder: \(error.localizedDescription)\n", stderr)
+				}
+			}
+			return
+		}
+	} else {
+		reminder = EKReminder(eventStore: store)
+		reminder.title = config.summary
+		reminder.calendar = targetCalendar
+	}
+
+	if let notes = config.notes {
+		reminder.notes = notes
+	}
+	if let url = config.url {
+		reminder.url = url
+	}
 
 	let cal = Calendar.current
 	if let start = config.startDate {
@@ -281,7 +358,11 @@ func handleAddReminder(config: Config, store: EKEventStore, allCalendars: [EKCal
 		let df = DateFormatter()
 		df.dateStyle = .medium
 		df.timeStyle = (config.isAllDay == true) ? .none : .short
-		print("✅ Reminder created successfully (integrates into Calendar & Reminders):")
+		if wasReactivated {
+			print("🔁 Existing reminder reactivated (uncompleted):")
+		} else {
+			print("✅ Reminder created successfully (integrates into Calendar & Reminders):")
+		}
 		print("   • Title:    \(reminder.title ?? "")")
 		if let due = config.startDate {
 			print("   • Due Date: \(df.string(from: due))")
