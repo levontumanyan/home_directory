@@ -215,6 +215,60 @@ func extractDigits(_ text: String) -> String {
 	return text.filter { $0.isNumber }
 }
 
+func formatJIDToPhone(_ jid: String) -> String? {
+	if jid.hasSuffix("@s.whatsapp.net") || jid.hasSuffix("@c.us") {
+		let num = jid.components(separatedBy: "@")[0]
+		if !num.isEmpty && num.allSatisfy({ $0.isNumber || $0 == "+" }) {
+			return num.hasPrefix("+") ? num : "+\(num)"
+		}
+	}
+	return nil
+}
+
+func resolveSenderDisplayName(senderName: String?, memberJid: String?, isGroup: Bool, partnerName: String) -> String {
+	if !isGroup {
+		return partnerName
+	}
+	if let sn = senderName {
+		let cleaned = cleanUnicode(sn).replacingOccurrences(of: "\u{00A0}", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+		if !cleaned.isEmpty && !cleaned.hasPrefix("IAB") && !cleaned.hasPrefix("CN") && !cleaned.hasPrefix("CL") && !cleaned.hasPrefix("CP") {
+			return cleaned
+		}
+	}
+	if let jid = memberJid, let phone = formatJIDToPhone(jid) {
+		return phone
+	}
+	return "Member"
+}
+
+func resolveJIDName(db: OpaquePointer?, jid: String) -> String? {
+	guard let db = db else { return formatJIDToPhone(jid) }
+	let sql = """
+	SELECT COALESCE(
+		NULLIF(cs.ZPARTNERNAME, ''),
+		NULLIF(ppn.ZPUSHNAME, '')
+	)
+	FROM (SELECT ? AS target_jid) t
+	LEFT JOIN ZWACHATSESSION cs ON cs.ZCONTACTJID = t.target_jid
+	LEFT JOIN ZWAPROFILEPUSHNAME ppn ON ppn.ZJID = t.target_jid
+	LIMIT 1;
+	"""
+	var stmt: OpaquePointer?
+	if sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK {
+		defer { sqlite3_finalize(stmt) }
+		sqlite3_bind_text(stmt, 1, (jid as NSString).utf8String, -1, nil)
+		if sqlite3_step(stmt) == SQLITE_ROW {
+			if let name = sqlite3_column_text(stmt, 0).flatMap({ String(cString: $0) }) {
+				let cleaned = cleanUnicode(name).replacingOccurrences(of: "\u{00A0}", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+				if !cleaned.isEmpty {
+					return cleaned
+				}
+			}
+		}
+	}
+	return formatJIDToPhone(jid)
+}
+
 struct SessionInfo {
 	let pk: Int32
 	let partnerName: String
@@ -616,10 +670,19 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 	print(String(repeating: "-", count: 80))
 
 	let lookupSQL = """
-	SELECT m.ZISFROMME, COALESCE(gm.ZCONTACTNAME, m.ZPUSHNAME) AS SENDERNAME,
-	       m.ZTEXT, m.ZMESSAGETYPE, mi.ZTITLE, mi.ZVCARDNAME, mi.ZVCARDSTRING
+	SELECT m.ZISFROMME,
+	       COALESCE(
+	           NULLIF(gm.ZCONTACTNAME, ''),
+	           NULLIF(cs_member.ZPARTNERNAME, ''),
+	           NULLIF(ppn.ZPUSHNAME, ''),
+	           NULLIF(gm.ZFIRSTNAME, '')
+	       ) AS SENDERNAME,
+	       m.ZTEXT, m.ZMESSAGETYPE, mi.ZTITLE, mi.ZVCARDNAME, mi.ZVCARDSTRING,
+	       gm.ZMEMBERJID
 	FROM ZWAMESSAGE m
 	LEFT JOIN ZWAGROUPMEMBER gm ON m.ZGROUPMEMBER = gm.Z_PK
+	LEFT JOIN ZWAPROFILEPUSHNAME ppn ON gm.ZMEMBERJID = ppn.ZJID
+	LEFT JOIN ZWACHATSESSION cs_member ON gm.ZMEMBERJID = cs_member.ZCONTACTJID
 	LEFT JOIN ZWAMEDIAITEM mi ON m.ZMEDIAITEM = mi.Z_PK
 	WHERE m.ZSTANZAID = ?
 	LIMIT 1;
@@ -630,13 +693,21 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 
 	let msgQuery = """
 	SELECT m.ZMESSAGEDATE, m.ZISFROMME, m.ZTEXT, m.ZMESSAGETYPE,
-	       COALESCE(gm.ZCONTACTNAME, m.ZPUSHNAME) AS SENDERNAME,
+	       COALESCE(
+	           NULLIF(gm.ZCONTACTNAME, ''),
+	           NULLIF(cs_member.ZPARTNERNAME, ''),
+	           NULLIF(ppn.ZPUSHNAME, ''),
+	           NULLIF(gm.ZFIRSTNAME, '')
+	       ) AS SENDERNAME,
 	       mi.ZMEDIALOCALPATH, mi.ZMOVIEDURATION, mi.ZTITLE,
 	       m.ZSTANZAID, m.Z_PK, mi.ZMETADATA,
 	       mi.ZVCARDNAME, mi.ZVCARDSTRING, mi.ZLATITUDE, mi.ZLONGITUDE,
-	       m.ZGROUPEVENTTYPE
+	       m.ZGROUPEVENTTYPE,
+	       gm.ZMEMBERJID
 	FROM ZWAMESSAGE m
 	LEFT JOIN ZWAGROUPMEMBER gm ON m.ZGROUPMEMBER = gm.Z_PK
+	LEFT JOIN ZWAPROFILEPUSHNAME ppn ON gm.ZMEMBERJID = ppn.ZJID
+	LEFT JOIN ZWACHATSESSION cs_member ON gm.ZMEMBERJID = cs_member.ZCONTACTJID
 	LEFT JOIN ZWAMEDIAITEM mi ON m.ZMEDIAITEM = mi.Z_PK
 	WHERE m.ZCHATSESSION = ?
 	ORDER BY m.ZMESSAGEDATE DESC
@@ -679,6 +750,7 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 		let lat = sqlite3_column_double(msgStmt, 13)
 		let lon = sqlite3_column_double(msgStmt, 14)
 		let groupEventType = sqlite3_column_int(msgStmt, 15)
+		let memberJid = sqlite3_column_text(msgStmt, 16).flatMap { String(cString: $0) }
 
 		// Filter out reactions, album containers, and internal protocol handshakes
 		if msgType == 59 || msgType == 66 {
@@ -698,14 +770,8 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 			sender = "System"
 		} else if isFromMe {
 			sender = "You"
-		} else if isGroup {
-			if let sn = senderName, !sn.isEmpty && !sn.hasPrefix("IAB") && !sn.hasPrefix("CN") && !sn.hasPrefix("CL") && !sn.hasPrefix("CP") {
-				sender = cleanUnicode(sn).replacingOccurrences(of: "\u{00A0}", with: " ")
-			} else {
-				sender = "Member"
-			}
 		} else {
-			sender = partnerName
+			sender = resolveSenderDisplayName(senderName: senderName, memberJid: memberJid, isGroup: isGroup, partnerName: partnerName)
 		}
 
 		let caption = (rawText != nil && !rawText!.isEmpty) ? rawText! : nil
@@ -838,17 +904,12 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 						sqlite3_bind_text(lStmt, 1, (sId as NSString).utf8String, -1, nil)
 						if sqlite3_step(lStmt) == SQLITE_ROW {
 							let qIsFromMe = sqlite3_column_int(lStmt, 0) == 1
+							let qSenderName = sqlite3_column_text(lStmt, 1).flatMap({ String(cString: $0) })
+							let qMemberJid = sqlite3_column_text(lStmt, 7).flatMap({ String(cString: $0) })
 							if qIsFromMe {
 								quotedSender = "You"
-							} else if isGroup {
-								if let qsn = sqlite3_column_text(lStmt, 1).flatMap({ String(cString: $0) }),
-								   !qsn.isEmpty && !qsn.hasPrefix("IAB") && !qsn.hasPrefix("CN") && !qsn.hasPrefix("CL") && !qsn.hasPrefix("CP") {
-									quotedSender = cleanUnicode(qsn).replacingOccurrences(of: "\u{00A0}", with: " ")
-								} else {
-									quotedSender = "Member"
-								}
 							} else {
-								quotedSender = partnerName
+								quotedSender = resolveSenderDisplayName(senderName: qSenderName, memberJid: qMemberJid, isGroup: isGroup, partnerName: partnerName)
 							}
 
 							if quotedText == nil || quotedText!.isEmpty {
@@ -880,7 +941,11 @@ func readChat(target: String, limit: Int, full: Bool, transcribe: Bool = false) 
 					if quotedSender == nil {
 						if let part = info.participant {
 							if isGroup {
-								quotedSender = "Member"
+								if let resolved = resolveJIDName(db: db, jid: part) {
+									quotedSender = resolved
+								} else {
+									quotedSender = "Member"
+								}
 							} else if part.contains(contactJID) || contactJID.contains(part) {
 								quotedSender = partnerName
 							}
@@ -950,9 +1015,19 @@ func searchMessages(query: String, contact: String?, days: Int?, limit: Int) {
 	let sql = """
 	SELECT m.ZMESSAGEDATE, s.ZPARTNERNAME, m.ZISFROMME, m.ZTEXT, s.ZCONTACTJID,
 	       m.ZMESSAGETYPE, mi.ZTITLE, mi.ZMEDIALOCALPATH, mi.ZFILESIZE,
-	       mi.ZVCARDNAME, mi.ZVCARDSTRING
+	       mi.ZVCARDNAME, mi.ZVCARDSTRING,
+	       COALESCE(
+	           NULLIF(gm.ZCONTACTNAME, ''),
+	           NULLIF(cs_member.ZPARTNERNAME, ''),
+	           NULLIF(ppn.ZPUSHNAME, ''),
+	           NULLIF(gm.ZFIRSTNAME, '')
+	       ) AS SENDERNAME,
+	       gm.ZMEMBERJID
 	FROM ZWAMESSAGE m
 	JOIN ZWACHATSESSION s ON m.ZCHATSESSION = s.Z_PK
+	LEFT JOIN ZWAGROUPMEMBER gm ON m.ZGROUPMEMBER = gm.Z_PK
+	LEFT JOIN ZWAPROFILEPUSHNAME ppn ON gm.ZMEMBERJID = ppn.ZJID
+	LEFT JOIN ZWACHATSESSION cs_member ON gm.ZMEMBERJID = cs_member.ZCONTACTJID
 	LEFT JOIN ZWAMEDIAITEM mi ON m.ZMEDIAITEM = mi.Z_PK
 	WHERE \(whereClause)
 	ORDER BY m.ZMESSAGEDATE DESC
@@ -983,13 +1058,22 @@ func searchMessages(query: String, contact: String?, days: Int?, limit: Int) {
 		let partner = cleanPartner.isEmpty ? "Unknown" : cleanPartner
 		let isFromMe = sqlite3_column_int(stmt, 2) == 1
 		let rawText = sqlite3_column_text(stmt, 3).flatMap { String(cString: $0) }
+		let contactJID = sqlite3_column_text(stmt, 4).flatMap { String(cString: $0) } ?? ""
+		let isGroup = contactJID.hasSuffix("@g.us")
 		let msgType = sqlite3_column_int(stmt, 5)
 		let docTitle = sqlite3_column_text(stmt, 6).flatMap { String(cString: $0) }
 		let localPath = sqlite3_column_text(stmt, 7).flatMap { String(cString: $0) }
 		let fileSize = sqlite3_column_int64(stmt, 8)
 		let vcardName = sqlite3_column_text(stmt, 9).flatMap { String(cString: $0) }
 		let vcardString = sqlite3_column_text(stmt, 10).flatMap { String(cString: $0) }
-		let sender = isFromMe ? "You" : partner
+		let senderName = sqlite3_column_text(stmt, 11).flatMap { String(cString: $0) }
+		let memberJid = sqlite3_column_text(stmt, 12).flatMap { String(cString: $0) }
+		let sender: String
+		if isFromMe {
+			sender = "You"
+		} else {
+			sender = resolveSenderDisplayName(senderName: senderName, memberJid: memberJid, isGroup: isGroup, partnerName: partner)
+		}
 
 		let text: String
 		if let t = rawText, !t.isEmpty {
@@ -1134,9 +1218,19 @@ func listVoiceNotes(target: String, limit: Int, transcribe: Bool) {
 
 	let query = """
 	SELECT m.ZMESSAGEDATE, m.ZISFROMME, mi.ZMEDIALOCALPATH, mi.ZMOVIEDURATION,
-	       m.ZSTANZAID, m.Z_PK
+	       m.ZSTANZAID, m.Z_PK,
+	       COALESCE(
+	           NULLIF(gm.ZCONTACTNAME, ''),
+	           NULLIF(cs_member.ZPARTNERNAME, ''),
+	           NULLIF(ppn.ZPUSHNAME, ''),
+	           NULLIF(gm.ZFIRSTNAME, '')
+	       ) AS SENDERNAME,
+	       gm.ZMEMBERJID
 	FROM ZWAMESSAGE m
 	JOIN ZWAMEDIAITEM mi ON m.ZMEDIAITEM = mi.Z_PK
+	LEFT JOIN ZWAGROUPMEMBER gm ON m.ZGROUPMEMBER = gm.Z_PK
+	LEFT JOIN ZWAPROFILEPUSHNAME ppn ON gm.ZMEMBERJID = ppn.ZJID
+	LEFT JOIN ZWACHATSESSION cs_member ON gm.ZMEMBERJID = cs_member.ZCONTACTJID
 	WHERE m.ZCHATSESSION = ? AND m.ZMESSAGETYPE = 3 AND mi.ZMEDIALOCALPATH IS NOT NULL
 	ORDER BY m.ZMESSAGEDATE DESC
 	LIMIT ?;
@@ -1171,7 +1265,15 @@ func listVoiceNotes(target: String, limit: Int, transcribe: Bool) {
 		let stanzaId = sqlite3_column_text(stmt, 4).flatMap { String(cString: $0) }
 		let msgPk = sqlite3_column_int(stmt, 5)
 		let messageId = (stanzaId != nil && !stanzaId!.isEmpty) ? stanzaId! : "msg_\(msgPk)"
-		let sender = isFromMe ? "You" : partner
+		let isGroup = session.contactJID.hasSuffix("@g.us")
+		let senderName = sqlite3_column_text(stmt, 6).flatMap { String(cString: $0) }
+		let memberJid = sqlite3_column_text(stmt, 7).flatMap { String(cString: $0) }
+		let sender: String
+		if isFromMe {
+			sender = "You"
+		} else {
+			sender = resolveSenderDisplayName(senderName: senderName, memberJid: memberJid, isGroup: isGroup, partnerName: partner)
+		}
 		let fullPath = resolveMediaPath(mediaPath) ?? "(missing)"
 
 		var transcriptText = getCachedTranscript(messageId: messageId)
