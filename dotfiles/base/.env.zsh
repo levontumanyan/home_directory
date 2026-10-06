@@ -19,6 +19,11 @@ if [ -d "$HOME/.local/bin" ] ; then
 	PATH="$HOME/.local/bin:$PATH"
 fi
 
+# agent-tools
+if [ -d "$HOME/repos/agent-tools/bin" ] ; then
+	PATH="$HOME/repos/agent-tools/bin:$PATH"
+fi
+
 # Rust/Cargo (rustup sets ~/.cargo/env; brew install only creates the bin dir)
 if [ -f "$HOME/.cargo/env" ]; then
 	source "$HOME/.cargo/env"
