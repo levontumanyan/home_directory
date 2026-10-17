@@ -299,6 +299,24 @@ def main():
 		default=None,
 		help="Airbnb session cookie string to unlock authenticated discounts",
 	)
+	parser.add_argument(
+		"--room",
+		type=str,
+		default=None,
+		help="Inspect a single listing by room ID or Airbnb URL (e.g. '1207650713743808384' or 'https://www.airbnb.ca/rooms/1207650713743808384')",
+	)
+	parser.add_argument(
+		"--reviews",
+		action="store_true",
+		help="Display full guest reviews when inspecting a listing with --room",
+	)
+	parser.add_argument(
+		"--search_reviews",
+		"--search-reviews",
+		type=str,
+		default=None,
+		help="Filter guest reviews by keyword or regex (implies --reviews)",
+	)
 
 	args = parser.parse_args()
 
@@ -306,6 +324,193 @@ def main():
 		from fetcher import set_session_cookie
 
 		set_session_cookie(args.cookie)
+
+	if args.room:
+		from fetcher import get_listing_details
+
+		m_room = re.search(r"(?:rooms/)?(\d{6,})", str(args.room))
+		room_id = m_room.group(1) if m_room else str(args.room).strip()
+
+		d1 = datetime.strptime(args.check_in, "%Y-%m-%d")
+		d2 = datetime.strptime(args.check_out, "%Y-%m-%d")
+		num_nights = max(1, (d2 - d1).days)
+
+		details = get_listing_details(
+			room_id,
+			currency=args.currency,
+			check_in=args.check_in,
+			check_out=args.check_out,
+			adults=args.max_guests or 1,
+		)
+		if not details:
+			logger.error(f"Failed to fetch details for room {room_id}")
+			if args.json:
+				print(json.dumps({"error": f"Failed to fetch details for room {room_id}"}))
+			sys.exit(1)
+
+		scorer = Scorer(benchmarks, num_nights=num_nights, require_fast_wifi=args.fast_wifi)
+		lp = details.get(
+			"exact_price",
+			{
+				"amount": 0,
+				"orig_amount": 0,
+				"discount_pct": 0.0,
+				"nightly": 0,
+				"currency": args.currency,
+			},
+		)
+		details["price"] = lp
+		wifi_info = scorer.detect_fast_wifi(details)
+		review_evidence = scorer.extract_review_evidence(details)
+		score, penalties = scorer.calculate_score(details)
+
+		raw_reviews = details.get("reviews", []) or []
+		filtered_reviews = []
+		pattern = re.compile(args.search_reviews, re.IGNORECASE) if args.search_reviews else None
+		for r in raw_reviews:
+			comment = (r.get("comments") or "").replace("<br/>", "\n").strip()
+			if pattern and not pattern.search(comment):
+				continue
+			filtered_reviews.append(
+				{
+					"author": r.get("reviewer", {}).get("firstName")
+					or r.get("reviewer", {}).get("first_name", "Guest"),
+					"date": (r.get("createdAt") or r.get("created_at") or "")[:10]
+					or r.get("localizedDate", ""),
+					"rating": r.get("rating"),
+					"comment": comment,
+				}
+			)
+
+		rating = details.get("rating", {})
+		raw_title = details.get("title")
+		title_str = (
+			raw_title
+			if isinstance(raw_title, str) and raw_title.strip()
+			else f"Room {room_id}"
+		)
+		sub_title = (details.get("sub_description") or {}).get("title") or details.get(
+			"room_type", ""
+		)
+		room_url = f"https://www.airbnb.ca/rooms/{room_id}"
+		host_info = details.get("host") or {}
+		coords = details.get("coordinates") or {}
+		desc_text = (details.get("description") or "").strip()
+
+		payload = {
+			"id": room_id,
+			"name": title_str,
+			"summary": sub_title,
+			"url": room_url,
+			"score": score,
+			"rating": rating,
+			"review_count": rating.get("review_count", len(raw_reviews)),
+			"person_capacity": details.get("person_capacity", 2),
+			"is_super_host": details.get("is_super_host", False),
+			"host": host_info,
+			"co_hosts": details.get("co_hosts", []),
+			"coordinates": coords,
+			"price": lp,
+			"fast_wifi": wifi_info,
+			"description": desc_text,
+			"review_evidence": review_evidence,
+			"penalties": penalties,
+			"reviews_matched": len(filtered_reviews),
+			"reviews": filtered_reviews
+			if (args.reviews or args.search_reviews)
+			else [],
+		}
+
+		if args.json:
+			print(json.dumps(payload, indent=2, ensure_ascii=False))
+		else:
+			print(f"\n# {title_str}")
+			if sub_title:
+				print(f"Summary:     {sub_title}")
+			print(f"URL:         {room_url}")
+			host_label = host_info.get("name") or "Unknown"
+			if details.get("is_super_host"):
+				host_label += " (Superhost)"
+			print(
+				f"Host:        {host_label} | Max Guests: {payload['person_capacity']}"
+			)
+			if coords.get("latitude") or coords.get("longitude"):
+				print(
+					f"Coordinates: {coords.get('latitude')}, {coords.get('longitude')}"
+				)
+			if lp.get("amount"):
+				print(
+					f"Price:       {lp['currency']} ${lp['amount']:.2f} total (${lp['nightly']:.2f}/nt, {lp['discount_pct']}% discount for {args.check_in} -> {args.check_out})"
+				)
+
+			print("\n## Score & Ratings")
+			print(
+				f"Overall Score: {score}/100 | Guest Rating: ★ {rating.get('guest_satisfaction', 0)} ({payload['review_count']} reviews)"
+			)
+			sub_ratings = [
+				f"Cleanliness {rating.get('cleanliness')}"
+				if rating.get("cleanliness")
+				else None,
+				f"Accuracy {rating.get('accuracy')}"
+				if rating.get("accuracy")
+				else None,
+				f"Check-in {rating.get('checking')}"
+				if rating.get("checking")
+				else None,
+				f"Communication {rating.get('communication')}"
+				if rating.get("communication")
+				else None,
+				f"Location {rating.get('location')}"
+				if rating.get("location")
+				else None,
+				f"Value {rating.get('value')}" if rating.get("value") else None,
+			]
+			sub_ratings_str = " | ".join(x for x in sub_ratings if x)
+			if sub_ratings_str:
+				print(f"Breakdown:     {sub_ratings_str}")
+			if penalties:
+				print("Penalties:     " + ", ".join(f"{k}: {v}" for k, v in penalties.items()))
+
+			print("\n## Connectivity & Wi-Fi")
+			wifi_status = "Verified Fast Wi-Fi" if wifi_info.get("verified") else "Standard / Unverified"
+			speed_str = f" ({wifi_info['speed_mbps']} Mbps)" if wifi_info.get("speed_mbps") else ""
+			print(f"Status:        {wifi_status}{speed_str} — {wifi_info.get('details', '')}")
+
+			if desc_text:
+				print("\n## Listing Description")
+				print(desc_text)
+
+			has_evidence = any(v for v in review_evidence.values())
+			if has_evidence:
+				print("\n## Review Signals")
+				for cat, quotes in review_evidence.items():
+					if quotes:
+						label = cat.replace("_", " ").title()
+						print(f"- {label} ({len(quotes)}): \"{quotes[0]}\"")
+
+			if args.reviews or args.search_reviews:
+				hdr = (
+					f"\n## Reviews Matching '{args.search_reviews}' ({len(filtered_reviews)}/{len(raw_reviews)})"
+					if args.search_reviews
+					else f"\n## All Reviews ({len(filtered_reviews)})"
+				)
+				print(hdr)
+				for idx, rev in enumerate(filtered_reviews, 1):
+					meta = " | ".join(
+						str(x)
+						for x in [
+							rev.get("author"),
+							rev.get("date"),
+							f"★{rev['rating']}" if rev.get("rating") else None,
+						]
+						if x
+					)
+					print(f"{idx}. [{meta}] {rev['comment']}")
+			else:
+				print(
+					f"\n(Tip: pass --reviews to list all {len(raw_reviews)} reviews, or --search-reviews \"<keyword>\" to filter)"
+				)
+		return
 
 	if args.survey:
 		run_survey(args, defaults, search_amenities, logger)

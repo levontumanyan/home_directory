@@ -6,7 +6,7 @@ tap "wpscanteam/tap"
 # Mozilla CA certificate store
 brew "ca-certificates"
 # Microsoft Azure CLI 2.0
-brew "azure-cli"
+brew "azure-cli", link: false
 # GNU internationalization (i18n) and localization (l10n) library
 brew "gettext"
 # Bourne-Again SHell, a UNIX command interpreter
@@ -147,6 +147,8 @@ brew "zoxide"
 brew "zsh-autosuggestions"
 # Autonomous Session Agent Engine & Outer Harness for Google Antigravity
 brew "tiagovilasboas/tap/agyo", trusted: true
+# Microsoft Azure CLI 2.0
+cask "azure-cli"
 # Web browser focusing on privacy
 cask "brave-browser"
 # Terminal-based AI coding assistant

@@ -100,6 +100,38 @@ def _authenticated_details_get(room_url, language, proxy_url, timeout=None, **kw
 	data_formatted, price_dependency_input = parse.parse_body_details_wrapper(
 		response.text
 	)
+	try:
+		data_raw, _, _ = parse.parse_body_details(response.text)
+		pdp = (
+			data_raw.get("data", {})
+			.get("presentation", {})
+			.get("stayProductDetailPage", {})
+			.get("sections", {})
+		)
+		meta = pdp.get("metadata", {})
+		seo_title = (meta.get("seoFeatures") or {}).get("title") or ""
+		share_title = (meta.get("sharingConfig") or {}).get("title") or ""
+		if not data_formatted.get("title"):
+			data_formatted["title"] = (
+				seo_title.split(" - ")[0].strip() if seo_title else share_title
+			)
+		if share_title and not data_formatted.get("sub_description", {}).get("title"):
+			data_formatted.setdefault("sub_description", {"title": "", "items": []})[
+				"title"
+			] = share_title
+		if not data_formatted.get("description"):
+			desc_parts = []
+			for sec in pdp.get("sections", []) or []:
+				if sec.get("sectionId") == "DESCRIPTION_MODAL":
+					for it in (sec.get("section") or {}).get("items") or []:
+						hdr = it.get("title")
+						txt = ((it.get("html") or {}).get("htmlText") or "").strip()
+						if txt:
+							desc_parts.append(f"{hdr}: {txt}" if hdr else txt)
+			if desc_parts:
+				data_formatted["description"] = "\n\n".join(desc_parts)
+	except Exception:
+		pass
 	cookies = response.cookies
 	return data_formatted, price_dependency_input, cookies
 
@@ -130,6 +162,8 @@ def get_listing_details(
 			logger.info(f"CACHE HIT: Listing {listing_id} (last updated {file_time})")
 			with open(cache_file, "r") as f:
 				details = json.load(f)
+			if details and not details.get("title") and not details.get("description"):
+				details = None
 		else:
 			logger.info(f"CACHE MISS (EXPIRED): Listing {listing_id} (older than 24h)")
 	else:
@@ -152,6 +186,14 @@ def get_listing_details(
 				)
 
 				if details:
+					revs = details.get("reviews") or []
+					if revs and not (details.get("host") or {}).get("name"):
+						reviewee = revs[0].get("reviewee") or {}
+						if reviewee.get("firstName"):
+							details["host"] = {
+								"id": reviewee.get("id", ""),
+								"name": reviewee.get("firstName", ""),
+							}
 					with open(cache_file, "w") as f:
 						json.dump(details, f, indent=4)
 				break
