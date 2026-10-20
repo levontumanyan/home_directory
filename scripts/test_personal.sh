@@ -15,7 +15,7 @@ printf '%bdotfiles · personal profile%b %b(Linux/%s)%b\n' \
 # ── 1. Conflict Handling ──────────────────────────────────────────────────────
 section "1. Conflict Handling"
 mkdir -p "$HOME/.gemini/antigravity-cli"
-printf 'pre-existing-file\n' >"$HOME/.gemini/antigravity-cli/settings.json"
+printf 'pre-existing-file\n' >"$HOME/.gemini/antigravity-cli/keybindings.json"
 printf 'pre-existing-zshrc\n' >"$HOME/.zshrc"
 
 run_install -m personal -t
@@ -29,10 +29,10 @@ else
 	die ".zshrc conflict backup not found under $BACKUP_BASE"
 fi
 
-if ls "$BACKUP_BASE"/backup_*/.gemini/antigravity-cli/settings.json >/dev/null 2>&1; then
-	pass ".gemini/antigravity-cli/settings.json conflict backed up"
+if ls "$BACKUP_BASE"/backup_*/.gemini/antigravity-cli/keybindings.json >/dev/null 2>&1; then
+	pass ".gemini/antigravity-cli/keybindings.json conflict backed up"
 else
-	die "nested settings.json conflict backup not found"
+	die "nested keybindings.json conflict backup not found"
 fi
 
 if ls "$LOG_BASE"/install_*.log >/dev/null 2>&1; then

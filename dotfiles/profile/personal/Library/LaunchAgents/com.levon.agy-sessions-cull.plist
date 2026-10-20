@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.levon.agy-sessions-cull</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/levontumanyan/repos/agent-tools/bin/agy-sessions</string>
+		<string>cull</string>
+		<string>--hours</string>
+		<string>6</string>
+		<string>--quiet</string>
+	</array>
+	<key>StartInterval</key>
+	<integer>3600</integer>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>/Users/levontumanyan/.gemini/antigravity-cli/cull.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/levontumanyan/.gemini/antigravity-cli/cull.log</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/Users/levontumanyan/.local/bin:/Users/levontumanyan/repos/agent-tools/bin</string>
+		<key>HOME</key>
+		<string>/Users/levontumanyan</string>
+	</dict>
+</dict>
+</plist>

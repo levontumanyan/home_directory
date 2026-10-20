@@ -2,3 +2,5 @@
 .aider*
 .DS_Store
 dotfiles/os/darwin/.local/bin/pdf-ocr
+dotfiles/base/.claude/settings.json
+dotfiles/base/.gemini/antigravity-cli/settings.json

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.levon.agy-sessions-arm</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/levontumanyan/repos/agent-tools/bin/agy-sessions</string>
+		<string>arm</string>
+		<string>--quiet</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<false/>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/Users/levontumanyan/.local/bin:/Users/levontumanyan/repos/agent-tools/bin</string>
+		<key>HOME</key>
+		<string>/Users/levontumanyan</string>
+	</dict>
+</dict>
+</plist>

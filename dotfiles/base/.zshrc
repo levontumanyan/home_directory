@@ -55,11 +55,18 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 
 # Added by Antigravity CLI installer
-export PATH="/home/ubuntu/.local/bin:$PATH"
-
-
-# Added by Antigravity CLI installer
-export PATH="/Users/levontumanyan/.local/bin:$PATH"
+[ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
 
 # mimocode
-export PATH=/Users/levontumanyan/.mimocode/bin:$PATH
+[ -d "$HOME/.mimocode/bin" ] && export PATH="$HOME/.mimocode/bin:$PATH"
+
+# Auto-resume saved iTerm2 + agy sessions on terminal restore
+if [[ -o interactive ]] && [[ -n "${ITERM_SESSION_ID:-}" ]] && [[ -f "$HOME/.gemini/antigravity-cli/.restore_active" ]]; then
+	if command -v agy-sessions >/dev/null 2>&1; then
+		_agy_restore_cmd="$(agy-sessions zsh-hook --tty "$(tty 2>/dev/null)" 2>/dev/null)"
+		if [[ -n "$_agy_restore_cmd" ]]; then
+			eval "$_agy_restore_cmd"
+		fi
+		unset _agy_restore_cmd
+	fi
+fi

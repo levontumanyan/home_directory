@@ -73,6 +73,10 @@ brew "minikube"
 brew "mpv"
 # Open source relational database management system
 brew "mysql"
+# Clean C library for processing UTF-8 Unicode data
+brew "utf8proc"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
 # Utility for managing network connections
 brew "netcat"
 # Port scanning utility for large networks
@@ -114,13 +118,11 @@ brew "shfmt"
 # Organize software neatly under a single directory tree (e.g. /usr/local)
 brew "stow"
 # Easiest, most secure way to use WireGuard and 2FA
-brew "tailscale", restart_service: :changed
+brew "tailscale"
 # Powerful free data recovery utility
 brew "testdisk"
 # Official tldr client written in Rust
 brew "tlrc"
-# Clean C library for processing UTF-8 Unicode data
-brew "utf8proc"
 # Terminal multiplexer
 brew "tmux"
 # Program that allows you to count code, quickly

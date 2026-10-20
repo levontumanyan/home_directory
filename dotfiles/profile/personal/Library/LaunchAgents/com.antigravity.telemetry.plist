@@ -6,9 +6,11 @@
 	<string>com.antigravity.telemetry</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Users/levontumanyan/repos/cloud-lab/shipper/ship.sh</string>
+		<string>/Users/levontumanyan/repos/agent-tools/bin/antigravity-shipper</string>
 		<string>--interval</string>
-		<string>5</string>
+		<string>60</string>
+		<string>--limit</string>
+		<string>0</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>

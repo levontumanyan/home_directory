@@ -64,12 +64,16 @@ else
 	echo "Warning: rg not found. Skipping ripgrep symlink."
 fi
 
-# Load Antigravity Telemetry LaunchAgent on Darwin if present
+# Load personal LaunchAgents on Darwin if present
 if [ "$(uname)" = "Darwin" ]; then
-	TELEMETRY_PLIST="$HOME/Library/LaunchAgents/com.antigravity.telemetry.plist"
-	if [ -f "$TELEMETRY_PLIST" ] || [ -L "$TELEMETRY_PLIST" ]; then
-		echo "Setting up Antigravity Telemetry LaunchAgent..."
-		launchctl unload "$TELEMETRY_PLIST" 2>/dev/null || true
-		launchctl load -w "$TELEMETRY_PLIST" 2>/dev/null || true
-	fi
+	for agent in \
+		"$HOME/Library/LaunchAgents/com.antigravity.telemetry.plist" \
+		"$HOME/Library/LaunchAgents/com.levon.agy-sessions-arm.plist" \
+		"$HOME/Library/LaunchAgents/com.levon.agy-sessions-cull.plist"; do
+		if [ -f "$agent" ] || [ -L "$agent" ]; then
+			echo "Setting up LaunchAgent $(basename "$agent")..."
+			launchctl unload "$agent" 2>/dev/null || true
+			launchctl load -w "$agent" 2>/dev/null || true
+		fi
+	done
 fi
