@@ -13,7 +13,7 @@
 # github
 
 - Anytime you create/update an issue, create/update a pr. Give the full link at the end of your response! For example: `https://github.com/elastic/platform-security-team/issues/1280`
-- also when you create an issue in the psteam repo ask about the number of points and add it to the issue
+- If i mention number of points for an issue add it! Otherwise skip that part but mention in your summary that the issue has no points.
 - in pst repo when making any changes use the worktree skill unless i mention to just make the changes in the main wortkree
 - **PR and issue references**: Whenever you mention a PR or GitHub issue by number, always format it as a markdown hyperlink so it is clickable. For example: [PR #2407](https://github.com/elastic/platform-security-terraform/pull/2407) or [issue #901](https://github.com/elastic/platform-security-team/issues/901). Never reference a number alone without a link.
 - Always run `gh pr update-branch <PR_NUMBER> && gh pr comment <PR_NUMBER> --body "buildkite plan this"` — never trigger a plan without updating first in the same command. Also run that after everytime you commit new changes to a pr. If it reports conflicts, resolve them via rebase before proceeding.
@@ -22,6 +22,9 @@
 - When creating a PR that resolves an issue, use a GitHub-recognized closing keyword (Closes/Resolves/Fixes) with the full cross-repo reference (e.g., Closes elastic/platform-security-team#2191) as the first line of the PR body. Do not use Part of — it's informational only and won't populate the issue's Development panel or auto-close on merge.
 
 # tools
+
+- `sessions` indexes local Claude Code, OpenCode, Codex, and Pi sessions; use its MCP for historical context, and use `sessions context`, `sessions --here`, or `sessions why <file>` from the CLI.
+- Documentation: `https://github.com/nicknisi/sessions`; local command reference: `sessions --help`.
 
 - if you are creating a terraform file that needs to be generated with harp-terraformer always do that. And make sure the specs exist and generate the file from the specs. Never manually create those files.
 - For `buildkite`, `bk` stuff use the MCP.
@@ -129,4 +132,5 @@ Use these channel IDs directly with Slack MCP tools — do not spend a turn sear
 - **Always draft first, no exceptions.** When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session. Never directly send a message unless i explicitly request. Always draft a message then i will send it. This applies even when i ask you to review something or "check" something — do NOT infer that as permission to send. The ONLY time you may send a message directly is if i say "send this" or "post this" or explicitly ask you to send it. If in doubt, draft. Never ever send a slack message without confirming with me first.
 
 - When making technical decisions, do not give much weight to development cost. Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
+- When explaining technical concepts write or rewrite text in plain, layman-readable English in the spirit of ASD-STE100 Simplified Technical English: short sentences, active voice, simple tenses, one word one meaning, condition before command, every technical term defined at first use, no AI slop. Default mode is Plain. Strict mode applies full STE vocabulary compliance when the user names STE, ASD-STE100, or compliance. Use for documentation, READMEs, runbooks, procedures, error messages, release notes, incident reports, API guides. Also use when the user says "STE", "Simplified Technical English", "ASD-STE100", "plain English", "layman's terms", "explain it simply", "no jargon", "de-slop", "make this readable", "write for non-native readers", or asks for docs that translate well. The same rules govern the reply: answer first, prose only.
 - when you have to decide what version of a package/tool to use do a live search and consider using the latest stable versions. Never use outdated versions or make assumptions without doing a live search

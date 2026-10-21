@@ -3,6 +3,7 @@ tap "aws/tap"
 tap "buildkite/buildkite"
 tap "hashicorp/tap", trusted: true
 tap "manaflow-ai/cmux"
+tap "nicknisi/formulae"
 tap "raine/claude-history"
 # AI pair programming in your terminal
 brew "aider"
@@ -48,6 +49,8 @@ brew "k3d"
 brew "kind"
 # Kubernetes command-line interface
 brew "kubernetes-cli"
+# Postgres C API library
+brew "libpq"
 # Open-source, cross-platform JavaScript runtime environment
 brew "node@22"
 # Capability-based sandbox shell for AI agents with OS-enforced isolation
@@ -104,14 +107,16 @@ brew "yq"
 brew "zoxide"
 # Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
-# The AI coding agent built for the terminal.
-brew "anomalyco/tap/opencode", trusted: true
+# OpenCode V2 - the AI coding agent for the terminal
+brew "anomalyco/tap/opencode-v2", trusted: true
 # The official CLI for Amazon EKS
 brew "aws/tap/eksctl", trusted: true
 # Packer
 brew "hashicorp/tap/packer"
 # Vault
 brew "hashicorp/tap/vault"
+# Find and resume AI coding sessions (Claude Code, Codex, Pi)
+brew "nicknisi/formulae/sessions", trusted: true
 # Fuzzy-search Claude Code conversation history from the terminal
 brew "raine/claude-history/claude-history", trusted: true
 # Enable Windows-like alt-tab
