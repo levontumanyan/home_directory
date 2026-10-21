@@ -147,5 +147,5 @@ mkcd() {
 # Prevent Zsh from globbing URLs when downloading
 alias download-video="noglob download-video"
 
-# opencode against GovCloud FRS Bedrock (Grok 4.6); requires fresh okta creds: mfa govcloud-frs
-alias opencode-frs='AWS_PROFILE=gov-stg-uge1-ecsecurity AWS_REGION=us-gov-east-1 opencode -m amazon-bedrock/us-gov.xai.grok-4.6'
+# OpenCode against GovCloud FRS Bedrock; choose Grok 4.6 with /models. Requires fresh Okta creds: mfa govcloud-frs
+alias opencode-frs='AWS_PROFILE=gov-stg-uge1-ecsecurity AWS_REGION=us-gov-east-1 opencode --standalone'
