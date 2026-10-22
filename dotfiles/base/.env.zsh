@@ -1,12 +1,33 @@
-# Homebrew
-if [ -x "/opt/homebrew/bin/brew" ]; then
-	eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -x "/usr/local/bin/brew" ]; then
-	eval "$(/usr/local/bin/brew shellenv)"
-elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-elif [ -d "$HOME/.linuxbrew" ]; then
-	eval "$("$HOME"/.linuxbrew/bin/brew shellenv)"
+# Homebrew environment (pure shell, zero subshells/Ruby forks)
+typeset -U path PATH fpath FPATH
+
+local _brew_prefix=""
+if [[ -d "/opt/homebrew" ]]; then
+	_brew_prefix="/opt/homebrew"
+elif [[ -d "/usr/local/Homebrew" || -x "/usr/local/bin/brew" ]]; then
+	_brew_prefix="/usr/local"
+elif [[ -d "/home/linuxbrew/.linuxbrew" ]]; then
+	_brew_prefix="/home/linuxbrew/.linuxbrew"
+elif [[ -d "$HOME/.linuxbrew" ]]; then
+	_brew_prefix="$HOME/.linuxbrew"
+fi
+
+if [[ -n "$_brew_prefix" ]]; then
+	export HOMEBREW_PREFIX="$_brew_prefix"
+	export HOMEBREW_CELLAR="$_brew_prefix/Cellar"
+	if [[ -d "$_brew_prefix/Homebrew" ]]; then
+		export HOMEBREW_REPOSITORY="$_brew_prefix/Homebrew"
+	else
+		export HOMEBREW_REPOSITORY="$_brew_prefix"
+	fi
+	export PATH="$_brew_prefix/bin:$_brew_prefix/sbin${PATH+:$PATH}"
+	export MANPATH="$_brew_prefix/share/man${MANPATH+:$MANPATH}:"
+	export INFOPATH="$_brew_prefix/share/info:${INFOPATH:-}"
+
+	if [[ -d "$_brew_prefix/share/zsh/site-functions" ]]; then
+		fpath=("$_brew_prefix/share/zsh/site-functions" $fpath)
+	fi
+	unset _brew_prefix
 fi
 
 # set PATH so it includes user's private bin if it exists
@@ -32,13 +53,7 @@ elif [ -d "$HOME/.cargo/bin" ]; then
 fi
 
 # Java (openjdk is keg-only, not auto-linked by brew)
-[ -d "/opt/homebrew/opt/openjdk/bin" ] && PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
-
-# OpenRouter API key (from macOS keychain)
-if [[ "$OSTYPE" == darwin* ]]; then
-	_openrouter_key=$(security find-generic-password -s openrouter -a "$USER" -w 2>/dev/null) && export OPENROUTER_API_KEY="$_openrouter_key"
-	unset _openrouter_key
-fi
+[[ -n "$HOMEBREW_PREFIX" && -d "$HOMEBREW_PREFIX/opt/openjdk/bin" ]] && PATH="$HOMEBREW_PREFIX/opt/openjdk/bin:$PATH"
 
 # Podman as Docker drop-in — check socket existence instead of spawning podman machine inspect
 if [[ "$OSTYPE" == darwin* ]]; then

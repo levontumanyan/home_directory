@@ -73,5 +73,11 @@ _cache_completion elastic elastic completion zsh
 
 export ARGO_CONFIGFILE=~/.config/argo/config
 
+# OpenRouter API key (from macOS keychain)
+if [[ "$OSTYPE" == darwin* ]]; then
+	_openrouter_key=$(security find-generic-password -s openrouter -a "$USER" -w 2>/dev/null) && export OPENROUTER_API_KEY="$_openrouter_key"
+	unset _openrouter_key
+fi
+
 alias pi='nono run --profile pi -- pi'
 alias llm='claude --model claude-sonnet-4-6'
