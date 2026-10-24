@@ -5,6 +5,13 @@
     },
     "macos-calendar": {
       "command": "mcp-ical"
+    },
+    "google-maps": {
+      "command": "/bin/zsh",
+      "args": [
+        "-c",
+        "export GOOGLE_MAPS_API_KEY=$(security find-generic-password -w -s \"google-maps-api-key\" -a \"$USER\") && exec npx -y @modelcontextprotocol/server-google-maps"
+      ]
     }
   }
 }
