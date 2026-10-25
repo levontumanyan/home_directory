@@ -5,6 +5,7 @@ import re
 import statistics
 import sys
 from datetime import datetime
+from urllib.parse import parse_qs, urlparse
 
 from amenities import get_search_id
 from config import REPORTS_DIR
@@ -333,6 +334,61 @@ def main():
 		m_room = re.search(r"(?:rooms/)?(\d{6,})", str(args.room))
 		room_id = m_room.group(1) if m_room else str(args.room).strip()
 
+		dates_specified = any(arg in sys.argv for arg in ["--check_in", "--check-in"])
+		raw_room_str = str(args.room)
+		if "?" in raw_room_str:
+			parsed_url = urlparse(raw_room_str)
+			qp = parse_qs(parsed_url.query)
+			if "check_in" in qp and not dates_specified:
+				args.check_in = qp["check_in"][0]
+				dates_specified = True
+			if "check_out" in qp and not any(
+				arg in sys.argv for arg in ["--check_out", "--check-out"]
+			):
+				args.check_out = qp["check_out"][0]
+			if "adults" in qp and not any(
+				arg in sys.argv for arg in ["--max_guests", "--max-guests"]
+			):
+				try:
+					args.max_guests = int(qp["adults"][0])
+				except (ValueError, TypeError):
+					pass
+
+		# If dates were not explicitly passed via CLI or URL, check recent reports for room_id
+		if not dates_specified and REPORTS_DIR.exists():
+			json_reports = sorted(
+				REPORTS_DIR.glob("*.json"),
+				key=lambda p: p.stat().st_mtime,
+				reverse=True,
+			)
+			for rpath in json_reports[:10]:
+				try:
+					with open(rpath, "r", encoding="utf-8") as f:
+						rdata = json.load(f)
+					if isinstance(rdata, list):
+						matched = next(
+							(item for item in rdata if str(item.get("id")) == room_id),
+							None,
+						)
+						if matched and matched.get("url"):
+							m_parsed = urlparse(matched["url"])
+							mqp = parse_qs(m_parsed.query)
+							if "check_in" in mqp and "check_out" in mqp:
+								args.check_in = mqp["check_in"][0]
+								args.check_out = mqp["check_out"][0]
+								dates_specified = True
+								if "adults" in mqp and not any(
+									arg in sys.argv
+									for arg in ["--max_guests", "--max-guests"]
+								):
+									try:
+										args.max_guests = int(mqp["adults"][0])
+									except (ValueError, TypeError):
+										pass
+								break
+				except Exception:
+					pass
+
 		d1 = datetime.strptime(args.check_in, "%Y-%m-%d")
 		d2 = datetime.strptime(args.check_out, "%Y-%m-%d")
 		num_nights = max(1, (d2 - d1).days)
@@ -406,7 +462,11 @@ def main():
 		sub_title = (details.get("sub_description") or {}).get("title") or details.get(
 			"room_type", ""
 		)
-		room_url = f"https://www.airbnb.ca/rooms/{room_id}"
+		adults_count = args.max_guests or 1
+		if dates_specified and args.check_in and args.check_out:
+			room_url = f"https://www.airbnb.ca/rooms/{room_id}?check_in={args.check_in}&check_out={args.check_out}&adults={adults_count}"
+		else:
+			room_url = f"https://www.airbnb.ca/rooms/{room_id}"
 		host_info = details.get("host") or {}
 		coords = details.get("coordinates") or {}
 		desc_text = (details.get("description") or "").strip()
