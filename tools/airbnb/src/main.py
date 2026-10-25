@@ -6,6 +6,7 @@ import statistics
 import sys
 from datetime import datetime
 
+from amenities import get_search_id
 from config import REPORTS_DIR
 from fetcher import search_listings
 from reporter import (
@@ -194,8 +195,9 @@ def main():
 	# Map human-readable must_haves to pyairbnb IDs
 	search_amenities = []
 	for amenity in must_haves:
-		if amenity in amenity_map:
-			search_amenities.append(amenity_map[amenity])
+		sid = get_search_id(amenity) or amenity_map.get(amenity)
+		if sid:
+			search_amenities.append(sid)
 
 	parser = argparse.ArgumentParser(
 		description="Airbnb Benchmarker - Search and Score Listings"
@@ -345,10 +347,18 @@ def main():
 		if not details:
 			logger.error(f"Failed to fetch details for room {room_id}")
 			if args.json:
-				print(json.dumps({"error": f"Failed to fetch details for room {room_id}"}))
+				print(
+					json.dumps({"error": f"Failed to fetch details for room {room_id}"})
+				)
 			sys.exit(1)
 
-		scorer = Scorer(benchmarks, num_nights=num_nights, require_fast_wifi=args.fast_wifi)
+		scorer = Scorer(
+			benchmarks,
+			num_nights=num_nights,
+			require_fast_wifi=args.fast_wifi,
+			check_in=args.check_in,
+			check_out=args.check_out,
+		)
 		lp = details.get(
 			"exact_price",
 			{
@@ -366,7 +376,11 @@ def main():
 
 		raw_reviews = details.get("reviews", []) or []
 		filtered_reviews = []
-		pattern = re.compile(args.search_reviews, re.IGNORECASE) if args.search_reviews else None
+		pattern = (
+			re.compile(args.search_reviews, re.IGNORECASE)
+			if args.search_reviews
+			else None
+		)
 		for r in raw_reviews:
 			comment = (r.get("comments") or "").replace("<br/>", "\n").strip()
 			if pattern and not pattern.search(comment):
@@ -438,14 +452,21 @@ def main():
 				print(
 					f"Coordinates: {coords.get('latitude')}, {coords.get('longitude')}"
 				)
+			if scorer.last_climate and scorer.last_climate.get("summary"):
+				print(f"Climate:     {scorer.last_climate['summary']}")
 			if lp.get("amount"):
 				print(
 					f"Price:       {lp['currency']} ${lp['amount']:.2f} total (${lp['nightly']:.2f}/nt, {lp['discount_pct']}% discount for {args.check_in} -> {args.check_out})"
 				)
 
 			print("\n## Score & Ratings")
+			score_note = (
+				" (Price excluded: single listing inspect)"
+				if scorer.market_median_price is None
+				else ""
+			)
 			print(
-				f"Overall Score: {score}/100 | Guest Rating: ★ {rating.get('guest_satisfaction', 0)} ({payload['review_count']} reviews)"
+				f"Overall Score: {score}/100{score_note} | Guest Rating: ★ {rating.get('guest_satisfaction', 0)} ({payload['review_count']} reviews)"
 			)
 			sub_ratings = [
 				f"Cleanliness {rating.get('cleanliness')}"
@@ -469,12 +490,26 @@ def main():
 			if sub_ratings_str:
 				print(f"Breakdown:     {sub_ratings_str}")
 			if penalties:
-				print("Penalties:     " + ", ".join(f"{k}: {v}" for k, v in penalties.items()))
+				penalties_str = ", ".join(str(p) for p in penalties)
+				print(f"Penalties:     {penalties_str}")
+			flags = getattr(scorer, "last_flags", [])
+			if flags:
+				print(f"Flags:         {' '.join(flags)}")
 
 			print("\n## Connectivity & Wi-Fi")
-			wifi_status = "Verified Fast Wi-Fi" if wifi_info.get("verified") else "Standard / Unverified"
-			speed_str = f" ({wifi_info['speed_mbps']} Mbps)" if wifi_info.get("speed_mbps") else ""
-			print(f"Status:        {wifi_status}{speed_str} — {wifi_info.get('details', '')}")
+			wifi_status = (
+				"Verified Fast Wi-Fi"
+				if wifi_info.get("verified")
+				else "Standard / Unverified"
+			)
+			speed_str = (
+				f" ({wifi_info['speed_mbps']} Mbps)"
+				if wifi_info.get("speed_mbps")
+				else ""
+			)
+			print(
+				f"Status:        {wifi_status}{speed_str} — {wifi_info.get('details', '')}"
+			)
 
 			if desc_text:
 				print("\n## Listing Description")
@@ -486,7 +521,7 @@ def main():
 				for cat, quotes in review_evidence.items():
 					if quotes:
 						label = cat.replace("_", " ").title()
-						print(f"- {label} ({len(quotes)}): \"{quotes[0]}\"")
+						print(f'- {label} ({len(quotes)}): "{quotes[0]}"')
 
 			if args.reviews or args.search_reviews:
 				hdr = (
@@ -508,7 +543,7 @@ def main():
 					print(f"{idx}. [{meta}] {rev['comment']}")
 			else:
 				print(
-					f"\n(Tip: pass --reviews to list all {len(raw_reviews)} reviews, or --search-reviews \"<keyword>\" to filter)"
+					f'\n(Tip: pass --reviews to list all {len(raw_reviews)} reviews, or --search-reviews "<keyword>" to filter)'
 				)
 		return
 
@@ -579,6 +614,43 @@ def main():
 			seen_ids.add(rid)
 			unique_listings.append(item)
 	listings = unique_listings
+
+	# Calculate dynamic regional market median nightly rate from RAW search results (unbiased by rating or limits)
+	raw_nightly_rates = []
+	for item in unique_listings:
+		p_info = item.get("price", {})
+		unit = p_info.get("unit", {})
+		qualifier = unit.get("qualifier", "")
+		amt = (
+			unit.get("discount")
+			or unit.get("amount")
+			or p_info.get("total", {}).get("amount", 0)
+		)
+		try:
+			amt_val = float(amt)
+			if amt_val > 0:
+				rate = (
+					amt_val
+					if ("night" in qualifier and "for" not in qualifier)
+					else (amt_val / num_nights if num_nights > 0 else amt_val)
+				)
+				raw_nightly_rates.append(rate)
+		except (ValueError, TypeError):
+			continue
+
+	market_median = (
+		round(statistics.median(raw_nightly_rates), 2)
+		if len(raw_nightly_rates) >= 8
+		else None
+	)
+	if market_median and not args.json:
+		logger.info(
+			f"Regional market median: {market_median} {args.currency}/night (unbiased baseline across {len(raw_nightly_rates)} raw listings)"
+		)
+	elif len(raw_nightly_rates) < 8 and not args.json:
+		logger.info(
+			f"Sample size too small ({len(raw_nightly_rates)} < 8) for dynamic median; price ratio scoring omitted."
+		)
 
 	# Filter by neighborhood keywords if specified
 	if args.neighborhood:
@@ -677,7 +749,14 @@ def main():
 		}
 
 	# Fetch details in parallel (cached after first run)
-	scorer = Scorer(benchmarks, num_nights=num_nights, require_fast_wifi=args.fast_wifi)
+	scorer = Scorer(
+		benchmarks,
+		num_nights=num_nights,
+		require_fast_wifi=args.fast_wifi,
+		market_median_price=market_median,
+		check_in=args.check_in,
+		check_out=args.check_out,
+	)
 	scored_results = []
 
 	listing_ids = [str(item.get("room_id")) for item in listings]
@@ -758,6 +837,8 @@ def main():
 					"rating": rating.get("guest_satisfaction", 0),
 					"amenities": total_amenities,
 					"penalties": penalties,
+					"flags": getattr(scorer, "last_flags", []),
+					"kitchen_tier": getattr(scorer, "last_kitchen_tier", None),
 					"fast_wifi": wifi_info,
 					"review_evidence": review_evidence,
 					"url": room_url,

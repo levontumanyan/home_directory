@@ -130,6 +130,45 @@ def _authenticated_details_get(room_url, language, proxy_url, timeout=None, **kw
 							desc_parts.append(f"{hdr}: {txt}" if hdr else txt)
 			if desc_parts:
 				data_formatted["description"] = "\n\n".join(desc_parts)
+
+		# Primary extraction for amenities from pdpPresentation
+		node_amenities = (
+			data_raw.get("data", {})
+			.get("node", {})
+			.get("pdpPresentation", {})
+			.get("amenities", {})
+		)
+		groups_raw = (
+			node_amenities.get("seeAllAmenitiesGroups")
+			or node_amenities.get("previewAmenitiesGroups")
+			or []
+		)
+		if groups_raw:
+			formatted_groups = []
+			for g in groups_raw:
+				g_title = g.get("title") or ""
+				is_not_included = "not included" in g_title.lower()
+				val_list = []
+				for am in g.get("amenities") or []:
+					val_list.append(
+						{
+							"title": am.get("title") or "",
+							"subtitle": am.get("subtitle") or "",
+							"icon": am.get("icon") or "",
+							"available": False
+							if is_not_included
+							else am.get("available", True),
+						}
+					)
+				if val_list:
+					formatted_groups.append(
+						{
+							"title": g_title,
+							"values": val_list,
+						}
+					)
+			if formatted_groups:
+				data_formatted["amenities"] = formatted_groups
 	except Exception:
 		pass
 	cookies = response.cookies

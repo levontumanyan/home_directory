@@ -5,6 +5,7 @@
 		"washer": 33,
 		"dryer": 34,
 		"ac": 5,
+		"air_conditioning": 5,
 		"heating": 30,
 		"dedicated_workspace": 47,
 		"tv": 1,

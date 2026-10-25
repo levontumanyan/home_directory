@@ -157,7 +157,14 @@ def generate_csv_report(
 						"Review Count": listing["review_count"],
 						"Review Rating": listing["rating"],
 						"Total Amenities": listing["amenities"],
-						"Penalties Applied": ", ".join(listing["penalties"]),
+						"Penalties Applied": ", ".join(
+							list(listing.get("penalties") or [])
+							+ [
+								f
+								for f in (listing.get("flags") or [])
+								if f not in (listing.get("penalties") or [])
+							]
+						),
 						"Listing URL": listing.get("url")
 						or (
 							f"https://www.airbnb.ca/rooms/{listing['id']}?check_in={check_in}&check_out={check_out}"

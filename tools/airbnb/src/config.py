@@ -15,6 +15,7 @@ AMENITIES_PATH = ROOT_DIR / "amenities.json"
 CACHE_DIR = ROOT_DIR / ".cache"
 LISTING_CACHE = CACHE_DIR / "listings"
 CITY_CACHE = CACHE_DIR / "cities.json"
+CLIMATE_CACHE = CACHE_DIR / "climate.json"
 
 # Logging paths
 LOG_DIR = ROOT_DIR / "logs"
