@@ -21,6 +21,7 @@ brew "bat"
 brew "ripgrep"
 brew "tokei"
 brew "zsh-autosuggestions"
+brew "neovim"
 if OS.mac?
 	brew "tailscale"
 end

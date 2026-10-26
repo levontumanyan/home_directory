@@ -75,8 +75,6 @@ brew "mpv"
 brew "mysql"
 # Clean C library for processing UTF-8 Unicode data
 brew "utf8proc"
-# Ambitious Vim-fork focused on extensibility and agility
-brew "neovim"
 # Utility for managing network connections
 brew "netcat"
 # Port scanning utility for large networks
