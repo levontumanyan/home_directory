@@ -26,6 +26,7 @@ Always run tests via `make test` — never run `scripts/test.sh` directly, as it
 - Permissions: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant the minimum permissions necessary (e.g., `chmod u+x` or specific octal modes like `755`/`700`).
 - Tailscale: On Linux, installed natively via `curl | sh` if not already present; this runs after brew bundle so it only fires on a truly fresh machine.
 - Sudo Usage: Prefer not to use sudo as much as possible.
+- Stow: Never run `stow` manually — always apply dotfiles through `./install.sh` (or `make test`); if it fails, fix `install.sh` instead of working around it.
 - Git Signing: Only import the GPG key after install on a new machine — no git config changes needed.
 
 # Script Prompting Conventions

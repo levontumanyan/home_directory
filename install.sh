@@ -174,8 +174,8 @@ esac
 # Cleanup Homebrew
 if [ "$SKIP_ESSENTIALS" = "0" ] && [ "$MINIMAL" = "0" ]; then
 	echo "Cleaning up Homebrew..."
-	brew autoremove
-	brew cleanup
+	brew autoremove || true
+	brew cleanup || true
 	brew doctor || true
 fi
 
