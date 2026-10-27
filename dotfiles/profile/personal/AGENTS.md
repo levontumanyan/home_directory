@@ -14,6 +14,7 @@
 - **PDF Text Extraction**: Use `pdftotext` directly to extract and read PDF contents; it is already installed and available. Do not write ad-hoc Python scripts (e.g. `pypdf`) or run tool existence checks.
 - **Browser Automation**: Use the dedicated Patchright stealth Chromium instance via MCP (`brave-mcp` / `uv run`) for agent browsing. Never launch a second Brave binary alongside an active one on macOS because shared Mach port rendezvous (`com.brave.Browser.MachPortRendezvousServer`) freezes tab opening and IPC in the primary browser.
 - **Google Maps**: Always use Google Maps MCP tools for location and place queries. When suggesting places, always provide their full Google Maps URL.
+- **Airbnb**: Use the `airbnb` CLI tool for search, scoring, and listing inspection. Always explicitly report the nightly rate (e.g. CAD $XX/night) whether presenting a single listing or multiple listings.
 - **Git Execution**: Never use `git -C`. Run bare `git` commands directly in the current workspace. For other repositories, use `(cd <path> && git <cmd>)`.
 
 # GitHub Issue & PR Bodies

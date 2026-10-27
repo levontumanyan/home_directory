@@ -485,6 +485,7 @@ def main():
 			"co_hosts": details.get("co_hosts", []),
 			"coordinates": coords,
 			"price": lp,
+			"nightly_price": lp.get("nightly", 0),
 			"fast_wifi": wifi_info,
 			"description": desc_text,
 			"review_evidence": review_evidence,
@@ -514,9 +515,19 @@ def main():
 				)
 			if scorer.last_climate and scorer.last_climate.get("summary"):
 				print(f"Climate:     {scorer.last_climate['summary']}")
-			if lp.get("amount"):
+			if lp.get("amount") or lp.get("nightly"):
+				disc_part = (
+					f", {lp['discount_pct']}% discount"
+					if lp.get("discount_pct")
+					else ""
+				)
+				dates_part = (
+					f" for {args.check_in} -> {args.check_out}"
+					if args.check_in and args.check_out
+					else ""
+				)
 				print(
-					f"Price:       {lp['currency']} ${lp['amount']:.2f} total (${lp['nightly']:.2f}/nt, {lp['discount_pct']}% discount for {args.check_in} -> {args.check_out})"
+					f"Price:       {lp['currency']} ${lp['amount']:.2f} total (${lp['nightly']:.2f}/nt{disc_part}{dates_part})"
 				)
 
 			print("\n## Score & Ratings")
@@ -964,6 +975,22 @@ def main():
 			print(f"\nLocation: {args.location}")
 			human_range = f"{_format_date_human(args.check_in)} to {_format_date_human(args.check_out)}"
 			print(f"Date Range: {human_range}")
+			sorted_display = sorted(
+				scored_results, key=lambda x: x.get("score", 0), reverse=True
+			)
+			print(f"\nTop {min(10, len(sorted_display))} Scored Listings:")
+			print(
+				f"{'Rank':<5} {'Score':<7} {'Nightly':<14} {'Total Stay':<14} {'Rating':<8} {'Title'}"
+			)
+			print("-" * 80)
+			for i, r in enumerate(sorted_display[:10]):
+				n_price = f"{r.get('currency', '')} ${r.get('nightly_price', 0):.2f}/nt"
+				t_price = f"{r.get('currency', '')} ${r.get('total_price', 0):.2f}"
+				rating_str = f"★ {r.get('rating', 0):.2f}"
+				title = (r.get("name") or "")[:35]
+				print(
+					f"#{i + 1:<4} {r.get('score', 0):<7.1f} {n_price:<14} {t_price:<14} {rating_str:<8} {title}"
+				)
 			print("\n--- SUCCESS: Reports saved/merged ---")
 			print(f"CSV:  {csv_path}")
 			print(f"JSON: {json_path}")

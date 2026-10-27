@@ -267,8 +267,29 @@ def get_listing_details(
 				cookies=ACTIVE_COOKIES_DICT or None,
 			)
 			main = p_resp.get("main", {})
-			disc_str = main.get("discountedPrice") or main.get("price") or ""
-			orig_str = main.get("originalPrice") or disc_str
+			p_details = main.get("details", {}) or {}
+			disc_str = (
+				main.get("discountedPrice")
+				or main.get("price")
+				or p_details.get("Price after discount")
+				or p_details.get("Total")
+				or ""
+			)
+			orig_str = main.get("originalPrice") or ""
+			nights_val = None
+			for k, v in p_details.items():
+				if " x " in k or "nights" in k.lower():
+					nights_val = v
+					break
+
+			if not orig_str and nights_val:
+				orig_str = nights_val
+
+			if not disc_str and nights_val:
+				disc_str = nights_val
+
+			if not orig_str:
+				orig_str = disc_str
 			if disc_str:
 				m_disc = re.search(r"[\d,]+(?:\.\d+)?", disc_str.replace("\xa0", ""))
 				m_orig = re.search(r"[\d,]+(?:\.\d+)?", orig_str.replace("\xa0", ""))
