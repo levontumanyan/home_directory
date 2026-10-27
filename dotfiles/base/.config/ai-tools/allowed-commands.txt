@@ -161,15 +161,21 @@ www.anthropic.com
 [mcp]
 # Format: mcp:<server>  — uses wildcard for all tools from that server
 # Format: mcp:<server>:read  — only read/get/list/search tools (no writes)
+# Format: mcp:<server>:no-close  — all tools except close tab
 #
 # Claude server name convention: mcp__<server>__<tool>
 # opencode: auto-allows all configured MCP servers (no explicit entry needed)
 # Antigravity: uses mcp(<server>/*) — only applies if server is configured there
 #
 # Wildcard servers (all tools trusted):
+mcp:apple-calendar
+mcp:google-maps
 mcp:buildkite-ro
 mcp:elastic-docs
 mcp:elastic-team-internal-docs
+#
+# Browser automation (all tools except close tab):
+mcp:brave-browser:no-close
 #
 # Read-only servers (specific safe tools listed in sync script):
 mcp:slack:read

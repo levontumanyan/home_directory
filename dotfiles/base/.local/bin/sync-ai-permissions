@@ -23,6 +23,7 @@ from pathlib import Path
 COMMANDS_FILE = Path.home() / ".config/ai-tools/allowed-commands.txt"
 CLAUDE_SETTINGS = Path.home() / ".claude/settings.json"
 AGENT_SETTINGS = Path.home() / ".gemini/antigravity-cli/settings.json"
+DOTFILES_AGENT_SETTINGS = Path.home() / "repos/home_directory/dotfiles/base/.gemini/antigravity-cli/settings.json"
 OPENCODE_CONFIG = Path.home() / ".config/opencode/opencode.jsonc"
 
 # Bash commands that need no wildcard suffix in Claude format
@@ -84,6 +85,21 @@ MCP_READ_TOOLS = {
 	],
 }
 
+# brave-browser tools excluding brave_close_tab
+BRAVE_NO_CLOSE_TOOLS = [
+	"brave_click",
+	"brave_evaluate_js",
+	"brave_get_content",
+	"brave_navigate",
+	"brave_new_tab",
+	"brave_press_key",
+	"brave_screenshot",
+	"brave_scroll",
+	"brave_status",
+	"brave_switch_tab",
+	"brave_type",
+]
+
 
 def parse_canonical(path):
 	"""Parse the canonical file into sections."""
@@ -131,12 +147,14 @@ def strip_jsonc_comments(text):
 def _claude_mcp_entries(mcp_lines):
 	entries = []
 	for line in mcp_lines:
-		parts = line.split(":")  # mcp:<server> or mcp:<server>:read
+		parts = line.split(":")  # mcp:<server> or mcp:<server>:read or mcp:<server>:no-close
 		if len(parts) < 2:
 			continue
 		server = parts[1]
 		mode = parts[2] if len(parts) > 2 else "wildcard"
-		if mode == "read" and server in MCP_READ_TOOLS:
+		if mode == "no-close" and server == "brave-browser":
+			entries.extend([f"mcp__{server}__{tool}" for tool in BRAVE_NO_CLOSE_TOOLS])
+		elif mode == "read" and server in MCP_READ_TOOLS:
 			entries.extend(MCP_READ_TOOLS[server])
 		else:
 			# Wildcard: allow all tools from this server
@@ -183,6 +201,7 @@ def sync_claude(sections):
 
 	with open(CLAUDE_SETTINGS, "w") as f:
 		json.dump(settings, f, indent=2)
+		f.write("\n")
 	print(f"✓ Claude:      {CLAUDE_SETTINGS}")
 
 
@@ -190,25 +209,51 @@ def sync_claude(sections):
 # Antigravity (Gemini CLI)
 # ---------------------------------------------------------------------------
 
+def _agent_mcp_entries(mcp_lines):
+	entries = []
+	for line in mcp_lines:
+		parts = line.split(":")  # mcp:<server> or mcp:<server>:read or mcp:<server>:no-close
+		if len(parts) < 2:
+			continue
+		server = parts[1]
+		mode = parts[2] if len(parts) > 2 else "wildcard"
+		if mode == "no-close" and server == "brave-browser":
+			entries.extend([f"mcp({server}/{tool})" for tool in BRAVE_NO_CLOSE_TOOLS])
+		elif mode == "read" and server in MCP_READ_TOOLS:
+			for t in MCP_READ_TOOLS[server]:
+				tool_name = t.split("__")[-1]
+				entries.append(f"mcp({server}/{tool_name})")
+		else:
+			entries.append(f"mcp({server}/*)")
+	return sorted(entries)
+
+
 def sync_agent(sections):
-	if not AGENT_SETTINGS.exists():
-		print(f"- Antigravity: {AGENT_SETTINGS} (not found, skipping)")
-		return
-	with open(AGENT_SETTINGS) as f:
-		settings = json.load(f)
+	targets = [AGENT_SETTINGS]
+	if DOTFILES_AGENT_SETTINGS.exists():
+		targets.append(DOTFILES_AGENT_SETTINGS)
 
-	allow = settings.setdefault("permissions", {}).setdefault("allow", [])
+	for target in targets:
+		if not target.exists():
+			print(f"- Antigravity: {target} (not found, skipping)")
+			continue
+		with open(target) as f:
+			settings = json.load(f)
 
-	# Only manage command(...) entries; preserve mcp(...) and anything else
-	keep = [e for e in allow if not e.startswith("command(")]
+		allow = settings.setdefault("permissions", {}).setdefault("allow", [])
 
-	cmd_entries = [f"command({cmd})" for cmd in sections["bash"]]
+		# Drop managed command(...) and mcp(...) entries; preserve anything else
+		keep = [e for e in allow if not e.startswith("command(") and not e.startswith("mcp(")]
 
-	settings["permissions"]["allow"] = sorted(keep) + sorted(cmd_entries)
+		cmd_entries = [f"command({cmd})" for cmd in sections["bash"]]
+		mcp_entries = _agent_mcp_entries(sections["mcp"])
 
-	with open(AGENT_SETTINGS, "w") as f:
-		json.dump(settings, f, indent=2)
-	print(f"✓ Antigravity: {AGENT_SETTINGS}")
+		settings["permissions"]["allow"] = sorted(mcp_entries) + sorted(cmd_entries) + sorted(keep)
+
+		with open(target, "w") as f:
+			json.dump(settings, f, indent=2)
+			f.write("\n")
+		print(f"✓ Antigravity: {target}")
 
 
 # ---------------------------------------------------------------------------
