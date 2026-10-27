@@ -22,7 +22,7 @@ unset -f _platform_cli_auth_bootstrap
 
 opencode-auth-mcps() {
 	local mcps
-	mcps=(${(f)"$(jq -r '.mcp | keys[]' ~/.config/opencode/opencode.jsonc)"})
+	mcps=(${(f)"$(jq -r '.mcp | to_entries[] | select(.value.type == "remote") | .key' ~/.config/opencode/opencode.jsonc)"})
 	for mcp in "${mcps[@]}"; do
 		opencode mcp auth "$mcp"
 	done
