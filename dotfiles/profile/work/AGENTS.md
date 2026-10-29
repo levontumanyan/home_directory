@@ -45,6 +45,23 @@ source ~/repos/platform-cli-auth/vault-helper/vault-helper.sh && vault_select <c
 
 Common cluster aliases: `infra-prod` (secrets.elastic.co), `infra-staging` (vault-acc.elastic.co), `cloud-gov` (GovCloud moderate), `dod-dstg` (DSTG), `dod-dil5` (DIL5). Run `vault_select` with no args for the full interactive list.
 
+## VPN Switching (AWS Client VPN only)
+
+`aws-vpn-client` controls AWS Client VPN (FRS/FRH/DSTG/DIL5). Aviatrix (Commercial, FRM) is GUI-only; only my user connects or disconnects it. Aviatrix = `platform`, `frm`, `global-it` in `vpn-helper` output. Two full tunnels cannot run at the same time — Aviatrix drops AWS-bound packets with no error. If `detect` returns Aviatrix, stop and ask my user to disconnect first.
+
+LLM access per tunnel: Commercial, `frm` — all providers; `dstg`, `dil5` — all providers (for now); `frs`, `frh` — AWS Bedrock only (for now). My user has no `frh` access — do not try.
+
+```bash
+helper=~/repos/platform-cli-auth/vpn-helper/vpn-helper.sh
+bash "$helper" detect                                  # Aviatrix result → stop
+aws-vpn-client disconnect --profile-name <current>     # only an AWS tunnel
+aws-vpn-client connect --profile-name <target>
+bash "$helper" validate <target>                      # must exit 0 before Vault or Teleport
+```
+
+- If `detect` returns `none`, skip the disconnect.
+- `connect` may open a browser for Okta SAML; user completes it. Wait for `Connected` from `get-connection-status`.
+
 ## MCP Priority Order (Elastic questions)
 
 When answering Elastic-related questions, check sources in this order:
@@ -66,7 +83,9 @@ The **only** relevant GitHub Project for PSEC work is [Platform Security Team (#
 | Status field ID | `PVTSSF_lADOAGc3Zs4BSCW-zg_sCpA` |
 
 - When creating PSEC issues, always add them to this project
-- When creating GitHub issues in elastic/platform-security-team, always assign a sprint: use Incoming Requests (ca8d553f) for backlog/future work, or the appropriate active sprint (Sprint 8: 9c78472b, etc) if the work is planned soon — never leave the Sprint field unset
+- When creating GitHub issues in elastic/platform-security-team, always assign a sprint: Incoming Requests for backlog, else the active sprint — never leave the Sprint field unset
+- Sprint iteration IDs rotate; never hardcode them. List live ones: `gh api graphql -f query='query{node(id:"PVT_kwDOAGc3Zs4BSCW-"){... on ProjectV2{field(name:"Sprint"){... on ProjectV2IterationField{configuration{iterations{id title}}}}}}' --jq '.data.node.field.configuration.iterations[] | .id + "  " + .title'`
+- If `gh project item-edit` fails on Sprint ("Did not receive an iteration Id"), use a raw mutation: `gh api graphql -f query='mutation{updateProjectV2ItemFieldValue(input:{projectId:"PVT_kwDOAGc3Zs4BSCW-",itemId:"<item>",fieldId:"PVTIF_lADOAGc3Zs4BSCW-zg_sDTE",value:{iterationId:"<id>"}}){projectV2Item{id}}}'`
 
 ## PSEC Does NOT Use Jira
 
