@@ -47,6 +47,8 @@ brew "yt-dlp"
 brew "gallery-dl"
 # GitHub command-line tool
 brew "gh"
+# GIF image/animation creator/editor
+brew "gifsicle"
 # GNU implementation of the famous stream editor
 brew "gnu-sed"
 # GNU Privacy Guard (OpenPGP)
