@@ -1,0 +1,114 @@
+current_context: frm-quickstart
+contexts:
+  frm-quickstart:
+    elasticsearch:
+      url: https://quickstart.es.security.frm.internal.elastic-gov.com:443
+      auth:
+        username: elastic
+        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_QUICKSTART_PASSWORD"')
+    kibana:
+      url: https://quickstart.kb.security.frm.internal.elastic-gov.com
+      auth:
+        username: elastic
+        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_QUICKSTART_PASSWORD"')
+  frm-overview:
+    elasticsearch:
+      url: https://overview.es.security.frm.internal.elastic-gov.com:443
+      auth:
+        username: elastic
+        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_OVERVIEW_PASSWORD"')
+    kibana:
+      url: https://overview.kb.security.frm.internal.elastic-gov.com
+      auth:
+        username: elastic
+        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_OVERVIEW_PASSWORD"')
+  frm-monitoring:
+    elasticsearch:
+      url: https://monitoring.es.security.frm.internal.elastic-gov.com:443
+      auth:
+        username: elastic
+        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_MONITORING_PASSWORD"')
+    kibana:
+      url: https://monitoring.kb.security.frm.internal.elastic-gov.com
+      auth:
+        username: elastic
+        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_MONITORING_PASSWORD"')
+  frm-archive:
+    elasticsearch:
+      url: https://archive.es.security.frm.internal.elastic-gov.com:443
+      auth:
+        username: elastic
+        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_ARCHIVE_PASSWORD"')
+    kibana:
+      url: https://archive.kb.security.frm.internal.elastic-gov.com
+      auth:
+        username: elastic
+        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_ARCHIVE_PASSWORD"')
+  dstg-overview:
+    elasticsearch:
+      url: https://overview.es.security.dstg.internal.elastic-gov.com:443
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$DSTG_OVERVIEW_API_KEY"')
+    kibana:
+      url: https://overview.kb.security.dstg.internal.elastic-gov.com
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$DSTG_OVERVIEW_API_KEY"')
+  dstg-quickstart:
+    elasticsearch:
+      url: https://quickstart.es.security.dstg.internal.elastic-gov.com:443
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$DSTG_QUICKSTART_API_KEY"')
+    kibana:
+      url: https://quickstart.kb.security.dstg.internal.elastic-gov.com
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$DSTG_QUICKSTART_API_KEY"')
+  dil5-overview:
+    elasticsearch:
+      url: https://overview.es.security.dil5.internal.elastic-gov.com:443
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$DIL5_OVERVIEW_API_KEY"')
+    kibana:
+      url: https://overview.kb.security.dil5.internal.elastic-gov.com
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$DIL5_OVERVIEW_API_KEY"')
+  dil5-quickstart:
+    elasticsearch:
+      url: https://quickstart.es.security.dil5.internal.elastic-gov.com:443
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$DIL5_QUICKSTART_API_KEY"')
+    kibana:
+      url: https://quickstart.kb.security.dil5.internal.elastic-gov.com
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$DIL5_QUICKSTART_API_KEY"')
+  frs-overview:
+    elasticsearch:
+      url: https://overview.es.security.staging.internal.elastic-gov.com:443
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRS_OVERVIEW_API_KEY"')
+    kibana:
+      url: https://overview.kb.security.staging.internal.elastic-gov.com
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRS_OVERVIEW_API_KEY"')
+  frs-quickstart:
+    elasticsearch:
+      url: https://quickstart.es.security.staging.internal.elastic-gov.com:443
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRS_QUICKSTART_API_KEY"')
+    kibana:
+      url: https://quickstart.kb.security.staging.internal.elastic-gov.com
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRS_QUICKSTART_API_KEY"')
+  frs-monitoring:
+    elasticsearch:
+      url: https://monitoring.es.security.staging.internal.elastic-gov.com:443
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRS_MONITORING_API_KEY"')
+    kibana:
+      url: https://monitoring.kb.security.staging.internal.elastic-gov.com
+      auth:
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRS_MONITORING_API_KEY"')
+  puppet-monitor:
+    kibana:
+      url: https://overview.elastic-cloud.com
+      auth:
+        api_key: $(keychain:elastic-cli/puppet-monitor:kibana.auth.api_key)
