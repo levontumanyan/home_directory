@@ -4,46 +4,38 @@ contexts:
     elasticsearch:
       url: https://quickstart.es.security.frm.internal.elastic-gov.com:443
       auth:
-        username: elastic
-        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_QUICKSTART_PASSWORD"')
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_QUICKSTART_API_KEY"')
     kibana:
       url: https://quickstart.kb.security.frm.internal.elastic-gov.com
       auth:
-        username: elastic
-        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_QUICKSTART_PASSWORD"')
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_QUICKSTART_API_KEY"')
   frm-overview:
     elasticsearch:
       url: https://overview.es.security.frm.internal.elastic-gov.com:443
       auth:
-        username: elastic
-        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_OVERVIEW_PASSWORD"')
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_OVERVIEW_API_KEY"')
     kibana:
       url: https://overview.kb.security.frm.internal.elastic-gov.com
       auth:
-        username: elastic
-        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_OVERVIEW_PASSWORD"')
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_OVERVIEW_API_KEY"')
   frm-monitoring:
     elasticsearch:
       url: https://monitoring.es.security.frm.internal.elastic-gov.com:443
       auth:
-        username: elastic
-        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_MONITORING_PASSWORD"')
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_MONITORING_API_KEY"')
     kibana:
       url: https://monitoring.kb.security.frm.internal.elastic-gov.com
       auth:
-        username: elastic
-        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_MONITORING_PASSWORD"')
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_MONITORING_API_KEY"')
   frm-archive:
     elasticsearch:
       url: https://archive.es.security.frm.internal.elastic-gov.com:443
       auth:
-        username: elastic
-        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_ARCHIVE_PASSWORD"')
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_ARCHIVE_API_KEY"')
     kibana:
       url: https://archive.kb.security.frm.internal.elastic-gov.com
       auth:
-        username: elastic
-        password: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_ARCHIVE_PASSWORD"')
+        api_key: $(cmd:envchain elasticsearch sh -c 'printf "%s" "$FRM_ARCHIVE_API_KEY"')
   dstg-overview:
     elasticsearch:
       url: https://overview.es.security.dstg.internal.elastic-gov.com:443
