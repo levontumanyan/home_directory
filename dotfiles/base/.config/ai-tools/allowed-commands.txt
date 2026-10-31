@@ -86,6 +86,7 @@ cut
 tr
 awk
 tree
+sed -n
 
 # --- system & process ---
 ps
@@ -117,7 +118,9 @@ d2
 # --- local cli & diagnostics ---
 apple-pay
 cal-event
+call-recordings
 dig
+imessage
 ipconfig getifaddr
 networkQuality
 outlook

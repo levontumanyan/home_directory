@@ -6,6 +6,14 @@
     "macos-calendar": {
       "command": "mcp-ical"
     },
+    "brave-browser": {
+      "command": "/opt/homebrew/bin/uv",
+      "args": [
+        "run",
+        "--script",
+        "/Users/levontumanyan/repos/agent-tools/bin/brave-mcp"
+      ]
+    },
     "google-maps": {
       "command": "/bin/zsh",
       "args": [
