@@ -121,6 +121,7 @@ assert_base_symlinks() {
 	assert_symlink "$HOME/.gnupg/common.conf" "dotfiles/base/.gnupg/common.conf"
 	assert_symlink "$HOME/.local/bin/github" "dotfiles/base/.local/bin/github"
 	assert_symlink "$HOME/.zsh/completions/_github" "dotfiles/base/.zsh/completions/_github"
+	assert_symlink "$HOME/.zsh/completions/_agy" "dotfiles/base/.zsh/completions/_agy"
 }
 
 assert_os_linux_symlinks() {
