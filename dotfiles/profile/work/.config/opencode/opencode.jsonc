@@ -1,7 +1,6 @@
 {
 	"$schema": "https://opencode.ai/config.json",
-	"model": "openrouter/~openai/gpt-luna-latest",
-	"small_model": "openrouter/anthropic/claude-haiku-4.5",
+	"model": "openrouter/z-ai/glm-5.3",
 	"mcp": {
 		"sessions": {
 			"type": "local",
@@ -128,6 +127,48 @@
 						"context": 1000000,
 						"output": 128000
 					}
+				},
+				"us-gov.anthropic.claude-opus-5-5": {
+					"name": "Claude Opus 5.5 (GovCloud FRS)",
+					"attachment": true,
+					"reasoning": true,
+					"tool_call": true,
+					"cost": {
+						"input": 4.8,
+						"output": 24
+					},
+					"limit": {
+						"context": 1000000,
+						"output": 128000
+					}
+				},
+				"us-gov.anthropic.claude-sonnet-5-5": {
+					"name": "Claude Sonnet 5.5 (GovCloud FRS)",
+					"attachment": true,
+					"reasoning": true,
+					"tool_call": true,
+					"cost": {
+						"input": 2.4,
+						"output": 12
+					},
+					"limit": {
+						"context": 1000000,
+						"output": 128000
+					}
+				},
+				"us-gov.anthropic.claude-haiku-5-5": {
+					"name": "Claude Haiku 5.5 (GovCloud FRS)",
+					"attachment": true,
+					"reasoning": true,
+					"tool_call": true,
+					"cost": {
+						"input": 0.12,
+						"output": 0.6
+					},
+					"limit": {
+						"context": 1000000,
+						"output": 128000
+					}
 				}
 			}
 		},
@@ -213,8 +254,7 @@
 	},
 	"agent": {
 		"build": {
-			"model": "openrouter/~openai/gpt-luna-latest",
-			"variant": "xhigh"
+			"model": "openrouter/z-ai/glm-5.3"
 		},
 		"vision": {
 			"description": "Delegates vision capabilities to a vision-capable subagent for processing images, screenshots, and other media files that the primary model cannot handle",
