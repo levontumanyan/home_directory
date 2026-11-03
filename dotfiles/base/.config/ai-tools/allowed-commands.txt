@@ -133,6 +133,7 @@ whatsapp
 flights
 airbnb
 download-video
+yahoo
 
 # --- build ---
 make check

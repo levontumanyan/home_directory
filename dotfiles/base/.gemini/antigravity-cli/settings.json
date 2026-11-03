@@ -170,7 +170,8 @@
       "command(whereis)",
       "command(which)",
       "command(whoami)",
-      "command(wifi-check)"
+      "command(wifi-check)",
+      "command(yahoo)"
     ]
   },
   "statusLine": {
