@@ -80,4 +80,4 @@ if [[ "$OSTYPE" == darwin* ]]; then
 fi
 
 alias pi='nono run --profile pi -- pi'
-alias llm='claude --model claude-sonnet-4-6'
+alias llm='opencode'

@@ -27,6 +27,12 @@
 			"type": "remote",
 			"url": "https://codex.elastic.dev/mcp"
 		},
+		"pagerduty": {
+			"type": "local",
+			"command": ["bash", "-c", "exec npx -y mcp-remote https://mcp.pagerduty.com/mcp --header \"Authorization: Token token=$(security find-generic-password -s pagerduty -a $USER -w)\""],
+			"enabled": true,
+			"timeout": 30000
+		},
 		"backstage": {
 			"type": "local",
 			"command": ["bash", "-c", "exec env BACKSTAGE_API_TOKEN=$(security find-generic-password -s backstage-api-proxy-token -a backstage -w) /Users/levontumanyan/repos/mcp-server-backstage/backstage-mcp"],
