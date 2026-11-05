@@ -16,7 +16,9 @@
 - **Browser Automation**: Always use the stealth browser MCP (`brave-mcp`) for agent browsing; never launch system browser binaries directly.
 - **Google Maps**: Always use Google Maps MCP tools for location and place queries. When suggesting places, always provide their full Google Maps URL.
 - **Airbnb**: Use the `airbnb` CLI tool for search, scoring, and listing inspection. Always explicitly report the nightly rate (e.g. CAD $XX/night) whether presenting a single listing or multiple listings.
+- **Wi-Fi & Speed CLI**: Use `wifi-check` for Wi-Fi health, speed tests, and VPN audits (use `-q` for quick, `-j` for JSON; see `wifi-check --help`).
 - **Git Execution**: Never use `git -C`. Run bare `git` commands directly in the current workspace. For other repositories, use `(cd <path> && git <cmd>)`.
+- **Secrets & Passwords**: Never print, echo, or expose raw passwords, tokens, or credentials in chat or command outputs so they never enter agent context.
 
 # GitHub Issue & PR Bodies
 
