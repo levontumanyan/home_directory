@@ -238,23 +238,15 @@ PR_NUMBER=$(gh pr view --json number -q '.number')
 
 
 
-# Trigger Buildkite plan (terraform plan)
-gh api --method POST repos/${REPO}/issues/${PR_NUMBER}/comments \
-  -f body="buildkite plan this" --jq '.html_url'
-
 # Trigger Buildkite apply (terraform apply)
 gh api --method POST repos/${REPO}/issues/${PR_NUMBER}/comments \
   -f body="buildkite apply this" --jq '.html_url'
-
-# Trigger Buildkite build (general CI build)
-gh api --method POST repos/${REPO}/issues/${PR_NUMBER}/comments \
-  -f body="buildkite build this" --jq '.html_url'
 ```
 
 **Common Buildkite trigger phrases:**
-- `buildkite plan this` - Run terraform plan
 - `buildkite apply this` - Run terraform apply
-- `buildkite build this` - Run general CI build
+
+In elastic/platform-security-terraform, every push to a PR builds and plans automatically. `buildkite plan this` and `buildkite build this` do nothing there. Push to the branch for a fresh plan.
 
 **Note:** These triggers are repository-specific. Check your `.buildkite/` pipeline configuration for supported trigger phrases.
 

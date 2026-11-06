@@ -4,11 +4,11 @@
 
   "app": {
     "sendAnonymousTelemetry": false,
-    "reorderOnNotification": false
+    "reorderOnNotification": true
   },
 
   "notifications": {
-    "showInMenuBar": false
+    "showInMenuBar": true
   },
 
   "terminal": {

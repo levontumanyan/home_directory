@@ -16,7 +16,8 @@
 - If i mention number of points for an issue add it! Otherwise skip that part but mention in your summary that the issue has no points.
 - in pst repo when making any changes use the worktree skill unless i mention to just make the changes in the main wortkree
 - **PR and issue references**: Whenever you mention a PR or GitHub issue by number, always format it as a markdown hyperlink so it is clickable. For example: [PR #2407](https://github.com/elastic/platform-security-terraform/pull/2407) or [issue #901](https://github.com/elastic/platform-security-team/issues/901). Never reference a number alone without a link.
-- Always run `gh pr update-branch <PR_NUMBER> && gh pr comment <PR_NUMBER> --body "buildkite plan this"` — never trigger a plan without updating first in the same command. Also run that after everytime you commit new changes to a pr. If it reports conflicts, resolve them via rebase before proceeding.
+- In elastic/platform-security-terraform every push to a PR builds and plans automatically. Never comment `buildkite plan this` or `buildkite build this`; they do nothing now. For a fresh plan, push to the branch (a rebase onto main counts). If `gh pr update-branch` reports conflicts, resolve them via rebase.
+- Always run `gh pr update-branch <PR_NUMBER> && gh pr comment <PR_NUMBER> --body "buildkite apply this"` — never trigger an apply without updating first in the same command.
 - Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or `gh pr create` — backticks and nested quotes corrupt the markdown. Also use `--body-file` for `gh pr comment` whenever the body contains code blocks or backticks.
 - When you are working on a PR, especially when closing it make sure that the PR is closing an issue. If there is no issue that related that is fine, but it doesn't hurt to ask the user if you cannot deduce the issue that the PR should close to confirm if there is an issue or not.
 - When creating a PR that resolves an issue, use a GitHub-recognized closing keyword (Closes/Resolves/Fixes) with the full cross-repo reference (e.g., Closes elastic/platform-security-team#2191) as the first line of the PR body. Do not use Part of — it's informational only and won't populate the issue's Development panel or auto-close on merge.
@@ -29,7 +30,8 @@
 - if you are creating a terraform file that needs to be generated with harp-terraformer always do that. And make sure the specs exist and generate the file from the specs. Never manually create those files.
 - For `buildkite`, `bk` stuff use the MCP.
 - When you need to check buildkite pipeline, if the mcp didn't work. use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.
-- After running `buildkite apply this` if there are resources to apply the pipiline will be blocked, waiting for manual approval at the apply step. I will need you to pull the plan output to verify what it's proposing and tell me if all are good to apply or not. And if there are any resources that need to be applied/modified/deleted that are not from our changes flag immediately!
+- After running `buildkite apply this` if there are resources to apply the pipeline will be blocked, waiting for manual approval at the apply step. I will need you to pull the plan output to verify what it's proposing and tell me if all are good to apply or not. And if there are any resources that need to be applied/modified/deleted that are not from our changes flag immediately!
+- Plans run on every push, so read the existing plan comment and run `buildkite apply this` only if there is something to be applied.
 - I am using `podman`! No `docker`.
 
 ## Vault CLI
@@ -61,6 +63,18 @@ bash "$helper" validate <target>                      # must exit 0 before Vault
 
 - If `detect` returns `none`, skip the disconnect.
 - `connect` may open a browser for Okta SAML; user completes it. Wait for `Connected` from `get-connection-status`.
+
+Actual `aws-vpn-client` profile names (use these for `--profile-name`, NOT the cluster aliases):
+
+| Target | vpn-helper target | `aws-vpn-client` profile |
+|--------|-------------------|--------------------------|
+| FRS | `frs` | `frs` |
+| FRH | `frh` | `frh` (no access) |
+| DSTG | `dstg` | `dstg` |
+| DIL5 | `dil5` | `il5` |
+| DIL5 staging | `dil5` | `il5_staging` |
+
+`validate` takes the vpn-helper target (`dil5`/`dstg`/...), not the profile name. The Vault cluster aliases for `vault_select` are `dod-dstg` and `dod-dil5`.
 
 ## MCP Priority Order (Elastic questions)
 
@@ -143,12 +157,21 @@ for FRS is `gov-stg-uge1-security` is the correct profile.
 
 # slack
 
+- **GitHub links in Slack messages: always inline descriptive links.** Any GitHub issue/PR/whatever referenced in a Slack draft or message must be a Slack-style inline link with descriptive text (e.g. `<https://github.com/elastic/gov-ecp-gitops/pull/3823|gov-ecp-gitops#3823>`), never a bare URL or a number alone.
+
 Use these channel IDs directly with Slack MCP tools — do not spend a turn searching for them.
 
 - `#platform-security-eng` (`C09F3MZQM9S`) - my team's engineering channel. When i ask you to post in psec channel for review it is here
 - `#platform-security` (`C64AY13FF`) - my team's channel where we get requests from users
 - :platform-security-eng: to post to #platform-security-eng with Reacji Channeler
 - **Always draft first, no exceptions.** When i ask you to draft a message it means use the slack mcp to draft a message. Don't output the text in the code session. Never directly send a message unless i explicitly request. Always draft a message then i will send it. This applies even when i ask you to review something or "check" something — do NOT infer that as permission to send. The ONLY time you may send a message directly is if i say "send this" or "post this" or explicitly ask you to send it. If in doubt, draft. Never ever send a slack message without confirming with me first.
+- Slack drafts:
+	- First line: the point or ask. Context after, only if needed.
+	- Max 1-4 short sentences. One topic per message.
+	- For asks, name who, what, by when.
+	- Plain words, active voice. No filler, hedging, or sign-offs.
+	- 3+ parallel items: bullets. Links last, labeled.
+	- No headers or emoji. Bold only one key item.
 
 - When making technical decisions, do not give much weight to development cost. Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
 - When explaining technical concepts write or rewrite text in plain, layman-readable English in the spirit of ASD-STE100 Simplified Technical English: short sentences, active voice, simple tenses, one word one meaning, condition before command, every technical term defined at first use, no AI slop. Default mode is Plain. Strict mode applies full STE vocabulary compliance when the user names STE, ASD-STE100, or compliance. Use for documentation, READMEs, runbooks, procedures, error messages, release notes, incident reports, API guides. Also use when the user says "STE", "Simplified Technical English", "ASD-STE100", "plain English", "layman's terms", "explain it simply", "no jargon", "de-slop", "make this readable", "write for non-native readers", or asks for docs that translate well. The same rules govern the reply: answer first, prose only.

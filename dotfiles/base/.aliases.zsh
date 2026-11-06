@@ -147,5 +147,14 @@ mkcd() {
 # Prevent Zsh from globbing URLs when downloading
 alias download-video="noglob download-video"
 
-# OpenCode against GovCloud FRS Bedrock; choose Grok 4.6 with /models. Requires fresh Okta creds: mfa govcloud-frs
-alias opencode-frs='AWS_PROFILE=gov-stg-uge1-ecsecurity AWS_REGION=us-gov-east-1 opencode --standalone'
+# OpenCode against GovCloud FRS Bedrock. Requires fresh Okta creds: mfa govcloud-frs
+# OPENCODE_CONFIG_CONTENT applies FRS-only overrides on top of the shared config, so
+# non-FRS sessions keep their OpenRouter defaults. Every model here is GovCloud Bedrock
+# because the FRS NFW allows only .us-gov-east-1.amazonaws.com, which blocks OpenRouter
+# on the VPN. Switch models in-session with /models (Opus 5.5 for heavier work).
+opencode-frs() {
+  AWS_PROFILE=gov-stg-uge1-ecsecurity \
+  AWS_REGION=us-gov-east-1 \
+  OPENCODE_CONFIG_CONTENT='{"model":"amazon-bedrock/us-gov.anthropic.claude-sonnet-5-5","agents":{"build":{"model":"amazon-bedrock/us-gov.anthropic.claude-sonnet-5-5"},"vision":{"model":"amazon-bedrock/us-gov.anthropic.claude-haiku-5-5"}}}' \
+  opencode --standalone "$@"
+}
