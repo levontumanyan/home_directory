@@ -132,6 +132,7 @@
       "mcp__brave-browser__brave_press_key",
       "mcp__brave-browser__brave_screenshot",
       "mcp__brave-browser__brave_scroll",
+      "mcp__brave-browser__brave_snapshot",
       "mcp__brave-browser__brave_status",
       "mcp__brave-browser__brave_switch_tab",
       "mcp__brave-browser__brave_type",

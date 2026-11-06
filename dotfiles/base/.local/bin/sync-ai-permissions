@@ -95,6 +95,7 @@ BRAVE_NO_CLOSE_TOOLS = [
 	"brave_press_key",
 	"brave_screenshot",
 	"brave_scroll",
+	"brave_snapshot",
 	"brave_status",
 	"brave_switch_tab",
 	"brave_type",
@@ -156,9 +157,11 @@ def _claude_mcp_entries(mcp_lines):
 			entries.extend([f"mcp__{server}__{tool}" for tool in BRAVE_NO_CLOSE_TOOLS])
 		elif mode == "read" and server in MCP_READ_TOOLS:
 			entries.extend(MCP_READ_TOOLS[server])
-		else:
+		elif mode == "wildcard":
 			# Wildcard: allow all tools from this server
 			entries.append(f"mcp__{server}__*")
+		else:
+			entries.append(f"mcp__{server}__{mode}")
 	return sorted(entries)
 
 
@@ -223,8 +226,10 @@ def _agent_mcp_entries(mcp_lines):
 			for t in MCP_READ_TOOLS[server]:
 				tool_name = t.split("__")[-1]
 				entries.append(f"mcp({server}/{tool_name})")
-		else:
+		elif mode == "wildcard":
 			entries.append(f"mcp({server}/*)")
+		else:
+			entries.append(f"mcp({server}/{mode})")
 	return sorted(entries)
 
 

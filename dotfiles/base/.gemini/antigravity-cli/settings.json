@@ -34,6 +34,7 @@
       "mcp(brave-browser/brave_press_key)",
       "mcp(brave-browser/brave_screenshot)",
       "mcp(brave-browser/brave_scroll)",
+      "mcp(brave-browser/brave_snapshot)",
       "mcp(brave-browser/brave_status)",
       "mcp(brave-browser/brave_switch_tab)",
       "mcp(brave-browser/brave_type)",
