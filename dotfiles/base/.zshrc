@@ -39,8 +39,8 @@ command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
 
 
-export EDITOR="code --wait"
-export VISUAL="code --wait"
+export EDITOR="nvim"
+export VISUAL="nvim"
 
 # for inline suggestions to complete a command
 [ -n "$HOMEBREW_PREFIX" ] && [ -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
