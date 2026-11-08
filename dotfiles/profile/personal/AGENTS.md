@@ -13,7 +13,7 @@
 - **Apple Pay CLI**: Queries and searches local Apple Pay transactions on macOS; see `apple-pay --help` for options.
 - **iMessage CLI**: Queries and searches local iMessage chat history on macOS; see `imessage --help` for options.
 - **PDF Text Extraction**: Use `pdftotext` directly to extract and read PDF contents; it is already installed and available. Do not write ad-hoc Python scripts (e.g. `pypdf`) or run tool existence checks.
-- **Browser Automation**: Always use the stealth browser MCP (`brave-mcp`) for agent browsing; never launch system browser binaries directly.
+- **Browser Automation**: Always use the stealth browser MCP (`stealth-browser`) for agent browsing; never launch system browser binaries directly.
 - **Google Maps**: Always use Google Maps MCP tools for location and place queries. When suggesting places, always provide their full Google Maps URL.
 - **Airbnb**: Use the `airbnb` CLI tool for search, scoring, and listing inspection. Always explicitly report the nightly rate (e.g. CAD $XX/night) whether presenting a single listing or multiple listings.
 - **Wi-Fi & Speed CLI**: Use `wifi-check` for Wi-Fi health, speed tests, and VPN audits (use `-q` for quick, `-j` for JSON; see `wifi-check --help`).
@@ -37,6 +37,7 @@ Always write issue and PR bodies to a temp file first, then pass it via `--body-
 ## Knowledge Repository
 
 My personal knowledge base is located at: `~repos/knowledge-base`
+- **Bank & Financial Accounts Registry**: `~repos/knowledge-base/finances/accounts.yaml`
 
 ## File Naming Conventions
 

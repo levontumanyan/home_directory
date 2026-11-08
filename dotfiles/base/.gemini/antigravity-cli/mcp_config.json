@@ -6,12 +6,12 @@
     "macos-calendar": {
       "command": "mcp-ical"
     },
-    "brave-browser": {
+    "stealth-browser": {
       "command": "/opt/homebrew/bin/uv",
       "args": [
         "run",
         "--script",
-        "/Users/levontumanyan/repos/agent-tools/bin/brave-mcp"
+        "/Users/levontumanyan/repos/agent-tools/bin/stealth-browser"
       ]
     },
     "google-maps": {

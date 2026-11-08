@@ -85,20 +85,24 @@ MCP_READ_TOOLS = {
 	],
 }
 
-# brave-browser tools excluding brave_close_tab
-BRAVE_NO_CLOSE_TOOLS = [
-	"brave_click",
-	"brave_evaluate_js",
-	"brave_get_content",
-	"brave_navigate",
-	"brave_new_tab",
-	"brave_press_key",
-	"brave_screenshot",
-	"brave_scroll",
-	"brave_snapshot",
-	"brave_status",
-	"brave_switch_tab",
-	"brave_type",
+# stealth-browser tools excluding close_tab and close_browser
+BROWSER_NO_CLOSE_TOOLS = [
+	"batch",
+	"click",
+	"evaluate_js",
+	"fetch",
+	"get_content",
+	"navigate",
+	"new_tab",
+	"press_key",
+	"screenshot",
+	"scroll",
+	"set_media",
+	"snapshot",
+	"state",
+	"status",
+	"switch_tab",
+	"type",
 ]
 
 
@@ -153,8 +157,8 @@ def _claude_mcp_entries(mcp_lines):
 			continue
 		server = parts[1]
 		mode = parts[2] if len(parts) > 2 else "wildcard"
-		if mode == "no-close" and server == "brave-browser":
-			entries.extend([f"mcp__{server}__{tool}" for tool in BRAVE_NO_CLOSE_TOOLS])
+		if mode == "no-close" and server in ("stealth-browser", "brave-browser"):
+			entries.extend([f"mcp__{server}__{tool}" for tool in BROWSER_NO_CLOSE_TOOLS])
 		elif mode == "read" and server in MCP_READ_TOOLS:
 			entries.extend(MCP_READ_TOOLS[server])
 		elif mode == "wildcard":
@@ -220,8 +224,8 @@ def _agent_mcp_entries(mcp_lines):
 			continue
 		server = parts[1]
 		mode = parts[2] if len(parts) > 2 else "wildcard"
-		if mode == "no-close" and server == "brave-browser":
-			entries.extend([f"mcp({server}/{tool})" for tool in BRAVE_NO_CLOSE_TOOLS])
+		if mode == "no-close" and server in ("stealth-browser", "brave-browser"):
+			entries.extend([f"mcp({server}/{tool})" for tool in BROWSER_NO_CLOSE_TOOLS])
 		elif mode == "read" and server in MCP_READ_TOOLS:
 			for t in MCP_READ_TOOLS[server]:
 				tool_name = t.split("__")[-1]
@@ -256,7 +260,7 @@ def sync_agent(sections):
 		settings["permissions"]["allow"] = sorted(mcp_entries) + sorted(cmd_entries) + sorted(keep)
 
 		with open(target, "w") as f:
-			json.dump(settings, f, indent=2)
+			json.dump(settings, f, indent="\t")
 			f.write("\n")
 		print(f"✓ Antigravity: {target}")
 

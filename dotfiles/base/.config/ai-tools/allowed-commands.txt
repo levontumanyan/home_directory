@@ -180,7 +180,7 @@ mcp:elastic-docs
 mcp:elastic-team-internal-docs
 #
 # Browser automation (all tools except close tab):
-mcp:brave-browser:no-close
+mcp:stealth-browser:no-close
 #
 # Read-only servers (specific safe tools listed in sync script):
 mcp:slack:read
