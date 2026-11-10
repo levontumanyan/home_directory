@@ -65,6 +65,7 @@ When opening many tabs, loop steps 3–7 per PR sequentially (each needs its boo
 ## Pitfalls hit in practice
 
 - **`cmux paste` can time out** even when it succeeded, and can also silently not deliver. Always verify with `read-screen`; on a missed paste just re-paste.
+- **`new-surface` can return OK without creating the tab** — the reply says `OK surface:NNN ...` but `paste` then fails with `Missing or invalid terminal_id` and the surface never appears in `cmux tree`. After `new-surface`, confirm the surface exists in `cmux tree` (with a tty attached) before pasting; if it is missing, just run `new-surface` again.
 - **zsh `path` is special** — it is tied to `PATH`. Using `path` as a variable name in a loop silently destroys PATH mid-script (`git`, `tail` suddenly "command not found"). Use `wt`, `ref`, `out`.
 - **Unquoted `===`/`**` as echo separators get glob-expanded** in zsh ("zsh:1: == not found"). Use `---` or quote them.
 - **`read-screen` works on terminal surfaces only** — with `--workspace` and `--surface` refs, both required.
