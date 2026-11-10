@@ -38,6 +38,7 @@ Always write issue and PR bodies to a temp file first, then pass it via `--body-
 
 My personal knowledge base is located at: `~repos/knowledge-base`
 - **Bank & Financial Accounts Registry**: `~repos/knowledge-base/finances/accounts.yaml`
+- **Personal Details**: `~repos/knowledge-base/personal/profile.md`
 
 ## File Naming Conventions
 
