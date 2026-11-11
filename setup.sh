@@ -12,6 +12,7 @@ if [ -n "${AUTOMATED_EXECUTION:-}" ]; then
 fi
 
 source "$(dirname "$0")/setup_envs.sh"
+cd "$DOTFILES_DIR"
 
 # Configure git user if not already set
 if [ -n "${AUTOMATED_EXECUTION:-}" ]; then
@@ -76,4 +77,9 @@ if [ "$(uname)" = "Darwin" ]; then
 			launchctl load -w "$agent" 2>/dev/null || true
 		fi
 	done
+
+	# Configure Brave debloat policies
+	if [ -f "$(dirname "$0")/scripts/setup_brave.sh" ]; then
+		bash "$(dirname "$0")/scripts/setup_brave.sh"
+	fi
 fi

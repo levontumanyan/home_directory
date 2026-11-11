@@ -3,6 +3,8 @@
 
 set -eu
 
+cd -- "$(dirname -- "$0")/.."
+
 # Detect machine type
 if [ -f "$HOME/.work.zsh" ]; then
 	TYPE="work"

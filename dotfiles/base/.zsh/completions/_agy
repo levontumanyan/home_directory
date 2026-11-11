@@ -2,17 +2,24 @@
 
 _agy_mcp_servers() {
 	local -a servers
-	servers=(${(f)"$(agy mcp list 2>/dev/null | awk 'NR>1 {print $1}')"})
+	local cfg="${HOME}/.gemini/antigravity-cli/mcp_config.json"
+	if [[ -f "$cfg" ]]; then
+		servers=(${(f)"$(sed -E -n 's/^[[:space:]]*"([a-zA-Z0-9_-]+)":[[:space:]]*\{.*/\1/p' "$cfg" 2>/dev/null | grep -v 'mcpServers')"})
+	fi
 	if (( ${#servers} > 0 )); then
 		_describe 'MCP server' servers
 	fi
 }
 
 _agy_plugins() {
-	local -a plugins
-	plugins=(${(f)"$(agy plugin list 2>/dev/null | sed -n 's/^- \([^ (]*\).*/\1/p')"})
-	if (( ${#plugins} > 0 )); then
-		_describe 'plugin' plugins
+	local -a plugin_dirs
+	plugin_dirs=(
+		${HOME}/.gemini/config/plugins/*(N/:t)
+		${HOME}/.gemini/antigravity-cli/builtin/plugins/*(N/:t)
+	)
+	if (( ${#plugin_dirs} > 0 )); then
+		typeset -U plugin_dirs
+		_describe 'plugin' plugin_dirs
 	fi
 }
 
@@ -38,10 +45,31 @@ _agy_models() {
 
 _agy_agents() {
 	local -a agents
-	agents=(${(f)"$(agy agent 2>/dev/null)"})
-	if (( ${#agents} > 0 )); then
-		_describe 'agent' agents
-	fi
+	agents=(
+		'self:Subagent inheriting parent full configuration'
+		'research:Read-only subagent for exploring codebase and docs'
+		'image-generator:Generates or edits images from a brief'
+	)
+	local -a custom_agents
+	custom_agents=(.agents/agents/*.md(N:t:r) ${HOME}/.gemini/antigravity-cli/agents/*.json(N:t:r))
+	local a
+	for a in "${custom_agents[@]}"; do
+		agents+=("$a:Custom agent ($a)")
+	done
+	_describe -t agents 'agent' agents
+}
+
+_agy_acp() {
+	_arguments -s \
+		'--add-dir=[Add a directory to the workspace]:directory:_files -/' \
+		'--agent=[Agent for the ACP session]:agent:_agy_agents' \
+		'--app-data-dir=[Path where application data is stored]:directory:_files -/' \
+		'--dangerously-skip-permissions[Auto-approve all tool permission requests]' \
+		'--disable-telemetry[If true, disable telemetry]' \
+		'--login[Log in with Google interactively, then exit]' \
+		'--sandbox[Run in a sandbox with terminal restrictions enabled]' \
+		'--stdio[Use stdio JSON-RPC transport]' \
+		'(-h --help)'{-h,--help}'[Show help]'
 }
 
 _agy_mcp() {
@@ -193,6 +221,7 @@ _agy() {
 	typeset -A opt_args
 
 	local -a subcommands=(
+		'acp:Start the Agent Client Protocol (ACP) stdio server'
 		'agent:List available agents'
 		'agents:List available agents'
 		'changelog:Show changelog and release notes'
@@ -226,6 +255,7 @@ _agy() {
 		'(-p --print --prompt)'{-p,--print,--prompt}'[Run a single prompt non-interactively and print the response]:prompt: ' \
 		'--print-timeout=[Time limit for print mode (e.g. 30s, 0s waits indefinitely)]:timeout: ' \
 		'--project=[Project ID or project name for the current CLI session]:project: ' \
+		'--remote-agent[Run this session'\''s conversations using remote agents]' \
 		'--remote-control[Create a remote connection for the CLI session on start up]' \
 		'--sandbox[Run in a sandbox with terminal restrictions enabled]' \
 		'--settings=[Settings JSON string or file path]:settings:_files' \
@@ -239,6 +269,9 @@ _agy() {
 			;;
 		args)
 			case "$line[1]" in
+				acp)
+					_agy_acp && ret=0
+					;;
 				agent|agents)
 					_arguments -s \
 						'(-h --help)'{-h,--help}'[Show help]' && ret=0

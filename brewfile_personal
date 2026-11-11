@@ -1,5 +1,6 @@
 tap "homebrew/cask"
 tap "homebrew/core"
+tap "jazzyalex/agent-sessions"
 tap "manaflow-ai/cmux"
 tap "tiagovilasboas/tap"
 tap "wpscanteam/tap"
@@ -151,6 +152,8 @@ brew "zoxide"
 brew "zsh-autosuggestions"
 # Autonomous Session Agent Engine & Outer Harness for Google Antigravity
 brew "tiagovilasboas/tap/agyo", trusted: true
+# Unified session browser for Codex CLI, Claude Code, Gemini CLI, and OpenCode (read-only)
+cask "jazzyalex/agent-sessions/agent-sessions", trusted: true
 # Microsoft Azure CLI 2.0
 cask "azure-cli"
 # Web browser focusing on privacy
