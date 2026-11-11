@@ -19,6 +19,7 @@
 - **Wi-Fi & Speed CLI**: Use `wifi-check` for Wi-Fi health, speed tests, and VPN audits (use `-q` for quick, `-j` for JSON; see `wifi-check --help`).
 - **Git Execution**: Never use `git -C`. Run bare `git` commands directly in the current workspace. For other repositories, use `(cd <path> && git <cmd>)`.
 - **Secrets & Passwords**: Never print, echo, or expose raw passwords, tokens, or credentials in chat or command outputs so they never enter agent context.
+- **Local Agent Sessions & Memory**: Antigravity maintains an SQLite database of all local conversation history, metadata, and full-text search (`conversations_fts` table) at `~/.gemini/antigravity-cli/conversation_summaries.db` (with raw transcripts and artifacts in `~/.gemini/antigravity-cli/brain/<conversation-id>/`). Be proactive: use this as a research tool to inspect past sessions, check if related work was already done locally, or recall past solutions and commands instead of starting from scratch.
 
 # GitHub Issue & PR Bodies
 
