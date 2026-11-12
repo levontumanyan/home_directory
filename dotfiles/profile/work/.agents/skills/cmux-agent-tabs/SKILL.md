@@ -113,6 +113,10 @@ When the user does ask:
 2. **Close it**:
    ```bash
    cmux close-surface --surface <surface-ref> --workspace <ref>
+   # → Error: confirmation_required: Surface has a running process; retry with force=true
+   # An idle opencode TUI still counts as a running process — after step 1's verification,
+   # close with force:
+   cmux close-surface --surface <surface-ref> --workspace <ref> --force true
    # → OK surface:NNN workspace:NN
    ```
 3. **Confirm with `cmux tree`** that the tab is gone from the workspace.

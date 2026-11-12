@@ -17,6 +17,8 @@ brew "awscli"
 brew "azure-cli"
 # Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
+# Incredibly fast JavaScript runtime, bundler, test runner, and package manager
+brew "bun"
 # Create and run Linux containers using lightweight virtual machines
 brew "container"
 # Tool for interacting with remote images and registries
