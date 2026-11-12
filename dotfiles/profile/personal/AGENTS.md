@@ -4,7 +4,7 @@
 - **Proactivity vs. Questions**: If asked a direct or conceptual question, answer first without executing commands. For operational tasks, code modifications, or troubleshooting, execute commands proactively instead of asking for permission (unless the command must be run on a different physical device).
 - **Search & Scripts**: Use ripgrep (`rg`) for searching and grepping. Ensure all authored scripts automatically generate `--help` output.
 - **Git Execution**: Never use `git -C`. Run bare `git` commands directly in the current workspace. For other repositories, use `(cd <path> && git <cmd>)`.
-- **Secrets & Passwords**: Never print, echo, or expose raw passwords, tokens, or credentials in chat or command outputs so they never enter agent context.
+- **Secrets & Passwords**: Never print, echo, pass, embed, or expose raw passwords, tokens, API keys, or credentials anywhere in chat, command-line arguments, scripts, heredocs, or command outputs so they never enter agent context. Secrets must strictly remain in local config/environment files (e.g. `~/.config/...`) and be accessed only via environment variables or file reads.
 - **Agent Memory**: Antigravity maintains an SQLite database of all local conversation history and full-text search at `~/.gemini/antigravity-cli/conversation_summaries.db` (with raw transcripts and artifacts in `~/.gemini/antigravity-cli/brain/<conversation-id>/`). Query this database proactively to inspect past sessions, check if related work was already done locally, or recall past solutions and commands instead of starting from scratch.
 
 # Tool Integrations
