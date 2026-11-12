@@ -60,7 +60,7 @@ brew "nono"
 # Okta federated identity for AWS CLI
 brew "okta-aws-cli"
 # Create, run, and share large language models (LLMs)
-brew "ollama", restart_service: :changed
+brew "ollama"
 # Development kit for the Java programming language
 brew "openjdk"
 # Pinentry for GPG on Mac

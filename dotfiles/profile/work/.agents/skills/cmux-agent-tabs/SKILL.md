@@ -49,10 +49,11 @@ Workspace refs look like `workspace:26`; windows like `window:2`. The `--workspa
    cmux paste --workspace <ref> --surface <surface-ref> --submit - < prompt.md
    ```
    `--submit` presses enter so the agent starts immediately.
-6. Name the tab:
+6. Name the tab (keep it short — the user reads the tree at a glance):
    ```bash
    cmux rename-tab --workspace <ref> --surface <surface-ref> "PR 4305 · FRS ConMon key"
    ```
+   The `VERB · object` pattern (`REVIEW · PR 4305 ...`, `VERIFY · DIL5 transforms`, `WORK · #2990`, `REPLY · metrics*`) makes a tab's role scannable in `cmux tree` and survives restarts — refs do not.
 7. Verify it landed (do not skip):
    ```bash
    sleep 5
@@ -67,6 +68,7 @@ When opening many tabs, loop steps 3–7 per PR sequentially (each needs its boo
 - **`cmux paste` can time out** even when it succeeded, and can also silently not deliver. Always verify with `read-screen`; on a missed paste just re-paste.
 - **`new-surface` can return OK without creating the tab** — the reply says `OK surface:NNN ...` but `paste` then fails with `Missing or invalid terminal_id` and the surface never appears in `cmux tree`. After `new-surface`, confirm the surface exists in `cmux tree` (with a tty attached) before pasting; if it is missing, just run `new-surface` again.
 - **zsh `path` is special** — it is tied to `PATH`. Using `path` as a variable name in a loop silently destroys PATH mid-script (`git`, `tail` suddenly "command not found"). Use `wt`, `ref`, `out`.
+- **zsh `prompt` is special too** — `declare -A prompt` fails with "can't assign array value to non-array special". Same class of footgun as `path`: one-word lowercase names collide with zsh specials. Use `pfile`, `name2`, anything not special.
 - **Unquoted `===`/`**` as echo separators get glob-expanded** in zsh ("zsh:1: == not found"). Use `---` or quote them.
 - **`read-screen` works on terminal surfaces only** — with `--workspace` and `--surface` refs, both required.
 - **PR branches may come from forks**: `gh pr view <n> --json headRepositoryOwner` first. If the head repo is not the target repo, `git remote add <owner> https://github.com/<owner>/<repo>.git`, then fetch and worktree from `<remote>/<branch>`.
@@ -79,6 +81,20 @@ For "review each of these PRs" requests, seed each tab with a tailored prompt (n
 ## Status checks
 
 To report progress on live tabs: `cmux tree --workspace <ref>` (tab list) and `cmux read-screen` per tab (agent working vs idle vs missed prompt). A finished report stays scrollable in the tab — `read-screen` shows the tail of it.
+
+## Reordering tabs
+
+When presenting a batch of tabs, order them in cmux to match the reading order the user works through — the tabs then *are* the to-do list:
+
+```bash
+cmux reorder-surface --surface <surface-ref> --index <n> --workspace <ref>
+```
+
+The coordinator session stays first (`--index 0` is its usual position), then the reading order: answers someone is waiting on first, then review-gated merges by urgency (audit/security first), then finished-work housekeeping. Reorder one surface per command; existing tabs shift to make room. Pair it with a table in your reply: order, tab name, status, why it's in that position.
+
+## Refs survive only as long as the app
+
+Workspace/surface refs (`workspace:26`, `surface:241`) are runtime IDs — **a cmux or machine restart rotates every one of them** (`workspace:26` → `workspace:1000000011`). After any restart: re-run `cmux identify` (caller's workspace) and `cmux workspace list` / `cmux tree`, then re-map tabs by *name* — names survive restarts, refs do not. If tabs came back empty (bare shell instead of the opencode TUI), that is the `cmux-session-restore` skill's territory.
 
 ## Closing a tab — only on explicit request
 
