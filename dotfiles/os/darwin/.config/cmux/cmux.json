@@ -12,7 +12,409 @@
   },
 
   "terminal": {
-    "autoResumeAgentSessions": true
+    "autoResumeAgentSessions": true,
+
+    "resumeCommands": [
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_e5e9bd1cdffeUjY9PK2DrYv1IU"
+        ],
+        "createdAt" : 1794486993.559108,
+        "cwd" : "\/Users\/levontumanyan\/repos\/home_directory",
+        "environmentKeys" : [
+
+        ],
+        "id" : "ddb3ca84-74c2-4bba-8a23-3b4a541769ff",
+        "name" : "OC | Agent instruction clarity review",
+        "policy" : "manual",
+        "signature" : "B9VMOXaeGQ4X\/3CM17QnTPYxlwieSoK1gwn27n+++Fw=",
+        "source" : "cli",
+        "updatedAt" : 1794486993.559108,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_fdae49685ffe94yvA88LiDGZo3"
+        ],
+        "createdAt" : 1794486993.6082811,
+        "cwd" : "\/Users\/levontumanyan\/repos\/knowledge-base",
+        "environmentKeys" : [
+
+        ],
+        "id" : "5a77c4fe-0683-45e4-8038-2cd76973b430",
+        "name" : "OC | Review karma skill integration",
+        "policy" : "manual",
+        "signature" : "ILWFDwsxs1QJmZ+N+AiJiK5eX5ogfk4BFD3FMKrNh08=",
+        "source" : "cli",
+        "updatedAt" : 1794486993.6082811,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_e7857ecbeffe2vk8bc7iuNlNHa"
+        ],
+        "createdAt" : 1794486993.663208,
+        "cwd" : "\/Users\/levontumanyan\/repos\/knowledge-base",
+        "environmentKeys" : [
+
+        ],
+        "id" : "82d749ae-1006-470b-882a-a46f376ff54a",
+        "name" : "OC | GitHub links in Neovim daily logs",
+        "policy" : "manual",
+        "signature" : "yJY643WyeE3F\/5DkWqjJ7rUhA4liYkDdJerZpdCYrQo=",
+        "source" : "cli",
+        "updatedAt" : 1794486993.663208,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f36eea89bffevBb6e18vyXRJaW"
+        ],
+        "createdAt" : 1794486993.702999,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "1f71477a-237f-458b-81ae-845f9af962fa",
+        "name" : "OC | Find master+data 3 node clusters",
+        "policy" : "manual",
+        "signature" : "tl1SB+73h7ghCVpiLPS3OKYGXy+mr6Yfb7e0u10D+3U=",
+        "source" : "cli",
+        "updatedAt" : 1794486993.702999,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f36e339e4ffeIqj2qXnuyzKQyN"
+        ],
+        "createdAt" : 1794486993.752658,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "b7326645-8598-4273-898c-82b9095d2915",
+        "name" : "OC | Cluster memory\/CPU constraints review",
+        "policy" : "manual",
+        "signature" : "LAapmsFqkh7RHHLstOsOefnoKFhgYV0paLuwe6lIp20=",
+        "source" : "cli",
+        "updatedAt" : 1794486993.752658,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_ee7fd600affeLwlQ5eBoB5sQiC"
+        ],
+        "createdAt" : 1794486993.826065,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "22d743de-9ae9-4ced-be3b-da28b5fda016",
+        "name" : "eck-gitops",
+        "policy" : "manual",
+        "signature" : "XXkwxQuwKIau8mmpANZUv4RMxUO+aJ8g66ag6oDNSHk=",
+        "source" : "cli",
+        "updatedAt" : 1794486993.826065,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_ee6de04f0ffe7FEOCv9I7s6clw"
+        ],
+        "createdAt" : 1794486993.876452,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "a980e263-6909-462e-bf27-05f87ba4fcb6",
+        "name" : "phase1",
+        "policy" : "manual",
+        "signature" : "TMCbadQ6Mt8OxSegoJZigr\/hfFHf4F1Zn95NA82METs=",
+        "source" : "cli",
+        "updatedAt" : 1794486993.876452,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_ea6084b7cffe0gFq7ho3bRjLRr"
+        ],
+        "createdAt" : 1794486997.2816238,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "18c9a6b8-17c1-490e-9750-c2fa35f303d7",
+        "name" : "OC | ECK audit logging split via reroute p…",
+        "policy" : "manual",
+        "signature" : "GRtO\/Huj8rYiJPnWNsqaB7pa9HFJ6la\/YgfsM6jbLPM=",
+        "source" : "cli",
+        "updatedAt" : 1794486997.2816238,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f4f0fca4affe3yLEp6c50R9pld"
+        ],
+        "createdAt" : 1794487002.818348,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "7ad53b52-d861-4d32-8aea-dca572d12af1",
+        "name" : "karpenter-leftovers",
+        "policy" : "manual",
+        "signature" : "WAIWgyoIXCfJC1GujW4bI75rZ6ZNnLLJQzf6YEKJkoc=",
+        "source" : "cli",
+        "updatedAt" : 1794487002.818348,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f307a2204ffem6COqknq6YUdGk"
+        ],
+        "createdAt" : 1794487002.8735728,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "d8aa2adb-3f35-4fdd-a352-4d30b7a4c30d",
+        "name" : "segregate-monitoring",
+        "policy" : "manual",
+        "signature" : "lxHUoYU\/XO8JCxd5DoRts5Qs64kHzz4sjcXrN7Xszj4=",
+        "source" : "cli",
+        "updatedAt" : 1794487002.8735728,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_e5dafb176ffexjhOQ9qkBZHZnp"
+        ],
+        "createdAt" : 1794487002.921763,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "1ece7796-ec15-4a96-86d8-4b068a1613d0",
+        "name" : "frm-pagerduty-automation",
+        "policy" : "manual",
+        "signature" : "YRfhOa1Y3OJK1fdA\/hJf9LCipFjTLZ4myS5X6yq\/uBQ=",
+        "source" : "cli",
+        "updatedAt" : 1794487002.921763,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_e632db437ffewRo2Vz8lPjIgsE"
+        ],
+        "createdAt" : 1794487002.959861,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "929bb067-758a-4b31-9f37-58eec4a3ee10",
+        "name" : "delete-s3",
+        "policy" : "manual",
+        "signature" : "fkMMYRTUxr8jPbRUXS93+WiIToHa2ZuzkIfHO00uUHc=",
+        "source" : "cli",
+        "updatedAt" : 1794487002.959861,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f17ff9890ffe5Vqf6QUFYXgAb9"
+        ],
+        "createdAt" : 1794487003.002572,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "9bec03b7-d1e6-4ca7-a5bf-967fc7ce6be9",
+        "name" : "monitoring",
+        "policy" : "manual",
+        "signature" : "vLWHeFUSrLHkPUqnSLBR+YWV7vAqIWaUwDm6aywwsBY=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.002572,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_ea60c6358ffezSois0L4MI5q13"
+        ],
+        "createdAt" : 1794487003.060425,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "9073d0ce-4a9a-42f3-879e-a21c86de2fcf",
+        "name" : "deepfreeze",
+        "policy" : "manual",
+        "signature" : "TPMgJScDtEIK1OdI\/3+IZ7qfJOfRsaSfiDlOwmY0\/3M=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.060425,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f0dd5761dffeVfngX33z4N7yp8"
+        ],
+        "createdAt" : 1794487003.109807,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "ad3fda10-42a6-4aeb-91c5-2e82714c12cb",
+        "name" : "glacier",
+        "policy" : "manual",
+        "signature" : "yCOdIR4Tsav+zB839xbZIEbpQT6ZuaPMBN95uZj+5O8=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.109807,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f0864841bffewoLmO5edegefe7"
+        ],
+        "createdAt" : 1794487003.15655,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "08964e61-136f-4ee5-a4fe-4bb7a2b57135",
+        "name" : "2625",
+        "policy" : "manual",
+        "signature" : "416iiGpqopRDzeiBd5iu3reQcfE8ed4WRENH+619J\/Y=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.15655,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_fc638a515ffeRz3vaYBxevwAEH"
+        ],
+        "createdAt" : 1794487003.218368,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "07ea84d1-a058-4dc4-a583-ce65623f7cef",
+        "name" : "field-mapping",
+        "policy" : "manual",
+        "signature" : "eRi5irdxjPUDQHEDlRIWcsHoNWLiVgJ3CYFir1G0i9g=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.218368,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f17f45c5affegcNP6EAkzAoo6X"
+        ],
+        "createdAt" : 1794487003.285819,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "68af9419-a0df-4378-a0c5-25b86b879d82",
+        "name" : "OC | ECK logging Terraform providers review",
+        "policy" : "manual",
+        "signature" : "J+3wHr2q2bn3jy3PL\/LEJcFJNMGZfoDimeQzHloVLcQ=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.285819,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f12864222ffea3AqRzD5Yi02K8"
+        ],
+        "createdAt" : 1794487003.340168,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "ced81db8-9774-44c1-80ce-89ee5b141c2b",
+        "name" : "script",
+        "policy" : "manual",
+        "signature" : "FSsHrfFoCCmdDtf64XS+MOLVdR9EPhorRWiTmDaSiLU=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.340168,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f16f8bb3dffeKtREZnt67nLLtm"
+        ],
+        "createdAt" : 1794487003.394438,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "c3fbe4dd-560a-45b0-8d0d-3f5f808b3e2f",
+        "name" : "sec-log-epic",
+        "policy" : "manual",
+        "signature" : "LVJMaQ9FTEGcZBNBdtEfsYlY8HQN5pA\/ezsxdolgdmk=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.394438,
+        "version" : 1
+      },
+      {
+        "commandPrefix" : [
+          "opencode",
+          "--session",
+          "ses_f31a7767fffe1EI2nv3uixar52"
+        ],
+        "createdAt" : 1794487003.510361,
+        "cwd" : "\/Users\/levontumanyan\/repos\/platform-security-team\/psteam",
+        "environmentKeys" : [
+
+        ],
+        "id" : "1c9b8c2d-2667-495e-bec2-e2ea67b42828",
+        "name" : "query-logging",
+        "policy" : "manual",
+        "signature" : "CsvmmvM8QxYFmUDjXOY7UxuQnu\/ZEorVCEidpOzAJso=",
+        "source" : "cli",
+        "updatedAt" : 1794487003.510361,
+        "version" : 1
+      }
+    ]
   },
 
   "sidebarAppearance": {
