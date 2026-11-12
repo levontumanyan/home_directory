@@ -1,0 +1,20 @@
+{
+	"mcpServers": {
+		"stealth-browser": {
+			"command": "uv",
+			"args": [
+				"run",
+				"--script",
+				"/Users/levontumanyan/repos/agent-tools/bin/stealth-browser"
+			]
+		},
+		"google-maps": {
+			"command": "/bin/zsh",
+			"args": [
+				"-c",
+				"export GOOGLE_MAPS_API_KEY=$(security find-generic-password -w -s \"google-maps-api-key\" -a \"$USER\") && exec npx -y @modelcontextprotocol/server-google-maps"
+			],
+			"disabled": false
+		}
+	}
+}
