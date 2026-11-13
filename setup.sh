@@ -82,4 +82,9 @@ if [ "$(uname)" = "Darwin" ]; then
 	if [ -f "$(dirname "$0")/scripts/setup_brave.sh" ]; then
 		bash "$(dirname "$0")/scripts/setup_brave.sh"
 	fi
+
+	# Apply cmux terminal settings (Ghostty-level, outside cmux.json)
+	if [ -f "$(dirname "$0")/scripts/setup_cmux.sh" ]; then
+		bash "$(dirname "$0")/scripts/setup_cmux.sh"
+	fi
 fi
