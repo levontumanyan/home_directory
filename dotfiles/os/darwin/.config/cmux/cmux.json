@@ -7,12 +7,58 @@
     "reorderOnNotification": true
   },
 
+  "computerUse": {
+    "enabled": false,
+    "showInMenuBar": false
+  },
+
+  "browser": {
+    "openTerminalLinksInCmuxBrowser": false,
+    "interceptTerminalOpenCommandInCmuxBrowser": false,
+    "showSearchSuggestions": false,
+    "discardHiddenWebViews": true,
+    "hiddenWebViewDiscardMode": "timer",
+    "hiddenWebViewDiscardDelaySeconds": 60,
+    "autoRestoreUnloadedPages": false
+  },
+
+  "sidebar": {
+    "openPullRequestLinksInCmuxBrowser": false,
+    "openPortLinksInCmuxBrowser": false,
+    "showCloudDeviceIcons": false
+  },
+
+  "customSidebars": {
+    "beta": {
+      "enabled": false
+    }
+  },
+
+  "automation": {
+    "claudeCodeIntegration": false,
+    "codexIntegration": false,
+    "piIntegration": false,
+    "ampIntegration": false,
+    "cursorIntegration": false,
+    "geminiIntegration": false,
+    "kiroIntegration": false,
+    "agentAutoResume": false
+  },
+
+  "chief": {
+    "enabled": false
+  },
+
+  "agentMessages": {
+    "enabled": false
+  },
+
   "notifications": {
     "showInMenuBar": true
   },
 
   "terminal": {
-    "autoResumeAgentSessions": true,
+    "autoResumeAgentSessions": false,
 
     "resumeCommands": [
       {
@@ -414,7 +460,11 @@
         "updatedAt" : 1794487003.510361,
         "version" : 1
       }
-    ]
+    ],
+    "runawayMemoryGuardrail": {
+      "enabled": true,
+      "thresholdGB": 8
+    }
   },
 
   "sidebarAppearance": {
