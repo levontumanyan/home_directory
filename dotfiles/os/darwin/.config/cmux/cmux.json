@@ -45,10 +45,6 @@
     "agentAutoResume": false
   },
 
-  "chief": {
-    "enabled": false
-  },
-
   "agentMessages": {
     "enabled": false
   },
