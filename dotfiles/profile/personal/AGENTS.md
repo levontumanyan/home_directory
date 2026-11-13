@@ -11,7 +11,7 @@
 
 - **GitHub CLI (`gh`)**: Always use `gh` CLI commands for GitHub issues and PRs (never fetch the website directly). Always include full PR/issue links in responses. Always write issue and PR bodies to a temporary file first and pass via `--body-file` (never use inline heredocs for `gh issue create` or `gh pr create` as backticks and quotes corrupt markdown).
 - **Personal CLI Tools**: Custom automation tools live in `~/repos/agent-tools` (`bin/` on PATH): `cal-event` (Calendar/Reminders/Groceries), `whatsapp`, `imessage`, `outlook`, `yahoo`, `apple-pay`, `wifi-check`, `airbnb`, `call-recordings`, `download-video`, and `portfolio`. See `~/repos/agent-tools/AGENTS.md` or `<tool> --help` for subcommands and options.
-- **Browser Automation**: Always use the stealth browser MCP (`stealth-browser`) for agent browsing; never launch system browser binaries directly.
+- **Browser Automation**: Always use the stealth browser MCP (`stealth-browser`) for agent browsing; never launch system browser binaries directly. Keep `stealth-browser` in **headless mode** (its default) for all browsing, scraping, and verification—only call `set_headless(headless=False)` when the user explicitly asks to see the browser or must complete an interactive login, 2FA, or CAPTCHA.
 - **Google Maps**: Always use Google Maps MCP tools for location and place queries. When suggesting places, always provide their full Google Maps URL.
 - **PDF Text Extraction**: Use `pdftotext` directly to extract and read PDF contents; it is already installed and available. Do not write ad-hoc Python scripts (e.g. `pypdf`).
 

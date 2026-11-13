@@ -25,7 +25,10 @@
   "sidebar": {
     "openPullRequestLinksInCmuxBrowser": false,
     "openPortLinksInCmuxBrowser": false,
-    "showCloudDeviceIcons": false
+    "showCloudDeviceIcons": false,
+    "watchGitStatus": false,
+    "showPullRequests": false,
+    "showPorts": false
   },
 
   "customSidebars": {

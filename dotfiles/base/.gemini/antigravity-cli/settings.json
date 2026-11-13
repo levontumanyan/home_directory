@@ -61,6 +61,7 @@
 			"mcp(stealth-browser/press_key)",
 			"mcp(stealth-browser/screenshot)",
 			"mcp(stealth-browser/scroll)",
+			"mcp(stealth-browser/set_headless)",
 			"mcp(stealth-browser/set_media)",
 			"mcp(stealth-browser/snapshot)",
 			"mcp(stealth-browser/state)",
