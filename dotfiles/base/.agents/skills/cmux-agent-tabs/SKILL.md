@@ -17,6 +17,26 @@ Run one opencode TUI per PR/task in cmux terminal tabs, each seeded with a promp
 
 A plain terminal tab running the `opencode` TUI works with every cmux command: `paste`, `read-screen`, `rename-tab`. Use it.
 
+## Creating a workspace (coordinator move-out)
+
+`cmux new-workspace` (alias `cmux workspace create`) makes a fresh workspace for a coordination run, so worker tabs never crowd the user's existing ones:
+
+```bash
+cmux new-workspace --name "COORD · <topic>" --cwd <dir> --focus false
+# OK workspace:27  → capture the ref
+cmux workspace rename workspace:27 --title "<final name>"   # renaming works after the fact
+```
+
+When the coordinator moves itself out, `move-surface` carries an existing tab (its own included) into the new workspace without killing the process inside:
+
+```bash
+cmux move-surface --surface <coordinator-surface> --workspace workspace:27
+```
+
+After the move, `cmux identify` (run by anything in that tab) reports the new workspace as caller — but safer to pass `--workspace <new ref>` explicitly on every subsequent command. Verify with `cmux tree --workspace <ref>` after every structural step: create, move, reorder.
+
+Closing a workspace (`cmux close-workspace --workspace <ref>`) closes its tabs with it — same "only on explicit request" rule as closing a tab.
+
 ## Discovery (always first)
 
 ```bash
@@ -25,6 +45,8 @@ cmux tree --workspace workspace:NN   # tabs in a workspace
 ```
 
 Workspace refs look like `workspace:26`; windows like `window:2`. The `--workspace`/`--window` flags on the commands below take these refs. If the user says "this workspace", it's the caller's workspace from `cmux identify`.
+
+**New tabs always go in the caller's workspace.** Run `cmux identify` first and use its `caller.workspace_ref` for every `--workspace` flag below — or omit the flag, `new-surface` then defaults to the caller's workspace too (verified: a bare `new-surface` lands in the calling session's workspace). Never pick a workspace ref from `cmux workspace list` output: the first entry is not the caller's, and `[selected]` marks the app's focused workspace, which drifts from the caller's the moment the user switches tabs. `cmux workspace list` is for *reporting* on other workspaces, never for choosing where to spawn.
 
 ## Recipe per tab
 
@@ -40,6 +62,7 @@ Workspace refs look like `workspace:26`; windows like `window:2`. The `--workspa
      --working-directory <worktree> \
      --command opencode \
      --workspace <ref> --window <ref> --focus false
+   # <ref> = the caller's workspace_ref from `cmux identify` — never from `workspace list`
    # OK surface:240 pane:48 workspace:26  → capture the surface ref
    ```
    `--focus false` keeps the user's current tab focused while a batch opens.
@@ -81,6 +104,20 @@ For "review each of these PRs" requests, seed each tab with a tailored prompt (n
 ## Status checks
 
 To report progress on live tabs: `cmux tree --workspace <ref>` (tab list) and `cmux read-screen` per tab (agent working vs idle vs missed prompt). A finished report stays scrollable in the tab — `read-screen` shows the tail of it.
+
+## Coordinator pattern
+
+When one session (this one) owns a batch of worker tabs and drives them to completion:
+
+1. **Plan before spawning** — list the tasks first, one tab per task, and write every prompt file before opening any tab. Spawning before planning produces orphan tabs nobody owns.
+2. **Coordinator move-out** — for a run bigger than a couple of one-off tabs, create a dedicated workspace ("Creating a workspace"), move the coordinator tab into it, rename the workspace to the run's topic (`COORD · <topic>`), and spawn all workers there. The run then owns its whole sidebar entry; workers and coordinator stay together through restarts because workspace names survive.
+2. **Keep a worker registry** — a table you maintain in your reply and in working memory: tab name, surface ref, working directory/worktree, task, last status. The `VERB · object` tab name is the durable key — refs rotate on restart, names survive.
+3. **Spawn** — the recipe above, sequential, each tab verified before the next.
+4. **Poll, don't watch** — between user asks, run a status pass: `cmux tree` for the roster, then `read-screen` per tab. Read the screen signs the same way as the boot check: climbing token counter = working; a `Build · <model> · <duration> · <tok/s>` line with nothing after it = finished; a bare "Ask anything…" input box = prompt missed → re-paste.
+5. **Harvest and drive** — when a worker finishes, read its report, act on it (summarize for the user, open follow-up work), and if the task needs more rounds, paste the next prompt into that tab with `--submit`. A worker is done with its task when its output is consumed, not when its prompt runs out.
+6. **Report after every pass** — after each poll round tell the user: which workers are running, which finished (with one-line results), which are stuck or missed their prompt, and what you did about the stuck ones. Never close a tab on your own initiative — see "Closing a tab".
+
+When the workers live in a coordinator-created workspace, the coordinator tab sits first (`--index 0`) and workers follow in the order the user will read them — `reorder-surface` inside that workspace, same as the "Reordering tabs" rules.
 
 ## Reordering tabs
 
