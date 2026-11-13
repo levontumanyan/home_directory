@@ -57,8 +57,13 @@
     "showInMenuBar": true
   },
 
+  "surfaceTabBar": {
+    "fontSize": 14
+  },
+
   "terminal": {
     "autoResumeAgentSessions": false,
+    "copyOnSelect": true,
 
     "resumeCommands": [
       {
