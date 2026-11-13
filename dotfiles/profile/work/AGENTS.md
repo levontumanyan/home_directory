@@ -2,7 +2,7 @@
 
 # Code Style & Standards
 
-- **Comments**: Don't overdo comments. If something is important and needs to be documented suggest edits to markdown files. If you are making changes to a file that exists in different environments keep in mind consistency. If you are working on a pr prefer adding comments/info into the pr body instead of using comments in the file. Stop overusing hashtag comments(for example in .tf files)
+- **Comments**: No comment blocks, no file-header narratives, no "why I did this" comments. All context, design rationale, and references go in the PR body — never duplicated in code. Inline comments only for a non-obvious invariant tied to that exact line (e.g. a version-pinned ID that breaks on upgrade), max 2 lines. If a comment repeats anything in the PR body, delete it.
 - **Indentation**: Use one tab per hierarchy level for all code. If a file is using tabs use tabs, otherwise use spaces. For any new files check conventions. If no conventions in the repo use tabs for indentation, unless it is yaml.
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
 - **Python**: Whenever you are going to install new python packages make sure you consider the venv/uv. I don't want to pollute my global python.
@@ -17,7 +17,7 @@
 - in pst repo when making any changes use the worktree skill unless i mention to just make the changes in the main wortkree
 - **PR and issue references**: Whenever you mention a PR or GitHub issue by number, always format it as a markdown hyperlink so it is clickable. For example: [PR #2407](https://github.com/elastic/platform-security-terraform/pull/2407) or [issue #901](https://github.com/elastic/platform-security-team/issues/901). Never reference a number alone without a link.
 - In elastic/platform-security-terraform every push to a PR builds and plans automatically. Never comment `buildkite plan this` or `buildkite build this`; they do nothing now. For a fresh plan, push to the branch (a rebase onto main counts). If `gh pr update-branch` reports conflicts, resolve them via rebase.
-- Always run `gh pr update-branch <PR_NUMBER> && gh pr comment <PR_NUMBER> --body "buildkite apply this"` — never trigger an apply without updating first in the same command.
+- **Never post a `buildkite apply this` comment, and never answer, approve or unblock an approval gate** — that is my decision as the token holder. Run only `gh pr update-branch <PR_NUMBER>`; tell me what is ready to apply and let me comment and approve.
 - Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or `gh pr create` — backticks and nested quotes corrupt the markdown. Also use `--body-file` for `gh pr comment` whenever the body contains code blocks or backticks.
 - When you are working on a PR, especially when closing it make sure that the PR is closing an issue. If there is no issue that related that is fine, but it doesn't hurt to ask the user if you cannot deduce the issue that the PR should close to confirm if there is an issue or not.
 - When creating a PR that resolves an issue, use a GitHub-recognized closing keyword (Closes/Resolves/Fixes) with the full cross-repo reference (e.g., Closes elastic/platform-security-team#2191) as the first line of the PR body. Do not use Part of — it's informational only and won't populate the issue's Development panel or auto-close on merge.
@@ -30,8 +30,8 @@
 - if you are creating a terraform file that needs to be generated with harp-terraformer always do that. And make sure the specs exist and generate the file from the specs. Never manually create those files.
 - For `buildkite`, `bk` stuff use the MCP.
 - When you need to check buildkite pipeline, if the mcp didn't work. use bk commands. For example, `bk build view 11641 --pipeline elastic/platform-security-terraform`. No need to check `bk` is already in the path. If you need api token run `bk configure --org elastic`.
-- After running `buildkite apply this` if there are resources to apply the pipeline will be blocked, waiting for manual approval at the apply step. I will need you to pull the plan output to verify what it's proposing and tell me if all are good to apply or not. And if there are any resources that need to be applied/modified/deleted that are not from our changes flag immediately!
-- Plans run on every push, so read the existing plan comment and run `buildkite apply this` only if there is something to be applied.
+- After I comment `buildkite apply this`, the apply build blocks at a per-workspace approval gate. Identify the build's pull request from its `pull-request-identity` annotation or `GITHUB_PR_NUMBER` env — never from its branch, commit or title, which are `main`'s. Pull the plan output to verify what it's proposing and tell me if all are good to apply or not. And if there are any resources that need to be applied/modified/deleted that are not from our changes flag immediately!
+- Plans run on every push, so read the existing plan comment and tell me if there is something to be applied. If there is, I comment `buildkite apply this` — never you.
 - I am using `podman`! No `docker`.
 
 ## Vault CLI
@@ -50,6 +50,8 @@ Common cluster aliases: `infra-prod` (secrets.elastic.co), `infra-staging` (vaul
 ## VPN Switching (AWS Client VPN only)
 
 `aws-vpn-client` controls AWS Client VPN (FRS/FRH/DSTG/DIL5). Aviatrix (Commercial, FRM) is GUI-only; only my user connects or disconnects it. Aviatrix = `platform`, `frm`, `global-it` in `vpn-helper` output. Two full tunnels cannot run at the same time — Aviatrix drops AWS-bound packets with no error. If `detect` returns Aviatrix, stop and ask my user to disconnect first.
+
+in dstg/dil5 buildkite cannot apply anything! we need to run local applies with terraform! When we do local applies always post in the pr with a comment validation of the local plan and what was applied!
 
 LLM access per tunnel: Commercial, `frm` — all providers; `dstg`, `dil5` — all providers (for now); `frs`, `frh` — AWS Bedrock only (for now). My user has no `frh` access — do not try.
 
@@ -117,6 +119,14 @@ For AWS access, use `platform-cli-auth`. In every Bash tool call, source and inv
 
 When asked to create subissues, always create distinct child issue objects instead of adding comments or text mentions to the parent. Ensure a strict database-level hierarchy by explicitly passing the parent ID in the creation mutation.
 Always create prs in non draft, even if some other instructions tell you otherwise.
+
+# Code Reviews & Verification
+
+- **Verify, don't infer.** Any claim that can be checked with a command or file read gets checked. Tool output is the source of truth, not memory or inference. An empty grep is not evidence of absence — corroborate with a second method. A passing `plan`/`--dry-run` is not proof the real operation works. If I don't know, I say so; no guessing or fabricating.
+- **PR reviews**: lead with a 2-3 sentence summary of what the PR does, then inline line-specific comments. Read the body text of every review and comment — an APPROVED review often carries nits. Check auto-merge and CODEOWNERS before choosing approve vs. comment. Don't report what the author can already see (their CI, their conflicts), and don't flag unrelated plan drift.
+- **Severity**: a finding whose mechanism I traced in code is fact. A missing corroboration (silent subagent, green test) never justifies a downgrade — only new evidence that refutes the mechanism does. Never round "didn't check" down to "probably fine".
+- **Self-review**: before pushing my own PR, review the full `git diff <base>...HEAD` as someone else's PR. Fix the class, not the flagged instance — grep the changed identifier/invariant across the repo and fix every occurrence in the same commit. Reason one step past the edit: what depended on what I just removed or renamed?
+- **Briefing review subagents**: name the area, never the direction the bug would take — a stated direction excludes its opposite. Keep at least one reviewer unbriefed, given only the diff.
 
 # Environment Access
 
