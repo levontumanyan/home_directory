@@ -83,8 +83,8 @@ if [ "$(uname)" = "Darwin" ]; then
 		bash "$(dirname "$0")/scripts/setup_brave.sh"
 	fi
 
-	# Apply cmux terminal settings (Ghostty-level, outside cmux.json)
-	if [ -f "$(dirname "$0")/scripts/setup_cmux.sh" ]; then
-		bash "$(dirname "$0")/scripts/setup_cmux.sh"
+	# cmux Ghostty-level settings (live outside cmux.json, so not synced by stow)
+	if command -v cmux >/dev/null 2>&1; then
+		cmux config surface-tab-bar-font-size 14
 	fi
 fi
