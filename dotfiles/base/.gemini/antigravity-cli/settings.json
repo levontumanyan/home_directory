@@ -178,7 +178,9 @@
 			"command(which)",
 			"command(whoami)",
 			"command(wifi-check)",
-			"command(yahoo)"
+			"command(yahoo)",
+			"read_file(/Users/levontumanyan/repos)",
+			"read_file(/Users/levontumanyan/.gemini)"
 		]
 	},
 	"statusLine": {
@@ -200,7 +202,8 @@
 		"/Users/levontumanyan/repos/ragging-my-brain",
 		"/Users/levontumanyan/repos/inbox-pipeline",
 		"/Users/levontumanyan/repos/shoebox",
-		"/Users/levontumanyan/repos/games"
+		"/Users/levontumanyan/repos/games",
+		"/Users/levontumanyan/repos"
 	],
 	"enableTelemetry": false,
 	"verbosity": "high"
