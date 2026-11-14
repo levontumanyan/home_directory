@@ -56,6 +56,7 @@
 			"mcp(stealth-browser/evaluate_js)",
 			"mcp(stealth-browser/fetch)",
 			"mcp(stealth-browser/get_content)",
+			"mcp(stealth-browser/keep_alive)",
 			"mcp(stealth-browser/navigate)",
 			"mcp(stealth-browser/new_tab)",
 			"mcp(stealth-browser/press_key)",

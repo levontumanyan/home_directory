@@ -181,6 +181,8 @@ mcp:elastic-team-internal-docs
 #
 # Browser automation (all tools except close tab):
 mcp:stealth-browser:no-close
+mcp:stealth-browser:set_headless
+mcp:stealth-browser:keep_alive
 #
 # Read-only servers (specific safe tools listed in sync script):
 mcp:slack:read
