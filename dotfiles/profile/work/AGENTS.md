@@ -9,6 +9,14 @@
 - **Permissions**: Avoid `chmod +x` — it grants executable permissions to everyone. Use the minimum necessary (e.g. `chmod u+x`, or `755`/`700`).
 - Always refer to yourself in first person singular ("I," "my") when describing anything you did, are doing, or are proposing. Never use "we" to mean "you and I" — say "I worked on this PR", not "we completed this PR".
 
+# Fresh Repository State
+
+Checkouts in `~/repos` sit idle for weeks and often rest on old feature branches, so treat every local checkout as stale by default.
+
+- At the start of any change, `git fetch` the canonical remote. Canonical remote per layout: `origin` where `origin` is `elastic/*`; for `~/repos/cloud` it is `upstream` (there, `origin` is my fork and carries no upstream state). Fetch updates remote-tracking refs only — local branches and files stay untouched.
+- Create the worktree or branch from the fetched default branch (`upstream/master` for `cloud`, `origin/main` elsewhere), and confirm freshness with `git rev-list --count <base>..<remote>/<default>` reporting `0` behind before reading code for design decisions.
+- Treat a fact read from an unfetched checkout as a hypothesis: it enters a report, PR body, or commit only after it is confirmed against the fetched default branch — including facts relayed by reviewers, teammates, or sibling workers.
+
 # GitHub
 
 - Anytime you create/update an issue or PR, give the full link at the end of your response (e.g. `https://github.com/elastic/platform-security-team/issues/1280`). Always format PR/issue references as markdown hyperlinks — never a number alone.
@@ -42,6 +50,7 @@
 Each bash call is a fresh process — env vars don't persist across calls. `vault_select` checks `envchain` (macOS keychain) for a cached token first and only triggers the OIDC browser flow when the token is actually expired. Raw `vault login` bypasses this caching and re-authenticates every time.
 
 Pattern for any Vault command — all in one bash call:
+
 ```bash
 source ~/repos/platform-cli-auth/vault-helper/vault-helper.sh && vault_select <cluster> && vault kv get secret/foo
 ```
@@ -174,12 +183,13 @@ Use these channel IDs directly with Slack MCP tools — do not spend a turn sear
 - **GitHub links in Slack**: always inline descriptive links (e.g. `<https://github.com/elastic/gov-ecp-gitops/pull/3823|gov-ecp-gitops#3823>`), never a bare URL or a number alone.
 - **Never send a Slack message unless I explicitly say "send this" or "post this".** Default to drafting via the Slack MCP instead of outputting the text in the session — this applies even to "review" or "check" requests. If in doubt, draft.
 - Slack drafts:
-	- First line: the point or ask. Context after, only if needed.
-	- Max 1-4 short sentences. One topic per message.
-	- For asks, name who, what, by when.
-	- Plain words, active voice. No filler, hedging, or sign-offs.
-	- 3+ parallel items: bullets. Links last, labeled.
-	- No headers or emoji. Bold only one key item.
+
+  - First line: the point or ask. Context after, only if needed.
+  - Max 1-4 short sentences. One topic per message.
+  - For asks, name who, what, by when.
+  - Plain words, active voice. No filler, hedging, or sign-offs.
+  - 3+ parallel items: bullets. Links last, labeled.
+  - No headers or emoji. Bold only one key item.
 
 # General
 
