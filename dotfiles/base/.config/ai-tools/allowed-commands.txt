@@ -173,6 +173,7 @@ www.anthropic.com
 # Antigravity: uses mcp(<server>/*) — only applies if server is configured there
 #
 # Wildcard servers (all tools trusted):
+mcp:agy-search
 mcp:apple-calendar
 mcp:google-maps
 mcp:buildkite-ro

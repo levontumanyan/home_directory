@@ -123,6 +123,7 @@
       "WebFetch(domain:registry.terraform.io)",
       "WebFetch(domain:www.anthropic.com)",
       "WebSearch",
+      "mcp__agy-search__*",
       "mcp__apple-calendar__*",
       "mcp__buildkite-ro__*",
       "mcp__claude_ai_Atlassian__atlassianUserInfo",
