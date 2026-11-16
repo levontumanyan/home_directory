@@ -227,26 +227,10 @@ This is **not** a local rebase or merge — it uses the GitHub API to perform th
 **Default behavior**: Always use this API method when a PR branch needs updating. Never fall back to local `git rebase` or `git merge` unless the user explicitly requests a manual/local rebase. This preference is also enforced in `~/.claude/CLAUDE.md` (Branch Update / Rebase Preference).
 
 
-### CI/CD Trigger Comments (Buildkite)
+### Buildkite PR Builds (elastic/platform-security-terraform)
 
-Trigger CI/CD pipelines by posting PR comments:
-
-```bash
-# Get repo and PR info
-REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
-PR_NUMBER=$(gh pr view --json number -q '.number')
-
-
-
-# Trigger Buildkite apply (terraform apply)
-gh api --method POST repos/${REPO}/issues/${PR_NUMBER}/comments \
-  -f body="buildkite apply this" --jq '.html_url'
-```
-
-**Common Buildkite trigger phrases:**
-- `buildkite apply this` - Run terraform apply
-
-In elastic/platform-security-terraform, every push to a PR builds and plans automatically. `buildkite plan this` and `buildkite build this` do nothing there. Push to the branch for a fresh plan.
+- Every push to a PR builds and plans automatically. `buildkite plan this` and `buildkite build this` comments do nothing. Push to the branch (a rebase onto main counts) for a fresh plan.
+- Never post `buildkite apply this` either — that comment is the token holder's decision alone. Run `gh pr update-branch <PR_NUMBER>`, read the plan comment, and report what is ready to apply.
 
 **Note:** These triggers are repository-specific. Check your `.buildkite/` pipeline configuration for supported trigger phrases.
 

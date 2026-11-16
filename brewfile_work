@@ -1,8 +1,8 @@
 tap "anomalyco/tap"
 tap "aws/tap"
-tap "buildkite/buildkite"
+tap "buildkite/buildkite", trusted: true
 tap "hashicorp/tap", trusted: true
-tap "manaflow-ai/cmux"
+tap "manaflow-ai/cmux", trusted: true
 tap "nicknisi/formulae"
 tap "raine/claude-history"
 # AI pair programming in your terminal
@@ -115,6 +115,8 @@ brew "zsh-autosuggestions"
 brew "anomalyco/tap/opencode-v2", trusted: true
 # The official CLI for Amazon EKS
 brew "aws/tap/eksctl", trusted: true
+# Work with Buildkite from the command-line
+brew "buildkite/buildkite/bk@3"
 # Packer
 brew "hashicorp/tap/packer", trusted: true
 # Vault

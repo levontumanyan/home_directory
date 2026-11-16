@@ -3,13 +3,11 @@ import sys
 
 data = json.load(sys.stdin)
 cmd = data.get('tool_input', {}).get('command', '')
+triggers = ['buildkite plan this', 'buildkite build this', 'buildkite apply this']
+posts_comment = 'gh pr comment' in cmd or ('gh api' in cmd and 'comments' in cmd)
 
-if 'buildkite plan this' in cmd or 'buildkite build this' in cmd:
-	print('BLOCKED: plan and build comments do nothing anymore. Every push to a PR builds and plans automatically.')
-	print('For a fresh plan, push to the branch (a rebase onto main counts).')
-	sys.exit(1)
-
-if 'buildkite apply this' in cmd and 'gh pr update-branch' not in cmd:
-	print('BLOCKED: gh pr update-branch must run before triggering buildkite apply.')
-	print('Rewrite as: gh pr update-branch <PR_NUMBER> && gh pr comment <PR_NUMBER> --body "buildkite apply this"')
+if posts_comment and any(t in cmd for t in triggers):
+	print('BLOCKED: buildkite trigger comments are not yours to post.')
+	print('Every push to a PR builds and plans automatically. Push to the branch (a rebase onto main counts) for a fresh plan.')
+	print('Applies are posted only by the user. Tell the user what is ready to apply instead.')
 	sys.exit(1)
