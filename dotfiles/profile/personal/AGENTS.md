@@ -18,7 +18,7 @@
 
 # Code Style & Conventions
 
-- **Indentation**: Use one tab per hierarchy level for all code, shell scripts, Makefiles, and config files. Never use spaces, except for YAML files which require spaces by specification.
+- **Indentation**: Use one tab per hierarchy level for all code, shell scripts, Makefiles, and config files. Never use spaces, except for YAML files which require spaces by specification, and markdown, where tab-indented list items do not render (a tab is 4 spaces; lists allow at most 3) — indent markdown lists with spaces; fenced code blocks follow the fenced language's convention.
 - **Python**: Always execute Python commands, scripts, and one-liners via `uv` (e.g. `uv run python ...`), never bare `python` or `python3`. Whenever installing packages or creating environments, strictly use `uv`/venv so global python is never polluted.
 - **Permissions**: Avoid using `chmod +x` because it grants executable permissions to everyone. Instead, grant minimum permissions necessary (e.g. `chmod u+x` or specific octal modes like `755`/`700`).
 - **Markdown Headers & Style**: Use standard Markdown headers (`#`, `##`). Never use ASCII/text-based borders, cards, or custom section frames (e.g. `===` or `---` frames). Major sections must always use top-level `#` headings (avoid having only a single top-level `#` heading). Subsections use `##`. Avoid using `###` or deeper unless strictly necessary.
@@ -30,8 +30,8 @@
 All personal repositories reside under `~/repos/`. Detailed architectures, dependencies, and operational commands are documented in each repo's local `AGENTS.md`.
 
 - **`knowledge-base`**: Personal markdown knowledge vault organized by life domain (`career`, `comp_sci`, `finances`, `learning`, `personal`, `travel`, `work log`).
-	- Accounts Registry: `~/repos/knowledge-base/finances/accounts.yaml`
-	- Profile Details: `~/repos/knowledge-base/personal/profile.md`
+  - Accounts Registry: `~/repos/knowledge-base/finances/accounts.yaml`
+  - Profile Details: `~/repos/knowledge-base/personal/profile.md`
 - **`home_directory`**: Cross-platform dotfiles, shell configs, stow profiles, and machine bootstrap.
 - **`agent-tools`**: Swift, Python, and Shell CLI tool suite providing system, communication, and personal automation binaries (`bin/`).
 - **`games`**: Self-hosted web games and workout tracker (FastAPI + JS, hosted on `levon-box`).

@@ -6,9 +6,9 @@ A CLI tool to search, score, and rank flight options based on custom utility ben
 
 - **Multi-Provider Architecture**: Pluggable provider system starting with Google Flights (via `fast-flights`), with Amadeus and Kiwi planned.
 - **Two-Phase Scoring Engine**:
-	- **Base Scores**: Weighted metrics for price efficiency, total duration, departure convenience, and airline quality.
-	- **Stackable Penalties**: Multipliers that punish tight connections (<75m), grueling layovers (>4h), overnight transfers, and excessive stops without outright disqualifying the option.
-	- **Hard Filters**: Strict thresholds for maximum stops, price limits, and minimum layover duration.
+  - **Base Scores**: Weighted metrics for price efficiency, total duration, departure convenience, and airline quality.
+  - **Stackable Penalties**: Multipliers that punish tight connections (<75m), grueling layovers (>4h), overnight transfers, and excessive stops without outright disqualifying the option.
+  - **Hard Filters**: Strict thresholds for maximum stops, price limits, and minimum layover duration.
 - **Local Disk Caching**: Fast JSON caching with configurable TTL to minimize network requests.
 - **Terminal & File Reporting**: Clean ASCII terminal tables plus exportable CSV and JSON reports.
 

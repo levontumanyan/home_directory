@@ -36,6 +36,7 @@ install.sh redirects stdout/stderr to a log file. Use `say()` for informational 
 # Guarding Rules
 
 All commands that may not be present on every machine must be guarded:
+
 - Brew-dependent: wrap with `command -v brew >/dev/null 2>&1`
 - Optional tools (kubectl, fzf, zoxide, etc.): use `command -v <tool> >/dev/null 2>&1 &&`
 - Optional files (`.fzf.zsh`, `.local/bin/env`, `.work.zsh`): use `[ -f <path> ] &&`

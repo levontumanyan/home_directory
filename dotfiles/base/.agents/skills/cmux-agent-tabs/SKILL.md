@@ -72,11 +72,11 @@ Workspace refs look like `workspace:26`; windows like `window:2`. The `--workspa
    cmux paste --workspace <ref> --surface <surface-ref> --submit - < prompt.md
    ```
    `--submit` presses enter so the agent starts immediately.
-6. Name the tab — format `action | number | summary` (pipe-separated):
+6. Name the worker — pattern `something-something`, all lowercase, words joined by single dashes — and use that same name everywhere: `rename-tab`, roster row, message-log prefix, report filename:
    ```bash
-   cmux rename-tab --workspace <ref> --surface <surface-ref> "REVIEW | 4305 | FRS ConMon key"
+   cmux rename-tab --workspace <ref> --surface <surface-ref> "review-4305-frs-conmon-key"
    ```
-   Keep every field short — tabs are narrow, long names clump into truncated blobs in the sidebar. Action: one scannable verb (`REVIEW`, `VERIFY`, `WORK`, `REPLY`, `DEEP`). Number: the PR/issue number bare (`4305`, not `PR 4305`). Summary: 2-3 words, aggressively brief — hover shows the full name, so the summary never needs to carry detail. Names survive restarts — refs do not. The full descriptive name goes in the run dir (see "Report hand-off and coord file"), never in the tab title.
+   The name is descriptive: reading it tells you right away what the agent/tab is about (repo, PR/issue, topic). The report filename is the name plus `-report.md` (`review-4305-frs-conmon-key-report.md`). Keep it short — tabs are narrow, long names truncate in the sidebar. Names survive restarts — refs do not. There is exactly **one name per worker and it is the tab name**.
 7. Verify it landed (do not skip):
    ```bash
    sleep 5
@@ -111,14 +111,11 @@ To report progress on live tabs: `cmux tree --workspace <ref>` (tab list) and `c
 
 ```
 /private/var/folders/.../T/opencode/<run-slug>/
-├── shared.md              # roster + constraints + append-only message log
-└── w-<name>-report.md      # one per worker: the full final report
+├── shared.md                      # roster + constraints + append-only message log
+└── <name>-report.md               # one per worker: the full final report
 ```
 
-**Two layers of naming, both assigned by the coordinator at spawn:**
-
-- **Worker name** (`w-4404`, `w9-remote`) — the machine key: roster row, report filename, log prefix. Short and stable. `COORDINATOR` is the coordinator's reserved name.
-- **Tab name** — `action | number | summary` (see step 6 of the recipe). For the human sidebar only.
+**One name per worker, assigned by the coordinator at spawn — and it is the tab name** (`review-4305-frs-conmon-key`). Pattern: `something-something` — all lowercase, words joined by single dashes, descriptive enough that reading it tells you right away what the agent/tab is about. The same name is the roster key, the message-log prefix, and (plus `-report.md`) the report filename. `COORDINATOR` is the coordinator's reserved name.
 
 **`shared.md` structure** — the coordinator's one bounded read per poll:
 
@@ -129,7 +126,7 @@ Dir: <abs path>. Coordinator: COORDINATOR. Workers use their roster name.
 ## Roster
 | name | task | workdir | report file | status |
 |------|------|---------|-------------|--------|
-| w-4404 | REVIEW PR 4404 | <worktree> | w-4404-report.md | running |
+| review-4305-frs-conmon-key | Review PR 4305 (FRS ConMon key) | <worktree> | review-4305-frs-conmon-key-report.md | running |
 
 ## Hard constraints
 READ-ONLY on GitHub and infra — no push, no comments, no apply, no merge, no VPN changes.
@@ -138,13 +135,13 @@ READ-ONLY on GitHub and infra — no push, no comments, no apply, no merge, no V
 When done: write your report file, log one entry, write the on-screen verdict, stop. Never close/exit this tab.
 
 ## Message log — append only, newest last
-- [COORDINATOR] 07:28 spawned w-4404
-- [w-4404] 07:51 report ready → w-4404-report.md, verdict: approve-ready
+- [COORDINATOR] 07:28 spawned review-4305-frs-conmon-key
+- [review-4305-frs-conmon-key] 07:51 report ready → review-4305-frs-conmon-key-report.md, verdict: approve-ready
 ```
 
 **Rules:**
 
-1. **Message log entries start with the name in brackets** — `[COORDINATOR]` or `[<worker-name>]` — so anyone can `grep '\[w-4404\]'` and get that one agent's whole trail. The coordinator logs only when needed (addenda, decisions, cross-carried findings, spawn/harvest events) — the log is an index, not a diary.
+1. **Message log entries start with the worker name in brackets** — `[COORDINATOR]` or `[review-4305-frs-conmon-key]` — so anyone can grep the name and get that one agent's whole trail. The coordinator logs only when needed (addenda, decisions, cross-carried findings, spawn/harvest events) — the log is an index, not a diary.
 2. **Context budget:** max 3 lines per log entry, no slop — the log is the coordinator's bulk read on every poll. Full detail lives in the report file; the coordinator reads a report file only when it acts on that worker's verdict, not on every pass.
 3. **Channels are fixed:** into a worker = `cmux paste --submit`; out of a worker = its report file; status = `read-screen` only.
 4. **The screen is for the operator:** every worker ends with a short on-screen verdict (verdict + top findings, one paragraph). The user scrolls tabs at any moment and must get the answer without opening files. Screen = operator summary; file = coordinator harvest; log = pollable index.
@@ -157,12 +154,12 @@ When one session (this one) owns a batch of worker tabs and drives them to compl
 
 1. **Plan before spawning** — list the tasks first, one tab per task, and write every prompt file before opening any tab. Spawning before planning produces orphan tabs nobody owns.
 2. **Coordinator move-out** — for a run bigger than a couple of one-off tabs, create a dedicated workspace ("Creating a workspace"), move the coordinator tab into it, rename the workspace to the run's topic (`COORD · <topic>`), and spawn all workers there. The run then owns its whole sidebar entry; workers and coordinator stay together through restarts because workspace names survive.
-3. **Set up the run dir first** — create the run dir and `shared.md` ("Report hand-off and coord file") *before* spawning: assign every worker its name, write the roster, constraints, and termination protocol, then seed each prompt with its name, the `shared.md` path, and its report filename. The registry lives in `shared.md` — do not duplicate it in working memory.
+3. **Set up the run dir first** — create the run dir and `shared.md` ("Report hand-off and coord file") *before* spawning: assign every worker its name (the future tab name), write the roster, constraints, and termination protocol, then seed each prompt with its name, the `shared.md` path, and its report filename. The registry lives in `shared.md` — do not duplicate it in working memory.
 4. **Spawn** — the recipe above, sequential, each tab verified before the next.
 5. **Poll, don't watch** — between user asks, run a status pass: `cmux tree` for the roster, then `read-screen` per tab. Read the screen signs the same way as the boot check: climbing token counter = working; a `Build · <model> · <duration> · <tok/s>` line with nothing after it = finished (confirm the report file exists too — "Report hand-off" rule 5); a bare "Ask anything…" input box = prompt missed → re-paste.
 6. **Harvest and drive** — when a worker finishes, read its report *file*, act on it (summarize for the user, open follow-up work), and if the task needs more rounds, paste the next prompt into that tab with `--submit` and log the addendum `[COORDINATOR]`. A worker is done with its task when its output is consumed, not when its prompt runs out.
 7. **Report after every pass** — after each poll round tell the user: which workers are running, which finished (with one-line results), which are stuck or missed their prompt, and what you did about the stuck ones. Never close a tab on your own initiative — see "Closing a tab".
-8. **Seed a termination protocol into every worker prompt** — "When your task is done: write your full report to <run-dir>/w-<name>-report.md, append one entry to the shared.md message log, write a short on-screen verdict for the operator, then stop. Do not close this tab, do not run /exit, do not ask anyone to close it — the coordinator and user own tab lifecycle." Workers *can* self-close (verified live: `cmux identify` reveals the worker's own `caller.surface_ref`, and `cmux close-surface --surface <own> --workspace <own> --force true` really closes the tab — the CLI delivers the close over the socket before the session dies), but a self-closed worker cannot confirm or report anything afterward — its report dies with the tab, and the coordinator loses its output. That is why tab lifecycle stays with the coordinator, not a capability gap. A worker attempting a self-close may also stall at its own permission gate asking for confirmation — if you see that question on `read-screen`, answer it via `cmux send` + `cmux send-key ... enter`.
+8. **Seed a termination protocol into every worker prompt** — "When your task is done: write your full report to <run-dir>/<name>-report.md, append one entry to the shared.md message log, write a short on-screen verdict for the operator, then stop. Do not close this tab, do not run /exit, do not ask anyone to close it — the coordinator and user own tab lifecycle." Workers *can* self-close (verified live: `cmux identify` reveals the worker's own `caller.surface_ref`, and `cmux close-surface --surface <own> --workspace <own> --force true` really closes the tab — the CLI delivers the close over the socket before the session dies), but a self-closed worker cannot confirm or report anything afterward — its report dies with the tab, and the coordinator loses its output. That is why tab lifecycle stays with the coordinator, not a capability gap. A worker attempting a self-close may also stall at its own permission gate asking for confirmation — if you see that question on `read-screen`, answer it via `cmux send` + `cmux send-key ... enter`.
 
 When the workers live in a coordinator-created workspace, the coordinator tab sits first (`--index 0`) and workers follow in the order the user will read them — `reorder-surface` inside that workspace, same as the "Reordering tabs" rules.
 
