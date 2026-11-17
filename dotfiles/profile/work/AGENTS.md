@@ -3,7 +3,7 @@
 # Code Style & Standards
 
 - **Comments**: Code is only code. Context, design rationale, history, and references go in the PR body. Start every file I write or edit with zero comments; add a single inline comment only where a line's meaning is invisible on its own (e.g. a version-pinned ID that breaks on upgrade), max 2 lines. This holds even when neighboring files in the target repo carry long header blocks — local style yields to this rule. Before pushing, review every comment line in the diff and move each one that is not a non-obvious invariant into the PR body.
-- **Indentation**: One tab per hierarchy level. Match the file's existing convention (tabs or spaces); for new files with no convention, use tabs — except yaml, which uses spaces.
+- **Indentation**: One tab per hierarchy level. Match the file's existing convention (tabs or spaces); for new files with no convention, use tabs — except yaml and markdown, which use spaces. In markdown, tab-indented list items do not render (a tab is 4 spaces; lists allow at most 3), so indent lists with spaces; fenced code blocks follow the fenced language's convention.
 - **Proactivity**: Everytime you can run a command do it instead of asking me to run it. Unless you are asking me to run it on a different device!
 - **Python**: When installing python packages use a venv/uv. Never pollute my global python.
 - **Permissions**: Avoid `chmod +x` — it grants executable permissions to everyone. Use the minimum necessary (e.g. `chmod u+x`, or `755`/`700`).
@@ -24,7 +24,7 @@ Checkouts in `~/repos` sit idle for weeks and often rest on old feature branches
 - In pst repo when making any changes use the worktree skill, unless i mention to just make the changes in the main worktree.
 - When asked to create subissues, create distinct child issue objects — explicitly pass the parent ID in the creation mutation. Never use comments or text mentions on the parent.
 - Always create PRs as non-draft, even if some other instructions tell you otherwise.
-- When working on a PR, make sure it closes an issue. If no issue applies that is fine, but if you cannot deduce which issue it closes, ask me.
+- Most PRs don't need an issue — small fixes, doc tweaks, and routine changes are fine to merge without one. When an issue does apply, link it with a closing keyword; if you're unsure whether one applies, ask me and I'll decide.
 - When creating a PR that resolves an issue, use a GitHub-recognized closing keyword (Closes/Resolves/Fixes) with the full cross-repo reference (e.g. `Closes elastic/platform-security-team#2191`) as the first line of the PR body. Do not use `Part of` — it won't populate the issue's Development panel or auto-close on merge.
 - Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or `gh pr create` — backticks and nested quotes corrupt the markdown. Also use `--body-file` for `gh pr comment` whenever the body contains code blocks or backticks.
 
