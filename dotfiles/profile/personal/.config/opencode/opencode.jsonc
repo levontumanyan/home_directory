@@ -1,0 +1,16 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"model": "opencode/deepseek-v4.1-flash-free",
+	"mcp": {
+		"sessions": {
+			"type": "local",
+			"command": ["sessions", "--mcp"],
+			"enabled": true
+		}
+	},
+	"agent": {
+		"build": {
+			"model": "opencode/deepseek-v4.1-flash-free#max"
+		}
+	}
+}

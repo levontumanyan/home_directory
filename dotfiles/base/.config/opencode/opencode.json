@@ -1,0 +1,90 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"permission": {
+		"read": {
+			"~/repos/**": "allow",
+			"/tmp/**": "allow",
+			"/private/tmp/**": "allow"
+		},
+		"edit": {
+			"/tmp/**": "allow",
+			"/private/tmp/**": "allow"
+		},
+		"glob": {
+			"~/repos/**": "allow",
+			"/tmp/**": "allow",
+			"/private/tmp/**": "allow"
+		},
+		"grep": {
+			"~/repos/**": "allow",
+			"/tmp/**": "allow",
+			"/private/tmp/**": "allow"
+		},
+		"external_directory": {
+			"~/repos/**": "allow",
+			"/tmp/**": "allow",
+			"/private/tmp/**": "allow"
+		},
+		"bash": {
+			"argo get": "allow",
+			"bk artifacts": "allow",
+			"bk build list": "allow",
+			"bk build view": "allow",
+			"bk pipeline view": "allow",
+			"cat": "allow",
+			"curl": "allow",
+			"curl --silent": "allow",
+			"curl -s": "allow",
+			"d2": "allow",
+			"date": "allow",
+			"diff": "allow",
+			"echo": "allow",
+			"find": "allow",
+			"gh api": "allow",
+			"gh issue": "allow",
+			"gh issue list": "allow",
+			"gh issue view": "allow",
+			"gh pr checks": "allow",
+			"gh pr diff": "allow",
+			"gh pr list": "allow",
+			"gh pr review": "allow",
+			"gh pr status": "allow",
+			"gh pr view": "allow",
+			"gh release list": "allow",
+			"gh release view": "allow",
+			"gh repo view": "allow",
+			"gh run list": "allow",
+			"gh run view": "allow",
+			"gh search": "allow",
+			"gh workflow list": "allow",
+			"gh workflow view": "allow",
+			"git blame": "allow",
+			"git branch": "allow",
+			"git diff": "allow",
+			"git fetch": "allow",
+			"git log": "allow",
+			"git remote": "allow",
+			"git shortlog": "allow",
+			"git show": "allow",
+			"git stash list": "allow",
+			"git status": "allow",
+			"git tag": "allow",
+			"git worktree": "allow",
+			"grep": "allow",
+			"grep -r": "allow",
+			"head": "allow",
+			"jq": "allow",
+			"kubectl describe": "allow",
+			"kubectl explain": "allow",
+			"kubectl get": "allow",
+			"kubectl logs": "allow",
+			"kubectl top": "allow",
+			"ls": "allow",
+			"make lint": "allow",
+			"rg": "allow",
+			"tail": "allow",
+			"wc": "allow"
+		},
+		"webfetch": "allow"
+	}
+}

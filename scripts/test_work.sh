@@ -45,5 +45,9 @@ assert_file_absent "$HOME/.personal.zsh"
 assert_not_symlink "$HOME/.personal.zsh"
 assert_content "$HOME/AGENTS.md" "buildkite"
 assert_no_content "$HOME/AGENTS.md" "System Instruction"
+assert_content "$HOME/.config/opencode/opencode.jsonc" "openrouter"
+assert_no_content "$HOME/.config/opencode/opencode.jsonc" "deepseek-v4.1-flash-free"
+assert_content "$HOME/.config/opencode/opencode.jsonc" "sessions"
+assert_content "$HOME/.config/opencode/opencode.jsonc" "slack"
 
 summary

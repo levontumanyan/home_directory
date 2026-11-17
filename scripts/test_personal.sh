@@ -61,6 +61,8 @@ assert_realpath "$HOME/AGENTS.md" "dotfiles/profile/personal/AGENTS.md"
 assert_symlink "$HOME/.claude/skills" "dotfiles/profile/personal/.claude/skills"
 assert_symlink "$HOME/.gemini/skills" "dotfiles/profile/personal/.gemini/skills"
 assert_symlink "$HOME/.agents/skills/worktree/SKILL.md" "dotfiles/profile/personal/.agents/skills/worktree/SKILL.md"
+assert_symlink "$HOME/.config/opencode/opencode.jsonc" "dotfiles/profile/personal/.config/opencode/opencode.jsonc"
+assert_symlink "$HOME/.config/opencode/cli.json" "dotfiles/profile/personal/.config/opencode/cli.json"
 assert_content "$HOME/.claude/CLAUDE.md" "System Instruction"
 
 # ── 5. Idempotency ───────────────────────────────────────────────────────────
@@ -89,5 +91,10 @@ assert_file_exists "$HOME/.personal.zsh"
 assert_file_absent "$HOME/.work.zsh"
 assert_content "$HOME/AGENTS.md" "System Instruction"
 assert_no_content "$HOME/AGENTS.md" "WORK"
+assert_content "$HOME/.config/opencode/opencode.jsonc" "deepseek-v4.1-flash-free"
+assert_no_content "$HOME/.config/opencode/opencode.jsonc" "openrouter"
+assert_content "$HOME/.config/opencode/opencode.jsonc" "sessions"
+assert_no_content "$HOME/.config/opencode/opencode.jsonc" "slack"
+assert_content "$HOME/.config/opencode/cli.json" '"off"'
 
 summary
