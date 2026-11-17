@@ -62,6 +62,11 @@
 
   "terminal": {
     "autoResumeAgentSessions": true,
+    "agentHibernation": {
+      "enabled": true,
+      "idleSeconds": 3600,
+      "maxLiveTerminals": 12
+    },
     "copyOnSelect": true,
 
     "resumeCommands": [
