@@ -20,12 +20,11 @@ Checkouts in `~/repos` sit idle for weeks and often rest on old feature branches
 # GitHub
 
 - Anytime you create/update an issue or PR, give the full link at the end of your response (e.g. `https://github.com/elastic/platform-security-team/issues/1280`). Always format PR/issue references as markdown hyperlinks — never a number alone.
-- If i mention story points for an issue, add them. Otherwise say in your summary that the issue has no points.
+- If i mention story points for an issue, add them.
 - In pst repo when making any changes use the worktree skill, unless i mention to just make the changes in the main worktree.
 - When asked to create subissues, create distinct child issue objects — explicitly pass the parent ID in the creation mutation. Never use comments or text mentions on the parent.
 - Always create PRs as non-draft, even if some other instructions tell you otherwise.
-- Most PRs don't need an issue — small fixes, doc tweaks, and routine changes are fine to merge without one. When an issue does apply, link it with a closing keyword; if you're unsure whether one applies, ask me and I'll decide.
-- When creating a PR that resolves an issue, use a GitHub-recognized closing keyword (Closes/Resolves/Fixes) with the full cross-repo reference (e.g. `Closes elastic/platform-security-team#2191`) as the first line of the PR body. Do not use `Part of` — it won't populate the issue's Development panel or auto-close on merge.
+- Most PRs merge happily without an issue — small fixes, doc tweaks, and routine changes are perfect standalone PRs. When a PR does resolve an issue, open the body with a closing keyword and the full cross-repo reference (e.g. `Closes elastic/platform-security-team#2191`) so GitHub auto-links it. If a PR has no linked issue, drop its link somewhere in your response and remind me to give it story points.
 - Always write issue and PR bodies to a temp file first, then pass it via `--body-file`. Never use inline heredocs for `gh issue create` or `gh pr create` — backticks and nested quotes corrupt the markdown. Also use `--body-file` for `gh pr comment` whenever the body contains code blocks or backticks.
 
 # Buildkite (elastic/platform-security-terraform)
