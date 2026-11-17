@@ -2,6 +2,7 @@ tap "homebrew/cask"
 tap "homebrew/core"
 tap "jazzyalex/agent-sessions"
 tap "manaflow-ai/cmux"
+tap "nicknisi/formulae"
 tap "subinium/tap"
 tap "tiagovilasboas/tap"
 tap "wpscanteam/tap"
@@ -91,6 +92,10 @@ brew "node"
 brew "oci-cli"
 # Create, run, and share large language models (LLMs)
 brew "ollama"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# AI coding agent, built for the terminal
+brew "opencode"
 # Shell command parallelization utility
 brew "parallel"
 # Pinentry for GPG on Mac
@@ -109,8 +114,6 @@ brew "python-tk@3.12"
 brew "python@3.10"
 # Interpreted, interactive, object-oriented programming language
 brew "python@3.11"
-# Search tool like grep and The Silver Searcher
-brew "ripgrep"
 # CLI proxy to minimize LLM token consumption
 brew "rtk"
 # Smart session manager for the terminal
@@ -151,6 +154,8 @@ brew "ykman"
 brew "zoxide"
 # Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
+# Find and resume AI coding sessions (Claude Code, Codex, Pi)
+brew "nicknisi/formulae/sessions", trusted: true
 # AI Agent Session Finder TUI — find, resume, and manage AI coding agent sessions
 brew "subinium/tap/agf", trusted: true
 # Autonomous Session Agent Engine & Outer Harness for Google Antigravity
