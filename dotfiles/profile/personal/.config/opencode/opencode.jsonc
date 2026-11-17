@@ -2,15 +2,15 @@
 	"$schema": "https://opencode.ai/config.json",
 	"model": "opencode-go/glm-5.3-flash#low",
 	"mcp": {
-		"sessions": {
-			"type": "local",
-			"command": ["sessions", "--mcp"],
-			"enabled": true
-		},
-		"stealth-browser": {
-			"type": "local",
-			"command": ["uv", "run", "--script", "/Users/levontumanyan/repos/agent-tools/bin/stealth-browser"],
-			"enabled": true
+		"servers": {
+			"sessions": {
+				"type": "local",
+				"command": ["sessions", "--mcp"]
+			},
+			"stealth-browser": {
+				"type": "local",
+				"command": ["uv", "run", "--script", "/Users/levontumanyan/repos/agent-tools/bin/stealth-browser"]
+			}
 		}
 	},
 	"agent": {
