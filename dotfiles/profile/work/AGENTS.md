@@ -184,6 +184,7 @@ Use these channel IDs directly with Slack MCP tools — do not spend a turn sear
 - Slack drafts:
 
   - First line: the point or ask. Context after, only if needed.
+  - After the first time I draft a message, do not assume it is still sitting in drafts — in later turns, check the channel to see if it was already sent before referring to it as a pending draft.
   - Max 1-4 short sentences. One topic per message.
   - For asks, name who, what, by when.
   - Plain words, active voice. No filler, hedging, or sign-offs.
