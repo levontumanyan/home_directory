@@ -1,6 +1,6 @@
 {
 	"$schema": "https://opencode.ai/config.json",
-	"model": "opencode/deepseek-v4.1-flash-free",
+	"model": "opencode-go/deepseek-v4.1-flash",
 	"mcp": {
 		"sessions": {
 			"type": "local",
@@ -10,7 +10,57 @@
 	},
 	"agent": {
 		"build": {
-			"model": "opencode/deepseek-v4.1-flash-free#max"
+			"model": "opencode-go/deepseek-v4.1-flash#max"
+		}
+	},
+	"providers": {
+		"opencode": {
+			"models": {
+				"gpt-6.2-astra": { "disabled": true },
+				"gpt-6.2-sol": { "disabled": true },
+				"hy4-flash-free": { "disabled": true },
+				"gemini-4-hydrogen": { "disabled": true },
+				"claude-fable-5-2": { "disabled": true },
+				"muse-ember-1.0": { "disabled": true },
+				"iceman-free": { "disabled": true },
+				"inkling-2-small-free": { "disabled": true },
+				"longcat-2.5-free": { "disabled": true },
+				"flint-40b-free": { "disabled": true },
+				"deepseek-v4.1-flash": { "disabled": true },
+				"deepseek-v4.1-flash-free": { "disabled": true },
+				"nemotron-3.5-super-vl-free": { "disabled": true },
+				"claude-haiku-5-5": { "disabled": true },
+				"mistral-large-4": { "disabled": true },
+				"beam-free": { "disabled": true },
+				"gpt-6.1-sol": { "disabled": true },
+				"claude-sonnet-5-5": { "disabled": true },
+				"mimo-v2.6-flash-free": { "disabled": true },
+				"gpt-6-luna": { "disabled": true },
+				"claude-opus-5-5": { "disabled": true },
+				"grok-4.7": { "disabled": true },
+				"gpt-6-astra": { "disabled": true },
+				"gemini-3.8-flash": { "disabled": true },
+				"glm-5.3-flash-free": { "disabled": true },
+				"qwen3.8-flash": { "disabled": true },
+				"glm-5.3-flash": { "disabled": true },
+				"glm-5.3": { "disabled": true },
+				"nemotron-3.5-lightning-free": { "disabled": true },
+				"gemini-3.5-flash-lite": { "disabled": true },
+				"kimi-k3": { "disabled": true },
+				"gpt-5.6-terra": { "disabled": true },
+				"kimi-k2.7-code": { "disabled": true },
+				"minimax-m3": { "disabled": true },
+				"deepseek-v4-pro": { "disabled": true },
+				"gpt-5.5-pro": { "disabled": true },
+				"gpt-5.5": { "disabled": true },
+				"grok-build-0.1": { "disabled": true },
+				"gpt-5.4-mini": { "disabled": true },
+				"gpt-5.4-nano": { "disabled": true },
+				"gemini-3.1-pro": { "disabled": true },
+				"gpt-5.3-codex-spark": { "disabled": true },
+				"gpt-5.3-codex": { "disabled": true },
+				"big-pickle": { "disabled": true }
+			}
 		}
 	}
 }
