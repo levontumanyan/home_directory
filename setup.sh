@@ -70,7 +70,8 @@ if [ "$(uname)" = "Darwin" ]; then
 	for agent in \
 		"$HOME/Library/LaunchAgents/com.antigravity.telemetry.plist" \
 		"$HOME/Library/LaunchAgents/com.levon.agy-sessions-arm.plist" \
-		"$HOME/Library/LaunchAgents/com.levon.agy-sessions-cull.plist"; do
+		"$HOME/Library/LaunchAgents/com.levon.agy-sessions-cull.plist" \
+		"$HOME/Library/LaunchAgents/com.levon.opencode-sessions-cull.plist"; do
 		if [ -f "$agent" ] || [ -L "$agent" ]; then
 			echo "Setting up LaunchAgent $(basename "$agent")..."
 			launchctl unload "$agent" 2>/dev/null || true
@@ -82,4 +83,9 @@ if [ "$(uname)" = "Darwin" ]; then
 	if [ -f "$(dirname "$0")/scripts/setup_brave.sh" ]; then
 		bash "$(dirname "$0")/scripts/setup_brave.sh"
 	fi
+fi
+
+# Sync Antigravity CLI settings without symlinking (agy atomic-writes replace symlinks)
+if [ -f "$(dirname "$0")/scripts/setup_antigravity.sh" ]; then
+	bash "$(dirname "$0")/scripts/setup_antigravity.sh"
 fi
