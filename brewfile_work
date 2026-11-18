@@ -79,6 +79,10 @@ brew "poetry"
 brew "pre-commit"
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# Powerful, clean, object-oriented scripting language
+brew "ruby"
+# Powerful, clean, object-oriented scripting language
+brew "ruby@3.2"
 # Safe, concurrent, practical language
 brew "rust"
 # Smart session manager for the terminal

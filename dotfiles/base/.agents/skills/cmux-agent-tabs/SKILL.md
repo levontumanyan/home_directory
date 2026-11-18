@@ -96,6 +96,7 @@ When opening many tabs, loop steps 3–7 per PR sequentially (each needs its boo
 - **`read-screen` works on terminal surfaces only** — with `--workspace` and `--surface` refs, both required.
 - **PR branches may come from forks**: `gh pr view <n> --json headRepositoryOwner` first. If the head repo is not the target repo, `git remote add <owner> https://github.com/<owner>/<repo>.git`, then fetch and worktree from `<remote>/<branch>`.
 - **Worktree layout on this machine**: `~/repos/<repo>` is often a *container directory* of worktrees with the main checkout inside it (e.g. `~/repos/platform-security-terraform/pst`). Discover with `git worktree list` from the main checkout before creating new ones, and follow the existing naming convention (`<repo>--<slug>`).
+- **A spawned agent that can run cmux commands can create its own workspaces** — workspace names are not unique per window, so an agent told to "open tabs in this workspace" without the literal ref will happily run `cmux new-workspace` under the same name and put its workers there, silently duplicating the sidebar entry (happened live: coordinator spawned into `COORD · Web App Security` created a second `COORD · Web App Security`). Prevention and detection are in "Spawning a fleet-controlling coordinator agent" below; the short version: pin refs literally in every agent prompt, and run `cmux workspace list` after any agent-driven spawning — name collisions are otherwise silent.
 
 ## Review prompt template
 
@@ -162,6 +163,18 @@ When one session (this one) owns a batch of worker tabs and drives them to compl
 8. **Seed a termination protocol into every worker prompt** — "When your task is done: write your full report to <run-dir>/<name>-report.md, append one entry to the shared.md message log, write a short on-screen verdict for the operator, then stop. Do not close this tab, do not run /exit, do not ask anyone to close it — the coordinator and user own tab lifecycle." Workers *can* self-close (verified live: `cmux identify` reveals the worker's own `caller.surface_ref`, and `cmux close-surface --surface <own> --workspace <own> --force true` really closes the tab — the CLI delivers the close over the socket before the session dies), but a self-closed worker cannot confirm or report anything afterward — its report dies with the tab, and the coordinator loses its output. That is why tab lifecycle stays with the coordinator, not a capability gap. A worker attempting a self-close may also stall at its own permission gate asking for confirmation — if you see that question on `read-screen`, answer it via `cmux send` + `cmux send-key ... enter`.
 
 When the workers live in a coordinator-created workspace, the coordinator tab sits first (`--index 0`) and workers follow in the order the user will read them — `reorder-surface` inside that workspace, same as the "Reordering tabs" rules.
+
+## Spawning a fleet-controlling coordinator agent
+
+The Coordinator pattern above assumes *you* drive the workers. When the user asks for a spawned coordinator agent — one opencode session that itself opens tabs and runs workers — spawn it with the recipe, then seed its charter with these blocks. Each one exists because skipping it failed in practice:
+
+1. **Pinned identity, no placeholders.** State its workspace and surface refs literally, never `<this workspace>`: `your workspace is workspace:NN ("COORD · <topic>"); your tab is surface:NN. Never run cmux new-workspace or cmux workspace create — every tab you open passes --workspace workspace:NN.` An agent given a placeholder resolves it by creating its own workspace under a duplicate name; cmux does not warn on collisions.
+2. **The full recipe, restated.** The coordinator re-implements the Coordinator pattern itself: worktree per task, name = tab name = report filename, run dir with `shared.md`, termination protocol in every worker prompt, poll via `read-screen`, harvest via report files. Include the spawn recipe commands in its charter — it cannot see this skill.
+3. **Structural-command logging.** Require: log every cmux command that creates, renames, or moves a surface to the `shared.md` message log *before* running it. A prompt rule can be ignored; the log makes a rogue `new-workspace` visible on your first poll instead of surfacing as a duplicate sidebar entry later.
+4. **Delegated choices, decided up front.** If the user delegates model/effort selection, say so in the charter ("you pick the effort level per worker when you start its chat; log the choice") so it decides once, not per-prompt.
+5. **Verify its structure, not its self-report.** After the coordinator spawns its fleet, your first status pass is `cmux workspace list` (duplicate names?) and `cmux tree --workspace <ref>` (does the workspace contain what it claims?) before trusting anything it says. The agent's self-report describes intent; the tree is ground truth.
+
+If a duplicate workspace already exists with live agents inside: `cmux move-surface --surface <ref> --workspace <ref>` carries tabs (workers keep running, refs unchanged) into the survivor, then `cmux workspace close <ref>` removes the empty shell. Close only after the tree confirms nothing live remains.
 
 ## Reordering tabs
 
