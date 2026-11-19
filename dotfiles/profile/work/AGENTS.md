@@ -41,6 +41,7 @@ Checkouts in `~/repos` sit idle for weeks and often rest on old feature branches
 
 - `sessions` indexes local Claude Code, OpenCode, Codex, and Pi sessions; use its MCP for historical context, and use `sessions context`, `sessions --here`, or `sessions why <file>` from the CLI. Documentation: `https://github.com/nicknisi/sessions`; local command reference: `sessions --help`.
 - I am using `podman`! No `docker`.
+- **Search**: use `rg`, not `grep`, in shell commands for content search — `rg` skips `.terraform`, hidden, and gitignored files by default, while `grep -r` scans them and burns minutes on big checkouts. `grep` is fine only as a pipe stage (`ls | grep`). No `\|` BRE escapes with `rg` — plain `|` alternation.
 
 ## Vault CLI
 
