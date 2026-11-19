@@ -15,6 +15,22 @@
 				"export GOOGLE_MAPS_API_KEY=$(security find-generic-password -w -s \"google-maps-api-key\" -a \"$USER\") && exec npx -y @modelcontextprotocol/server-google-maps"
 			],
 			"disabled": false
+		},
+		"fibonacci-dispatch": {
+			"command": "/bin/zsh",
+			"args": [
+				"-c",
+				"export FIBONACCI_MCP_AUTH=\"Bearer $(security find-generic-password -w -s fibonacci-dispatch -a $USER)\" && exec npx -y mcp-remote https://fibonacci.tail8b9be7.ts.net:8765/mcp --header \"Authorization:${FIBONACCI_MCP_AUTH}\""
+			]
+		},
+		"agy-search": {
+			"command": "uv",
+			"args": [
+				"run",
+				"--script",
+				"/Users/levontumanyan/repos/agent-tools/bin/agy-search",
+				"mcp"
+			]
 		}
 	}
 }
