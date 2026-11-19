@@ -19,6 +19,8 @@ A plain terminal tab running the `opencode` TUI works with every cmux command: `
 
 ## Creating a workspace (coordinator move-out)
 
+**Check before you create:** run `cmux workspace list` (or `cmux tree`) and look for an existing workspace with the run's topic name first. Workspace names are *not* unique — cmux creates a silent duplicate with no warning (verified live: a second `COORD · Web App Security` under a different ref). Creating a workspace is the right move only when no existing one matches the topic; if one does, reuse it **by ref** (`workspace:NN`) for every `--workspace` flag and never create a twin. If you inherit a charter that says `<this workspace>` as a placeholder, resolving it means *find the existing ref*, not *create one that fits the name*.
+
 `cmux new-workspace` (alias `cmux workspace create`) makes a fresh workspace for a coordination run, so worker tabs never crowd the user's existing ones:
 
 ```bash
