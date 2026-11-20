@@ -16,6 +16,8 @@ brew "gettext"
 brew "bash"
 # Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
+# Control and limit battery charging on Apple Silicon MacBooks
+brew "batt"
 # C unit testing framework
 brew "check"
 # Cloudflare Tunnel client (formerly Argo Tunnel)

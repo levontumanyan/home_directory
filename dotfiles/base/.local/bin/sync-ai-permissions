@@ -23,7 +23,8 @@ from pathlib import Path
 COMMANDS_FILE = Path.home() / ".config/ai-tools/allowed-commands.txt"
 CLAUDE_SETTINGS = Path.home() / ".claude/settings.json"
 AGENT_SETTINGS = Path.home() / ".gemini/antigravity-cli/settings.json"
-DOTFILES_AGENT_SETTINGS = Path.home() / "repos/home_directory/dotfiles/base/.gemini/antigravity-cli/settings.json"
+AGENT_MCP_DIR = Path.home() / ".gemini/antigravity-cli/mcp"
+DOTFILES_AGENT_SETTINGS = Path.home() / "repos/home_directory/config/antigravity-cli/settings.json"
 OPENCODE_CONFIG = Path.home() / ".config/opencode/opencode.jsonc"
 
 # Bash commands that need no wildcard suffix in Claude format
@@ -216,6 +217,14 @@ def sync_claude(sections):
 # Antigravity (Gemini CLI)
 # ---------------------------------------------------------------------------
 
+def _agent_discover_mcp_tools(server):
+	"""Return tool names for an MCP server from Antigravity's schema cache."""
+	server_dir = AGENT_MCP_DIR / server
+	if not server_dir.is_dir():
+		return []
+	return sorted(p.stem for p in server_dir.glob("*.json"))
+
+
 def _agent_mcp_entries(mcp_lines):
 	entries = []
 	for line in mcp_lines:
@@ -231,7 +240,11 @@ def _agent_mcp_entries(mcp_lines):
 				tool_name = t.split("__")[-1]
 				entries.append(f"mcp({server}/{tool_name})")
 		elif mode == "wildcard":
-			entries.append(f"mcp({server}/*)")
+			tools = _agent_discover_mcp_tools(server)
+			if tools:
+				entries.extend(f"mcp({server}/{tool})" for tool in tools)
+			else:
+				entries.append(f"mcp({server}/*)")
 		else:
 			entries.append(f"mcp({server}/{mode})")
 	return sorted(entries)

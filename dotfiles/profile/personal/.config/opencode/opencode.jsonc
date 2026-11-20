@@ -5,11 +5,19 @@
 		"servers": {
 			"sessions": {
 				"type": "local",
-				"command": ["sessions", "--mcp"]
+				"command": [
+					"sessions",
+					"--mcp"
+				]
 			},
 			"stealth-browser": {
 				"type": "local",
-				"command": ["uv", "run", "--script", "/Users/levontumanyan/repos/agent-tools/bin/stealth-browser"]
+				"command": [
+					"uv",
+					"run",
+					"--script",
+					"/Users/levontumanyan/repos/agent-tools/bin/stealth-browser"
+				]
 			}
 		}
 	},
@@ -21,51 +29,254 @@
 	"providers": {
 		"opencode": {
 			"models": {
-				"gpt-6.2-astra": { "disabled": true },
-				"gpt-6.2-sol": { "disabled": true },
-				"hy4-flash-free": { "disabled": true },
-				"gemini-4-hydrogen": { "disabled": true },
-				"claude-fable-5-2": { "disabled": true },
-				"muse-ember-1.0": { "disabled": true },
-				"iceman-free": { "disabled": true },
-				"inkling-2-small-free": { "disabled": true },
-				"longcat-2.5-free": { "disabled": true },
-				"flint-40b-free": { "disabled": true },
-				"deepseek-v4.1-flash": { "disabled": true },
-				"deepseek-v4.1-flash-free": { "disabled": true },
-				"nemotron-3.5-super-vl-free": { "disabled": true },
-				"claude-haiku-5-5": { "disabled": true },
-				"mistral-large-4": { "disabled": true },
-				"beam-free": { "disabled": true },
-				"gpt-6.1-sol": { "disabled": true },
-				"claude-sonnet-5-5": { "disabled": true },
-				"mimo-v2.6-flash-free": { "disabled": true },
-				"gpt-6-luna": { "disabled": true },
-				"claude-opus-5-5": { "disabled": true },
-				"grok-4.7": { "disabled": true },
-				"gpt-6-astra": { "disabled": true },
-				"gemini-3.8-flash": { "disabled": true },
-				"glm-5.3-flash-free": { "disabled": true },
-				"qwen3.8-flash": { "disabled": true },
-				"glm-5.3-flash": { "disabled": true },
-				"glm-5.3": { "disabled": true },
-				"nemotron-3.5-lightning-free": { "disabled": true },
-				"gemini-3.5-flash-lite": { "disabled": true },
-				"kimi-k3": { "disabled": true },
-				"gpt-5.6-terra": { "disabled": true },
-				"kimi-k2.7-code": { "disabled": true },
-				"minimax-m3": { "disabled": true },
-				"deepseek-v4-pro": { "disabled": true },
-				"gpt-5.5-pro": { "disabled": true },
-				"gpt-5.5": { "disabled": true },
-				"grok-build-0.1": { "disabled": true },
-				"gpt-5.4-mini": { "disabled": true },
-				"gpt-5.4-nano": { "disabled": true },
-				"gemini-3.1-pro": { "disabled": true },
-				"gpt-5.3-codex-spark": { "disabled": true },
-				"gpt-5.3-codex": { "disabled": true },
-				"big-pickle": { "disabled": true }
+				"gpt-6.2-astra": {
+					"disabled": true
+				},
+				"gpt-6.2-sol": {
+					"disabled": true
+				},
+				"hy4-flash-free": {
+					"disabled": true
+				},
+				"gemini-4-hydrogen": {
+					"disabled": true
+				},
+				"claude-fable-5-2": {
+					"disabled": true
+				},
+				"muse-ember-1.0": {
+					"disabled": true
+				},
+				"iceman-free": {
+					"disabled": true
+				},
+				"inkling-2-small-free": {
+					"disabled": true
+				},
+				"longcat-2.5-free": {
+					"disabled": true
+				},
+				"flint-40b-free": {
+					"disabled": true
+				},
+				"deepseek-v4.1-flash": {
+					"disabled": true
+				},
+				"deepseek-v4.1-flash-free": {
+					"disabled": true
+				},
+				"nemotron-3.5-super-vl-free": {
+					"disabled": true
+				},
+				"claude-haiku-5-5": {
+					"disabled": true
+				},
+				"mistral-large-4": {
+					"disabled": true
+				},
+				"beam-free": {
+					"disabled": true
+				},
+				"gpt-6.1-sol": {
+					"disabled": true
+				},
+				"claude-sonnet-5-5": {
+					"disabled": true
+				},
+				"mimo-v2.6-flash-free": {
+					"disabled": true
+				},
+				"gpt-6-luna": {
+					"disabled": true
+				},
+				"claude-opus-5-5": {
+					"disabled": true
+				},
+				"grok-4.7": {
+					"disabled": true
+				},
+				"gpt-6-astra": {
+					"disabled": true
+				},
+				"gemini-3.8-flash": {
+					"disabled": true
+				},
+				"glm-5.3-flash-free": {
+					"disabled": true
+				},
+				"qwen3.8-flash": {
+					"disabled": true
+				},
+				"glm-5.3-flash": {
+					"disabled": true
+				},
+				"glm-5.3": {
+					"disabled": true
+				},
+				"nemotron-3.5-lightning-free": {
+					"disabled": true
+				},
+				"gemini-3.5-flash-lite": {
+					"disabled": true
+				},
+				"kimi-k3": {
+					"disabled": true
+				},
+				"gpt-5.6-terra": {
+					"disabled": true
+				},
+				"kimi-k2.7-code": {
+					"disabled": true
+				},
+				"minimax-m3": {
+					"disabled": true
+				},
+				"deepseek-v4-pro": {
+					"disabled": true
+				},
+				"gpt-5.5-pro": {
+					"disabled": true
+				},
+				"gpt-5.5": {
+					"disabled": true
+				},
+				"grok-build-0.1": {
+					"disabled": true
+				},
+				"gpt-5.4-mini": {
+					"disabled": true
+				},
+				"gpt-5.4-nano": {
+					"disabled": true
+				},
+				"gemini-3.1-pro": {
+					"disabled": true
+				},
+				"gpt-5.3-codex-spark": {
+					"disabled": true
+				},
+				"gpt-5.3-codex": {
+					"disabled": true
+				},
+				"big-pickle": {
+					"disabled": true
+				}
 			}
 		}
+	},
+	"permission": {
+		"bash": {
+			"airbnb": "allow",
+			"apple-pay": "allow",
+			"argo get": "allow",
+			"awk": "allow",
+			"basename": "allow",
+			"bk artifacts": "allow",
+			"bk build list": "allow",
+			"bk build view": "allow",
+			"bk pipeline view": "allow",
+			"cal-event": "allow",
+			"call-recordings": "allow",
+			"cat": "allow",
+			"curl": "allow",
+			"curl --silent": "allow",
+			"curl -s": "allow",
+			"cut": "allow",
+			"d2": "allow",
+			"date": "allow",
+			"df": "allow",
+			"diff": "allow",
+			"dig": "allow",
+			"dirname": "allow",
+			"download-video": "allow",
+			"du": "allow",
+			"echo": "allow",
+			"env": "allow",
+			"file": "allow",
+			"find": "allow",
+			"flights": "allow",
+			"gh api": "allow",
+			"gh issue": "allow",
+			"gh issue list": "allow",
+			"gh issue view": "allow",
+			"gh pr checks": "allow",
+			"gh pr diff": "allow",
+			"gh pr list": "allow",
+			"gh pr review": "allow",
+			"gh pr status": "allow",
+			"gh pr view": "allow",
+			"gh release list": "allow",
+			"gh release view": "allow",
+			"gh repo view": "allow",
+			"gh run list": "allow",
+			"gh run view": "allow",
+			"gh search": "allow",
+			"gh workflow list": "allow",
+			"gh workflow view": "allow",
+			"git blame": "allow",
+			"git branch": "allow",
+			"git check-ignore": "allow",
+			"git diff": "allow",
+			"git fetch": "allow",
+			"git log": "allow",
+			"git ls-files": "allow",
+			"git remote": "allow",
+			"git rev-parse": "allow",
+			"git shortlog": "allow",
+			"git show": "allow",
+			"git stash list": "allow",
+			"git status": "allow",
+			"git tag": "allow",
+			"git worktree": "allow",
+			"grep": "allow",
+			"grep -r": "allow",
+			"head": "allow",
+			"hostname": "allow",
+			"imessage": "allow",
+			"ipconfig getifaddr": "allow",
+			"jq": "allow",
+			"kubectl describe": "allow",
+			"kubectl explain": "allow",
+			"kubectl get": "allow",
+			"kubectl logs": "allow",
+			"kubectl top": "allow",
+			"ls": "allow",
+			"lsof": "allow",
+			"make check": "allow",
+			"make format": "allow",
+			"make lint": "allow",
+			"make test": "allow",
+			"networkQuality": "allow",
+			"outlook": "allow",
+			"pdftotext": "allow",
+			"pgrep": "allow",
+			"ping": "allow",
+			"printenv": "allow",
+			"ps": "allow",
+			"pwd": "allow",
+			"readlink": "allow",
+			"realpath": "allow",
+			"rg": "allow",
+			"route get": "allow",
+			"sed -n": "allow",
+			"sort": "allow",
+			"stat": "allow",
+			"tail": "allow",
+			"tr": "allow",
+			"traceroute": "allow",
+			"tree": "allow",
+			"type": "allow",
+			"uname": "allow",
+			"uniq": "allow",
+			"uptime": "allow",
+			"wc": "allow",
+			"whatsapp": "allow",
+			"whereis": "allow",
+			"which": "allow",
+			"whoami": "allow",
+			"wifi-check": "allow",
+			"yahoo": "allow"
+		},
+		"webfetch": "allow"
 	}
 }

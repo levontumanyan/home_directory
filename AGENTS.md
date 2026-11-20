@@ -14,6 +14,11 @@ Three layers are stowed in order: `dotfiles/base/` (all machines), `dotfiles/os/
 
 Profile is auto-detected at install time: if `~/.work.zsh` exists → work, if `~/.personal.zsh` exists → personal, otherwise prompts. Pass `-m work` or `-m personal` to skip. Brewfiles: brewfile_work for work machines, brewfile_personal for personal.
 
+# AI Tool Permissions
+
+- Canonical list: `dotfiles/base/.config/ai-tools/allowed-commands.txt`
+- Sync script: `dotfiles/base/.local/bin/sync-ai-permissions` (run `sync-ai-permissions` after edits)
+
 # Testing
 
 Always run tests via `make test` — never run `scripts/test.sh` directly, as it must execute inside the container to avoid stowing into the real `$HOME`.

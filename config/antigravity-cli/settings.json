@@ -5,6 +5,9 @@
 	"model": "Gemini 3.8 Flash (Medium)",
 	"permissions": {
 		"allow": [
+			"mcp(agy-search/get_session)",
+			"mcp(agy-search/index_stats)",
+			"mcp(agy-search/search_sessions)",
 			"mcp(apple-calendar/*)",
 			"mcp(atlassian/atlassianUserInfo)",
 			"mcp(atlassian/fetch)",
@@ -39,7 +42,13 @@
 			"mcp(google-drive/list_recent_files)",
 			"mcp(google-drive/read_file_content)",
 			"mcp(google-drive/search_files)",
-			"mcp(google-maps/*)",
+			"mcp(google-maps/maps_directions)",
+			"mcp(google-maps/maps_distance_matrix)",
+			"mcp(google-maps/maps_elevation)",
+			"mcp(google-maps/maps_geocode)",
+			"mcp(google-maps/maps_place_details)",
+			"mcp(google-maps/maps_reverse_geocode)",
+			"mcp(google-maps/maps_search_places)",
 			"mcp(slack/slack_get_reactions)",
 			"mcp(slack/slack_list_channel_members)",
 			"mcp(slack/slack_read_canvas)",
@@ -180,8 +189,8 @@
 			"command(whoami)",
 			"command(wifi-check)",
 			"command(yahoo)",
-			"read_file(/Users/levontumanyan/repos)",
-			"read_file(/Users/levontumanyan/.gemini)"
+			"read_file(/Users/levontumanyan/.gemini)",
+			"read_file(/Users/levontumanyan/repos)"
 		]
 	},
 	"statusLine": {
