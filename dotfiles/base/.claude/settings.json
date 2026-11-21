@@ -227,6 +227,5 @@
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
-  "theme": "dark",
-  "skipAutoPermissionPrompt": true
+  "theme": "dark"
 }

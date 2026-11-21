@@ -5,7 +5,14 @@ description: Open and drive opencode (or other TUI agent) tabs in cmux workspace
 
 # cmux agent tabs
 
-Run one opencode TUI per PR/task in cmux terminal tabs, each seeded with a prompt via clipboard paste. Never type prompts into a TUI by hand and never use `--type agent-session`.
+Run one TUI agent per PR/task in cmux terminal tabs, each seeded with a prompt via clipboard paste. Never type prompts into a TUI by hand and never use `--type agent-session`.
+
+## Default agent CLI (work vs personal)
+
+- **Work** (`~/.work.zsh` exists): `opencode`
+- **Personal** (`~/.personal.zsh` exists): `agy`
+
+Check `[ -f ~/.work.zsh ] && echo opencode || echo agy` before running `new-surface --command <agent>`.
 
 ## Why terminal surfaces, not agent-session surfaces
 
@@ -58,17 +65,17 @@ Workspace refs look like `workspace:26`; windows like `window:2`. The `--workspa
    git worktree add <path> --track -b pr/<number> origin/<head-branch>
    ```
 2. Write the prompt to a file under the approved temp dir (`/private/var/folders/.../T/opencode`), never a heredoc inline — `cmux paste` reads it with `- < file`.
-3. Open the tab:
+3. Open the tab (`<agent>` = `opencode` on work, `agy` on personal):
    ```bash
    cmux new-surface --type terminal \
      --working-directory <worktree> \
-     --command opencode \
+     --command <agent> \
      --workspace <ref> --window <ref> --focus false
    # <ref> = the caller's workspace_ref from `cmux identify` — never from `workspace list`
    # OK surface:240 pane:48 workspace:26  → capture the surface ref
    ```
    `--focus false` keeps the user's current tab focused while a batch opens.
-4. Wait for the TUI to boot (~`sleep 9`). opencode shows an MCP-auth banner and an input box; pasting before boot drops the prompt.
+4. Wait for the TUI to boot (~`sleep 9`). `opencode` / `agy` shows its startup banner and input box; pasting before boot drops the prompt.
 5. Seed the prompt:
    ```bash
    cmux paste --workspace <ref> --surface <surface-ref> --submit - < prompt.md

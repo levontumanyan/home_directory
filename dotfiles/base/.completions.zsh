@@ -38,6 +38,7 @@ _cache_completion kubectl kubectl completion zsh
 _cache_completion gh gh completion -s zsh
 _cache_completion uv uv generate-shell-completion zsh
 _cache_completion opencode opencode completion zsh
+_cache_completion batt batt completion zsh
 
 # fzf sets up key bindings in addition to completions — must be sourced each time
 command -v fzf >/dev/null 2>&1 && source <(fzf --zsh)

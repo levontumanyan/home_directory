@@ -23,6 +23,12 @@ Coordinate remote worker tasks on `fibonacci` with live `cmux` visibility and di
 	- Call `get_task_status(task_id=...)` to read the full `report_md` and diffs.
 	- Confirm companion services (`agy-mcp.service` on port `8765`, `tailscale serve`) remain untouched and healthy.
 
+## Worker lifecycle (user-controlled)
+
+- Workers stay **live after reporting**: `submit_report` triggers the runner's gate/push/PR handoff automatically — no exit is needed. The worker sits idle in its tab so the user can inspect it and send follow-ups.
+- **Never stop, kill, or send `/exit` to a worker on your own initiative.** When a worker goes idle after its report, report that to the user and wait for their call.
+- Only call `stop_task` (or `agy-remote stop`) when the user explicitly asks to end a worker — either telling you to kill it, or telling the worker directly in its tab.
+
 ## Host Notes (`fibonacci`)
 
 - **Non-interactive commits:** `git commit` on `fibonacci` may fail on `gpg: cannot open '/dev/tty'`. Use `git commit --no-gpg-sign` when committing non-interactively, and stage only task-specific files.
